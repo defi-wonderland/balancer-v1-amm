@@ -4,5 +4,5 @@
 
 /** @type {import('@defi-wonderland/natspec-smells').Config} */
 module.exports = {
-  include: 'contracts'
+  include: 'src'
 };
