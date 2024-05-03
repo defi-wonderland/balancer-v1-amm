@@ -29,8 +29,9 @@ contract BFactory_Unit_IsBPool is Base {
   /**
    * @notice Test that a valid pool is present on the mapping
    */
-  function test_Returns_IsValidPool() public {
-    BPool _pool = bFactory.newBPool();
+  function test_Returns_IsValidPool(address _pool) public {
+    // Writing TRUE (1) to the mapping with the `_pool` key
+    vm.store(address(bFactory), keccak256(abi.encode(_pool, uint(0))), bytes32(uint(1)));
     assertTrue(bFactory.isBPool(address(_pool)));
   }
 
