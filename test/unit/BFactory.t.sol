@@ -26,6 +26,24 @@ contract BFactory_Unit_Constructor is Base {
 
 contract BFactory_Unit_IsBPool is Base {
   /**
+   * @notice Test that a valid pool is present on the mapping
+   */
+  function test_validPoolIsBPool() public {
+    BPool _pool = bFactory.newBPool();
+    assertTrue(bFactory.isBPool(address(_pool)));
+  }
+
+  /**
+   * @notice Test that a invalid pool is not present on the mapping
+   */
+  function test_invalidPoolIsNotBPool(address _randomPool) public view {
+    vm.assume(_randomPool != address(0));
+    assertFalse(bFactory.isBPool(_randomPool));
+  }
+}
+
+contract BFactory_Unit_NewBPool is Base {
+  /**
    * @notice Test that the pool is set on the mapping
    */
   function test_poolIsBPool() public {
@@ -63,14 +81,77 @@ contract BFactory_Unit_IsBPool is Base {
   }
 }
 
-contract BFactory_Unit_NewBPool is Base {
-}
-
 contract BFactory_Unit_GetBLabs is Base {
+  /**
+   * @notice Test that the correct owner is returned
+   */
+  function test_correctOwner(address _randomDeployer) public {
+    vm.prank(_randomDeployer);
+    BFactory _bFactory = new BFactory();
+    assertEq(_randomDeployer, _bFactory.getBLabs());
+  }
 }
 
 contract BFactory_Unit_SetBLabs is Base {
+  /**
+   * @notice Test that only the owner can set the BLabs
+   */
+  function test_failIfNotBLabs(address _randomCaller) public {
+    vm.assume(_randomCaller != owner);
+    vm.expectRevert('ERR_NOT_BLABS');
+    vm.prank(_randomCaller);
+    bFactory.setBLabs(_randomCaller);
+  }
+
+  /**
+   * @notice Test that event is emitted
+   */
+  function test_emitEvent(address _addressToSet) public {
+    vm.expectEmit(true, true, true, true);
+    emit BFactory.LOG_BLABS(owner, _addressToSet);
+    vm.prank(owner);
+    bFactory.setBLabs(_addressToSet);
+  }
+
+  /**
+   * @notice Test that the BLabs is set correctly
+   */
+  function test_setBLabs(address _addressToSet) public {
+    vm.prank(owner);
+    bFactory.setBLabs(_addressToSet);
+    assertEq(_addressToSet, bFactory.getBLabs());
+  }
 }
 
 contract BFactory_Unit_Collect is Base {
+  /**
+   * @notice Test that only the owner can collect
+   */
+  function test_failIfNotBLabs(address _randomCaller) public {
+    vm.assume(_randomCaller != owner);
+    vm.expectRevert('ERR_NOT_BLABS');
+    vm.prank(_randomCaller);
+    bFactory.collect(BPool(address(0)));
+  }
+
+  /**
+   * @notice Test that LP token `balanceOf` function is called
+   */
+  function test_callBalanceOf() public {
+
+  }
+
+  /**
+   * @notice Test that LP token `transfer` function is called
+   */
+  function test_callTransfer() public {
+
+  }
+
+  /**
+   * @notice Test that the function fail if the transfer failed
+   */
+  function test_failIfTransferFailed() public {
+
+  }
 }
