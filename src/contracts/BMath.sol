@@ -18,13 +18,13 @@ import './BNum.sol';
 contract BMath is BBronze, BConst, BNum {
   /**
    *
-   *   // calcSpotPrice                                                                             //
-   *   // sP = spotPrice                                                                            //
-   *   // bI = tokenBalanceIn                ( bI / wI )         1                                  //
-   *   // bO = tokenBalanceOut         sP =  -----------  *  ----------                             //
-   *   // wI = tokenWeightIn                 ( bO / wO )     ( 1 - sF )                             //
-   *   // wO = tokenWeightOut                                                                       //
-   *   // sF = swapFee                                                                              //
+   *    calcSpotPrice
+   *    sP = spotPrice
+   *    bI = tokenBalanceIn                ( bI / wI )         1
+   *    bO = tokenBalanceOut         sP =  -----------  *  ----------
+   *    wI = tokenWeightIn                 ( bO / wO )     ( 1 - sF )
+   *    wO = tokenWeightOut
+   *    sF = swapFee
    *
    */
   function calcSpotPrice(
@@ -43,14 +43,14 @@ contract BMath is BBronze, BConst, BNum {
 
   /**
    *
-   *   // calcOutGivenIn                                                                            //
-   *   // aO = tokenAmountOut                                                                       //
-   *   // bO = tokenBalanceOut                                                                      //
-   *   // bI = tokenBalanceIn              /      /            bI             \    (wI / wO) \      //
-   *   // aI = tokenAmountIn    aO = bO * |  1 - | --------------------------  | ^            |     //
-   *   // wI = tokenWeightIn               \      \ ( bI + ( aI * ( 1 - sF )) /              /      //
-   *   // wO = tokenWeightOut                                                                       //
-   *   // sF = swapFee                                                                              //
+   *    calcOutGivenIn
+   *    aO = tokenAmountOut
+   *    bO = tokenBalanceOut
+   *    bI = tokenBalanceIn              /      /            bI             \    (wI / wO) \
+   *    aI = tokenAmountIn    aO = bO * |  1 - | --------------------------  | ^            |
+   *    wI = tokenWeightIn               \      \ ( bI + ( aI * ( 1 - sF )) /              /
+   *    wO = tokenWeightOut
+   *    sF = swapFee
    *
    */
   function calcOutGivenIn(
@@ -73,14 +73,14 @@ contract BMath is BBronze, BConst, BNum {
 
   /**
    *
-   *   // calcInGivenOut                                                                            //
-   *   // aI = tokenAmountIn                                                                        //
-   *   // bO = tokenBalanceOut               /  /     bO      \    (wO / wI)      \                 //
-   *   // bI = tokenBalanceIn          bI * |  | ------------  | ^            - 1  |                //
-   *   // aO = tokenAmountOut    aI =        \  \ ( bO - aO ) /                   /                 //
-   *   // wI = tokenWeightIn           --------------------------------------------                 //
-   *   // wO = tokenWeightOut                          ( 1 - sF )                                   //
-   *   // sF = swapFee                                                                              //
+   *    calcInGivenOut
+   *    aI = tokenAmountIn
+   *    bO = tokenBalanceOut               /  /     bO      \    (wO / wI)      \
+   *    bI = tokenBalanceIn          bI * |  | ------------  | ^            - 1  |
+   *    aO = tokenAmountOut    aI =        \  \ ( bO - aO ) /                   /
+   *    wI = tokenWeightIn           --------------------------------------------
+   *    wO = tokenWeightOut                          ( 1 - sF )
+   *    sF = swapFee
    *
    */
   function calcInGivenOut(
@@ -103,14 +103,14 @@ contract BMath is BBronze, BConst, BNum {
 
   /**
    *
-   *   // calcPoolOutGivenSingleIn                                                                  //
-   *   // pAo = poolAmountOut         /                                              \              //
-   *   // tAi = tokenAmountIn        ///      /     //    wI \      \\       \     wI \             //
-   *   // wI = tokenWeightIn        //| tAi *| 1 - || 1 - --  | * sF || + tBi \    --  \            //
-   *   // tW = totalWeight     pAo=||  \      \     \\    tW /      //         | ^ tW   | * pS - pS //
-   *   // tBi = tokenBalanceIn      \\  ------------------------------------- /        /            //
-   *   // pS = poolSupply            \\                    tBi               /        /             //
-   *   // sF = swapFee                \                                              /              //
+   *    calcPoolOutGivenSingleIn
+   *    pAo = poolAmountOut         /                                              \
+   *    tAi = tokenAmountIn        ///      /     //    wI \      \\       \     wI \
+   *    wI = tokenWeightIn        //| tAi *| 1 - || 1 - --  | * sF || + tBi \    --  \
+   *    tW = totalWeight     pAo=||  \      \     \\    tW /      //         | ^ tW   | * pS - pS
+   *    tBi = tokenBalanceIn      \\  ------------------------------------- /        /
+   *    pS = poolSupply            \\                    tBi               /        /
+   *    sF = swapFee                \                                              /
    *
    */
   function calcPoolOutGivenSingleIn(
@@ -141,14 +141,14 @@ contract BMath is BBronze, BConst, BNum {
 
   /**
    *
-   *   // calcSingleInGivenPoolOut                                                                  //
-   *   // tAi = tokenAmountIn              //(pS + pAo)\     /    1    \\                           //
-   *   // pS = poolSupply                 || ---------  | ^ | --------- || * bI - bI                //
-   *   // pAo = poolAmountOut              \\    pS    /     \(wI / tW)//                           //
-   *   // bI = balanceIn          tAi =  --------------------------------------------               //
-   *   // wI = weightIn                              /      wI  \                                   //
-   *   // tW = totalWeight                          |  1 - ----  |  * sF                            //
-   *   // sF = swapFee                               \      tW  /                                   //
+   *    calcSingleInGivenPoolOut
+   *    tAi = tokenAmountIn              //(pS + pAo)\     /    1    \\
+   *    pS = poolSupply                 || ---------  | ^ | --------- || * bI - bI
+   *    pAo = poolAmountOut              \\    pS    /     \(wI / tW)//
+   *    bI = balanceIn          tAi =  --------------------------------------------
+   *    wI = weightIn                              /      wI  \
+   *    tW = totalWeight                          |  1 - ----  |  * sF
+   *    sF = swapFee                               \      tW  /
    *
    */
   function calcSingleInGivenPoolOut(
@@ -178,15 +178,15 @@ contract BMath is BBronze, BConst, BNum {
 
   /**
    *
-   *   // calcSingleOutGivenPoolIn                                                                  //
-   *   // tAo = tokenAmountOut            /      /                                             \\   //
-   *   // bO = tokenBalanceOut           /      // pS - (pAi * (1 - eF)) \     /    1    \      \\  //
-   *   // pAi = poolAmountIn            | bO - || ----------------------- | ^ | --------- | * b0 || //
-   *   // ps = poolSupply                \      \\          pS           /     \(wO / tW)/      //  //
-   *   // wI = tokenWeightIn      tAo =   \      \                                             //   //
-   *   // tW = totalWeight                    /     /      wO \       \                             //
-   *   // sF = swapFee                    *  | 1 - |  1 - ---- | * sF  |                            //
-   *   // eF = exitFee                        \     \      tW /       /                             //
+   *    calcSingleOutGivenPoolIn
+   *    tAo = tokenAmountOut            /      /                                             \\
+   *    bO = tokenBalanceOut           /      // pS - (pAi * (1 - eF)) \     /    1    \      \\
+   *    pAi = poolAmountIn            | bO - || ----------------------- | ^ | --------- | * b0 ||
+   *    ps = poolSupply                \      \\          pS           /     \(wO / tW)/      //
+   *    wI = tokenWeightIn      tAo =   \      \                                             //
+   *    tW = totalWeight                    /     /      wO \       \
+   *    sF = swapFee                    *  | 1 - |  1 - ---- | * sF  |
+   *    eF = exitFee                        \     \      tW /       /
    *
    */
   function calcSingleOutGivenPoolIn(
@@ -219,15 +219,15 @@ contract BMath is BBronze, BConst, BNum {
 
   /**
    *
-   *   // calcPoolInGivenSingleOut                                                                  //
-   *   // pAi = poolAmountIn               // /               tAo             \\     / wO \     \   //
-   *   // bO = tokenBalanceOut            // | bO - -------------------------- |\   | ---- |     \  //
-   *   // tAo = tokenAmountOut      pS - ||   \     1 - ((1 - (tO / tW)) * sF)/  | ^ \ tW /  * pS | //
-   *   // ps = poolSupply                 \\ -----------------------------------/                /  //
-   *   // wO = tokenWeightOut  pAi =       \\               bO                 /                /   //
-   *   // tW = totalWeight           -------------------------------------------------------------  //
-   *   // sF = swapFee                                        ( 1 - eF )                            //
-   *   // eF = exitFee                                                                              //
+   *    calcPoolInGivenSingleOut
+   *    pAi = poolAmountIn               // /               tAo             \\     / wO \     \
+   *    bO = tokenBalanceOut            // | bO - -------------------------- |\   | ---- |     \
+   *    tAo = tokenAmountOut      pS - ||   \     1 - ((1 - (tO / tW)) * sF)/  | ^ \ tW /  * pS |
+   *    ps = poolSupply                 \\ -----------------------------------/                /
+   *    wO = tokenWeightOut  pAi =       \\               bO                 /                /
+   *    tW = totalWeight           -------------------------------------------------------------
+   *    sF = swapFee                                        ( 1 - eF )
+   *    eF = exitFee
    *
    */
   function calcPoolInGivenSingleOut(
