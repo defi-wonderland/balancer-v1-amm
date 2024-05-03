@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {BFactory} from 'contracts/BFactory.sol';
 import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
-import {Test, Vm} from 'forge-std/Test.sol';
+import {Test} from 'forge-std/Test.sol';
 
 abstract contract Base is Test {
   BFactory public bFactory;
@@ -139,6 +139,7 @@ contract BFactory_Unit_Collect is Base {
    * @notice Test that LP token `balanceOf` function is called
    */
   function test_callBalanceOf(address _lpToken, uint _toCollect) public {
+    vm.assume(_lpToken != address(VM_ADDRESS));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.balanceOf.selector, address(bFactory)), abi.encode(_toCollect));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.transfer.selector, owner, _toCollect), abi.encode(true));
 
@@ -151,6 +152,7 @@ contract BFactory_Unit_Collect is Base {
    * @notice Test that LP token `transfer` function is called
    */
   function test_callTransfer(address _lpToken, uint _toCollect) public {
+    vm.assume(_lpToken != address(VM_ADDRESS));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.balanceOf.selector, address(bFactory)), abi.encode(_toCollect));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.transfer.selector, owner, _toCollect), abi.encode(true));
 
@@ -163,6 +165,7 @@ contract BFactory_Unit_Collect is Base {
    * @notice Test that the function fail if the transfer failed
    */
   function test_failIfTransferFailed(address _lpToken, uint _toCollect) public {
+    vm.assume(_lpToken != address(VM_ADDRESS));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.balanceOf.selector, address(bFactory)), abi.encode(_toCollect));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.transfer.selector, owner, _toCollect), abi.encode(false));
 
