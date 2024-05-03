@@ -1,11 +1,10 @@
-pragma solidity ^0.8.4;
+pragma solidity 0.8.23;
 
 import {Test} from 'forge-std/Test.sol';
 
-import {IERC20} from 'isolmate/tokens/ERC20.sol';
-
 import {BFactory} from 'contracts/BFactory.sol';
 import {BPool} from 'contracts/BPool.sol';
+import {IERC20} from 'contracts/BToken.sol';
 
 abstract contract PoolSwapIntegrationTest is Test {
   BFactory public factory;
@@ -73,7 +72,8 @@ contract DirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
   }
 }
 
-contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
+// TODO: remove `abstract` keyword to make the test runnable
+abstract contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
   function _makeSwap() internal override {
     vm.startPrank(address(pool));
     tokenA.approve(address(swapper), type(uint256).max);
