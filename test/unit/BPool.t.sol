@@ -174,6 +174,8 @@ contract BPool_Unit_Rebind is Base {
 
   function test_Revert_MinBalance() public view {}
 
+  function test_Revert_Reentrancy() public view {}
+
   function test_Set_TotalWeightIfDenormMoreThanOldWeight() public view {}
 
   function test_Set_TotalWeightIfDenormLessThanOldWeight() public view {}
@@ -189,6 +191,296 @@ contract BPool_Unit_Rebind is Base {
   function test_Push_UnderlyingIfBalanceLessThanOldBalance() public view {}
 
   function test_Push_FeeIfBalanceLessThanOldBalance() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_Unbind is Base {
+  function test_Revert_NotController() public view {}
+
+  function test_Revert_NotBound() public view {}
+
+  function test_Revert_Finalized() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_TotalWeight() public view {}
+
+  function test_Set_TokenArray() public view {}
+
+  function test_Set_Index() public view {}
+
+  function test_Unset_TokenArray() public view {}
+
+  function test_Unset_Record() public view {}
+
+  function test_Push_UnderlyingBalance() public view {}
+
+  function test_Push_UnderlyingFee() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_Gulp is Base {
+  function test_Revert_NotBound() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_Balance() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_GetSpotPrice is Base {
+  function test_Revert_NotBoundTokenIn() public view {}
+
+  function test_Revert_NotBoundTokenOut() public view {}
+
+  function test_Returns_SpotPrice() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+}
+
+contract BPool_Unit_GetSpotPriceSansFee is Base {
+  function test_Revert_NotBoundTokenIn() public view {}
+
+  function test_Revert_NotBoundTokenOut() public view {}
+
+  function test_Returns_SpotPrice() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+}
+
+contract BPool_Unit_JoinPool is Base {
+  function test_Revert_NotFinalized() public view {}
+
+  function test_Revert_MathApprox() public view {}
+
+  function test_Revert_TokenArrayMathApprox() public view {}
+
+  function test_Revert_TokenArrayLimitIn() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_TokenArrayBalance() public view {}
+
+  function test_Emit_TokenArrayLogJoin() public view {}
+
+  function test_Pull_TokenArrayTokenAmountIn() public view {}
+
+  function test_Mint_PoolShare() public view {}
+
+  function test_Push_PoolShare() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_ExitPool is Base {
+  function test_Revert_NotFinalized() public view {}
+
+  function test_Revert_MathApprox() public view {}
+
+  function test_Pull_PoolShare() public view {}
+
+  function test_Push_PoolShare() public view {}
+
+  function test_Burn_PoolShare() public view {}
+
+  function test_Revert_TokenArrayMathApprox() public view {}
+
+  function test_Revert_TokenArrayLimitOut() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_TokenArrayBalance() public view {}
+
+  function test_Emit_TokenArrayLogExit() public view {}
+
+  function test_Push_TokenArrayTokenAmountOut() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_SwapExactAmountIn is Base {
+  function test_Revert_NotBoundTokenIn() public view {}
+
+  function test_Revert_NotBoundTokenOut() public view {}
+
+  function test_Revert_NotPublic() public view {}
+
+  function test_Revert_MaxInRatio() public view {}
+
+  function test_Revert_BadLimitPrice() public view {}
+
+  function test_Revert_LimitOut() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_InRecord() public view {}
+
+  function test_Set_OutRecord() public view {}
+
+  function test_Revert_MathApprox() public view {}
+
+  function test_Revert_LimitPrice() public view {}
+
+  function test_Revert_MathApprox2() public view {}
+
+  function test_Emit_LogSwap() public view {}
+
+  function test_Pull_TokenAmountIn() public view {}
+
+  function test_Push_TokenAmountOut() public view {}
+
+  function test_Returns_AmountAndPrice() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_SwapExactAmountOut is Base {
+  function test_Revert_NotBoundTokenIn() public view {}
+
+  function test_Revert_NotBoundTokenOut() public view {}
+
+  function test_Revert_NotPublic() public view {}
+
+  function test_Revert_MaxOutRatio() public view {}
+
+  function test_Revert_BadLimitPrice() public view {}
+
+  function test_Revert_LimitIn() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_InRecord() public view {}
+
+  function test_Set_OutRecord() public view {}
+
+  function test_Revert_MathApprox() public view {}
+
+  function test_Revert_LimitPrice() public view {}
+
+  function test_Revert_MathApprox2() public view {}
+
+  function test_Emit_LogSwap() public view {}
+
+  function test_Pull_TokenAmountIn() public view {}
+
+  function test_Push_TokenAmountOut() public view {}
+
+  function test_Returns_AmountAndPrice() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_JoinswapExternAmountIn is Base {
+  function test_Revert_NotFinalized() public view {}
+
+  function test_Revert_NotBound() public view {}
+
+  function test_Revert_MaxInRatio() public view {}
+
+  function test_Revert_LimitOut() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_Balance() public view {}
+
+  function test_Emit_LogJoin() public view {}
+
+  function test_Mint_PoolShare() public view {}
+
+  function test_Push_PoolShare() public view {}
+
+  function test_Pull_Underlying() public view {}
+
+  function test_Returns_PoolAmountOut() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_JoinswapExternAmountOut is Base {
+  function test_Revert_NotFinalized() public view {}
+
+  function test_Revert_NotBound() public view {}
+
+  function test_Revert_MaxApprox() public view {}
+
+  function test_Revert_LimitIn() public view {}
+
+  function test_Revert_MaxInRatio() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_Balance() public view {}
+
+  function test_Emit_LogJoin() public view {}
+
+  function test_Mint_PoolShare() public view {}
+
+  function test_Push_PoolShare() public view {}
+
+  function test_Pull_Underlying() public view {}
+
+  function test_Returns_TokenAmountIn() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_ExitswapPoolAmountIn is Base {
+  function test_Revert_NotFinalized() public view {}
+
+  function test_Revert_NotBound() public view {}
+
+  function test_Revert_LimitOut() public view {}
+
+  function test_Revert_MaxOutRatio() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_Balance() public view {}
+
+  function test_Emit_LogExit() public view {}
+
+  function test_Pull_PoolShare() public view {}
+
+  function test_Burn_PoolShare() public view {}
+
+  function test_Push_PoolShare() public view {}
+
+  function test_Push_Underlying() public view {}
+
+  function test_Returns_TokenAmountOut() public view {}
+
+  function test_Emit_LogCall() public view {}
+}
+
+contract BPool_Unit_ExitswapPoolAmountOut is Base {
+  function test_Revert_NotFinalized() public view {}
+
+  function test_Revert_NotBound() public view {}
+
+  function test_Revert_MaxOutRatio() public view {}
+
+  function test_Revert_MathApprox() public view {}
+  
+  function test_Revert_LimitIn() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_Balance() public view {}
+
+  function test_Emit_LogExit() public view {}
+
+  function test_Pull_PoolShare() public view {}
+
+  function test_Burn_PoolShare() public view {}
+
+  function test_Push_PoolShare() public view {}
+
+  function test_Push_Underlying() public view {}
+
+  function test_Returns_PoolAmountIn() public view {}
 
   function test_Emit_LogCall() public view {}
 }
