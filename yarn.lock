@@ -1713,9 +1713,9 @@ solc@0.8.24:
   optionalDependencies:
     prettier "^2.8.3"
 
-"solmate@github:transmissions11/solmate#a9e3ea2":
-  version "6.0.0"
-  resolved "https://codeload.github.com/transmissions11/solmate/tar.gz/a9e3ea26a2dc73bfa87f0cb189687d029028e0c5"
+"solmate@github:transmissions11/solmate#c892309":
+  version "6.2.0"
+  resolved "https://codeload.github.com/transmissions11/solmate/tar.gz/c892309933b25c03d32b1b0d674df7ae292ba925"
 
 sort-object-keys@^1.1.3:
   version "1.1.3"
