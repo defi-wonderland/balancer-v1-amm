@@ -11,7 +11,7 @@ abstract contract Base is Test, BConst {
   using LibString for *;
 
   BPool public bPool;
-  address[2] public tokens;
+  address[5] public tokens;
 
   function setUp() public {
     bPool = new BPool();
@@ -271,15 +271,7 @@ contract BPool_Unit_JoinPool is Base {
 
   struct FuzzScenario {
     uint256 poolAmountOut;
-    uint256 balance0;
-    uint256 balance1;
-    // uint256 balance2;
-    // uint256 balance3;
-    // uint256 balance4;
-    // uint256 balance5;
-    // uint256 balance6;
-    // uint256 balance7;
-    // uint256[3] balance;
+    uint256[5] balance;
   }
 
   function _setValues(FuzzScenario memory _fuzz) internal {
@@ -300,8 +292,8 @@ contract BPool_Unit_JoinPool is Base {
     // Set balances
     for (uint256 i = 0; i < tokens.length; i++) {
       bytes32 _slot = keccak256(abi.encode(tokens[i], 10)); // mapping is found at slot 10
-      vm.store(address(bPool), bytes32(uint256(_slot) + 0), bytes32(abi.encode(69))); // bound
-      vm.store(address(bPool), bytes32(uint256(_slot) + 3), bytes32(abi.encode(69))); // balance
+      vm.store(address(bPool), bytes32(uint256(_slot) + 0), bytes32(abi.encode(1))); // bound
+      vm.store(address(bPool), bytes32(uint256(_slot) + 3), bytes32(abi.encode(_fuzz.balance[i]))); // balance
     }
 
     // Set public swap
@@ -320,27 +312,18 @@ contract BPool_Unit_JoinPool is Base {
     vm.assume(_fuzz.poolAmountOut > INIT_POOL_SUPPLY);
     vm.assume(_fuzz.poolAmountOut < type(uint256).max / BONE);
 
-    // for (uint256 i = 0; i < _fuzz.balance.length; i++) {
-    //   vm.assume(_fuzz.balance[i] > MIN_BALANCE);
-    //   vm.assume(_fuzz.balance[i] < MIN_BALANCE * 1000000);
-    // }
+    uint _ratio = _fuzz.poolAmountOut / INIT_POOL_SUPPLY;
 
-    vm.assume(_fuzz.balance0 > MIN_BALANCE);
-    vm.assume(_fuzz.balance0 < type(uint256).max / BONE); // TODO: found a better max
-    vm.assume(_fuzz.balance1 > MIN_BALANCE);
-    vm.assume(_fuzz.balance1 < type(uint256).max / BONE); // TODO: found a better max
-    // vm.assume(_fuzz.balance2 < MIN_BALANCE * 1000000); // TODO: found a better max
-    // vm.assume(_fuzz.balance2 > MIN_BALANCE);
-    // vm.assume(_fuzz.balance3 < MIN_BALANCE * 1000000); // TODO: found a better max
-    // vm.assume(_fuzz.balance3 > MIN_BALANCE);
-    // vm.assume(_fuzz.balance4 < MIN_BALANCE * 1000000); // TODO: found a better max
-    // vm.assume(_fuzz.balance4 > MIN_BALANCE);
-    // vm.assume(_fuzz.balance5 < MIN_BALANCE * 1000000); // TODO: found a better max
-    // vm.assume(_fuzz.balance5 > MIN_BALANCE);
-    // vm.assume(_fuzz.balance6 < MIN_BALANCE * 1000000); // TODO: found a better max
-    // vm.assume(_fuzz.balance6 > MIN_BALANCE);
-    // vm.assume(_fuzz.balance7 < MIN_BALANCE * 1000000); // TODO: found a better max
-    // vm.assume(_fuzz.balance7 > MIN_BALANCE);
+    for (uint256 i = 0; i < _fuzz.balance.length; i++) {
+      vm.assume(_fuzz.balance[i] > MIN_BALANCE);
+
+      uint _maxTokenAmountIn = type(uint256).max / _ratio;
+      vm.assume(_fuzz.balance[i] < _maxTokenAmountIn); // L272
+
+      uint _tokenAmountIn = _ratio * _fuzz.balance[i];
+      // vm.assume(_tokenAmountIn < _maxTokenAmountIn);
+      vm.assume(_fuzz.balance[i] < type(uint256).max - _maxTokenAmountIn);
+    }
   }
 
   modifier happyPath(FuzzScenario memory _fuzz) {

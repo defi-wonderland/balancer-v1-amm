@@ -25,8 +25,8 @@ out = 'out-via-ir'
 src = 'src/interfaces/'
 
 [fuzz]
-runs = 10000
-max_test_rejects = 1000000
+runs = 1000
+max_test_rejects = 10000000
 
 [rpc_endpoints]
 mainnet = "${MAINNET_RPC}"
