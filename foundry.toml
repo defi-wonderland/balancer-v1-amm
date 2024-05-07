@@ -25,7 +25,7 @@ out = 'out-via-ir'
 src = 'src/interfaces/'
 
 [fuzz]
-runs = 500
+runs = 10000
 max_test_rejects = 1000000
 
 [rpc_endpoints]

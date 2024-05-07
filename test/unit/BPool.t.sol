@@ -326,9 +326,9 @@ contract BPool_Unit_JoinPool is Base {
     // }
 
     vm.assume(_fuzz.balance0 > MIN_BALANCE);
-    vm.assume(_fuzz.balance0 < MIN_BALANCE * 1000000); // TODO: found a better max
+    vm.assume(_fuzz.balance0 < type(uint256).max / BONE); // TODO: found a better max
     vm.assume(_fuzz.balance1 > MIN_BALANCE);
-    vm.assume(_fuzz.balance1 < MIN_BALANCE * 1000000); // TODO: found a better max
+    vm.assume(_fuzz.balance1 < type(uint256).max / BONE); // TODO: found a better max
     // vm.assume(_fuzz.balance2 < MIN_BALANCE * 1000000); // TODO: found a better max
     // vm.assume(_fuzz.balance2 > MIN_BALANCE);
     // vm.assume(_fuzz.balance3 < MIN_BALANCE * 1000000); // TODO: found a better max
