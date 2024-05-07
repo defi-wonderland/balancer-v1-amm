@@ -373,6 +373,53 @@ contract BPool_Unit_ExitPool is Base {
 }
 
 contract BPool_Unit_SwapExactAmountIn is Base {
+  struct SwapScenario {
+    uint256 amountIn,
+    uint256 minAmountOut,
+    uint256 maxPrice,
+    uint256 balanceTokenIn,
+    uint256 denormTokenIn,
+    uint256 balanceTokenOut,
+    uint256 denormTokenOut,
+    uint256 swapFee
+  }
+
+  function _assumeHappyPath(SwapScenario memory _fuzz) internal {
+    vm.assume(_fuzz.denormTokenIn > 0); // BMath L37 (div by zero)
+    vm.assume(_fuzz.denormTokenOut > 0); // BMath L38 (div by zero)
+    vm.assume(_fuzz.balanceTokenOut > _fuzz.denormTokenOut); // BMath L38 -> denom L39 (div by zero)
+    vm.assume(_fuzz.balanceTokenIn < type(uint256).max / (1e18 / 2)) // 1e18/2 = MAX_IN_RATIO
+    vm.assume(_fuzz.swapFee < 1e18); // BMath L40 (underflow)
+    // check that ratio and scale don't overflow
+    // ...
+    vm.assume(_fuzz.balanceTokenIn < type(uint256).max / _fuzz.amountIn); // not overflow
+    vm.assume(_fuzz.balanceTokenOut > 1); // NOT, but it needs not to overflow with amountOut somehow
+    // ...
+  }
+
+  function _setValues(SwapScenario memory _fuzz) internal {
+    // setDenormToken(indexIN, _fuzz.denormTokenIn);
+    // setDenormToken(indexOUT, _fuzz.denormTokenOut);
+    // setTokenBalance(tokenIN, _fuzz.balanceTokenIn);
+    // ...
+  }
+
+  modifier happyPath(SwapScenario memory _fuzz) {
+    _assumeHappyPath(_fuzz);
+    _setValues(_fuzz);
+    _;
+  }
+
+  function test_HappyPath(SwapScenario _fuzz) public happyPath(_fuzz) {
+    _pool.swapExactAmountIn({
+      tokenIn: address(1), // can be hardcoded (indistinct)
+      tokenAmountIn: _fuzz.amountIn,
+      tokenOut: address(2), // can be hardcoded
+      minAmountOut: _fuzz.minAmountOut,
+      maxPrice: _fuzz.maxPrice
+    });
+  }
+
   function test_Revert_NotBoundTokenIn() public view {}
 
   function test_Revert_NotBoundTokenOut() public view {}
