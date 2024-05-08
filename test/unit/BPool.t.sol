@@ -321,8 +321,8 @@ contract BPool_Unit_JoinPool is Base {
       vm.assume(_fuzz.balance[i] < _maxTokenAmountIn); // L272
 
       uint _tokenAmountIn = _ratio * _fuzz.balance[i];
-      // vm.assume(_tokenAmountIn < _maxTokenAmountIn);
-      vm.assume(_fuzz.balance[i] < type(uint256).max - _maxTokenAmountIn);
+      vm.assume(_tokenAmountIn < type(uint256).max - _fuzz.balance[i]);
+      vm.assume(_fuzz.balance[i] < type(uint256).max - _tokenAmountIn);
     }
   }
 
