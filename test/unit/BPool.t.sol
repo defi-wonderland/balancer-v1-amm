@@ -11,7 +11,7 @@ abstract contract Base is Test, BConst {
   using LibString for *;
 
   BPool public bPool;
-  address[5] public tokens;
+  address[8] public tokens;
 
   function setUp() public {
     bPool = new BPool();
@@ -271,7 +271,7 @@ contract BPool_Unit_JoinPool is Base {
 
   struct FuzzScenario {
     uint256 poolAmountOut;
-    uint256[5] balance;
+    uint256[8] balance;
   }
 
   function _setValues(FuzzScenario memory _fuzz) internal {
