@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {BConst} from 'contracts/BConst.sol';
 import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
-import {Test, console} from 'forge-std/Test.sol';
+import {Test} from 'forge-std/Test.sol';
 import {LibString} from 'solmate/utils/LibString.sol';
 
 abstract contract Base is Test, BConst {
@@ -276,6 +276,43 @@ contract BPool_Unit_JoinPool is Base {
     uint256[TOKENS_AMOUNT] balance;
   }
 
+  function test_HappyPath(FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; i++) {
+      maxAmountsIn[i] = type(uint256).max;
+    } // Using max possible amounts
+
+    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+  }
+
+  function test_Revert_NotFinalized() public view {}
+
+  function test_Revert_MathApprox() public view {}
+
+  function test_Revert_TokenArrayMathApprox() public view {}
+
+  function test_Revert_TokenArrayLimitIn() public view {}
+
+  function test_Revert_Reentrancy() public view {}
+
+  function test_Set_TokenArrayBalance() public view {}
+
+  function test_Emit_TokenArrayLogJoin() public view {}
+
+  function test_Pull_TokenArrayTokenAmountIn() public view {}
+
+  function test_Mint_PoolShare() public view {}
+
+  function test_Push_PoolShare() public view {}
+
+  function test_Emit_LogCall() public view {}
+
+  modifier happyPath(FuzzScenario memory _fuzz) {
+    _assumeHappyPath(_fuzz);
+    _setValues(_fuzz);
+    _;
+  }
+
   function _setValues(FuzzScenario memory _fuzz) internal {
     // Create mocks
     for (uint256 i = 0; i < tokens.length; i++) {
@@ -317,50 +354,13 @@ contract BPool_Unit_JoinPool is Base {
 
     uint256 _poolAmountOutTimesBONE = _fuzz.poolAmountOut * BONE; // bdiv uses '* BONE'
     uint256 _ratio = _poolAmountOutTimesBONE / _fuzz.initPoolSupply;
-    uint _maxTokenAmountIn = type(uint256).max / _ratio;
+    uint256 _maxTokenAmountIn = type(uint256).max / _ratio;
 
     for (uint256 i = 0; i < _fuzz.balance.length; i++) {
       vm.assume(_fuzz.balance[i] >= MIN_BALANCE);
       vm.assume(_fuzz.balance[i] <= _maxTokenAmountIn); // L272
     }
   }
-
-  modifier happyPath(FuzzScenario memory _fuzz) {
-    _assumeHappyPath(_fuzz);
-    _setValues(_fuzz);
-    _;
-  }
-
-  function test_HappyPath(FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      maxAmountsIn[i] = type(uint256).max;
-    } // Using max possible amounts
-
-    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
-  }
-
-  function test_Revert_NotFinalized() public view {}
-
-  function test_Revert_MathApprox() public view {}
-
-  function test_Revert_TokenArrayMathApprox() public view {}
-
-  function test_Revert_TokenArrayLimitIn() public view {}
-
-  function test_Revert_Reentrancy() public view {}
-
-  function test_Set_TokenArrayBalance() public view {}
-
-  function test_Emit_TokenArrayLogJoin() public view {}
-
-  function test_Pull_TokenArrayTokenAmountIn() public view {}
-
-  function test_Mint_PoolShare() public view {}
-
-  function test_Push_PoolShare() public view {}
-
-  function test_Emit_LogCall() public view {}
 }
 
 contract BPool_Unit_ExitPool is Base {
