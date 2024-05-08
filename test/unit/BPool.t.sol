@@ -312,17 +312,15 @@ contract BPool_Unit_JoinPool is Base {
     vm.assume(_fuzz.poolAmountOut > INIT_POOL_SUPPLY);
     vm.assume(_fuzz.poolAmountOut < type(uint256).max / BONE);
 
-    uint _ratio = _fuzz.poolAmountOut / INIT_POOL_SUPPLY;
+    uint _poolAmountOutTimesBONE = _fuzz.poolAmountOut * BONE; // bdiv uses '* BONE'
+
+    uint _ratio = _poolAmountOutTimesBONE / INIT_POOL_SUPPLY;
 
     for (uint256 i = 0; i < _fuzz.balance.length; i++) {
       vm.assume(_fuzz.balance[i] > MIN_BALANCE);
 
       uint _maxTokenAmountIn = type(uint256).max / _ratio;
       vm.assume(_fuzz.balance[i] < _maxTokenAmountIn); // L272
-
-      uint _tokenAmountIn = _ratio * _fuzz.balance[i];
-      vm.assume(_tokenAmountIn < type(uint256).max - _fuzz.balance[i]);
-      vm.assume(_fuzz.balance[i] < type(uint256).max - _tokenAmountIn);
     }
   }
 
