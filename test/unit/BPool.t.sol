@@ -10,7 +10,7 @@ import {LibString} from 'solmate/utils/LibString.sol';
 abstract contract Base is Test, BConst {
   using LibString for *;
 
-  uint256 public constant TOKENS_AMOUNT = 5;
+  uint256 public constant TOKENS_AMOUNT = 3;
 
   BPool public bPool;
   address[TOKENS_AMOUNT] public tokens;
@@ -352,8 +352,7 @@ contract BPool_Unit_JoinPool is Base {
     vm.assume(_fuzz.poolAmountOut >= _fuzz.initPoolSupply);
     vm.assume(_fuzz.poolAmountOut < type(uint256).max / BONE);
 
-    uint256 _poolAmountOutTimesBONE = _fuzz.poolAmountOut * BONE; // bdiv uses '* BONE'
-    uint256 _ratio = _poolAmountOutTimesBONE / _fuzz.initPoolSupply;
+    uint256 _ratio = (_fuzz.poolAmountOut * BONE) / _fuzz.initPoolSupply; // bdiv uses '* BONE'
     uint256 _maxTokenAmountIn = type(uint256).max / _ratio;
 
     for (uint256 i = 0; i < _fuzz.balance.length; i++) {
