@@ -10,8 +10,10 @@ import {LibString} from 'solmate/utils/LibString.sol';
 abstract contract Base is Test, BConst {
   using LibString for *;
 
+  uint256 public constant TOKENS_AMOUNT = 5;
+
   BPool public bPool;
-  address[8] public tokens;
+  address[TOKENS_AMOUNT] public tokens;
 
   function setUp() public {
     bPool = new BPool();
@@ -268,10 +270,10 @@ contract BPool_Unit_GetSpotPriceSansFee is Base {
 }
 
 contract BPool_Unit_JoinPool is Base {
-
   struct FuzzScenario {
     uint256 poolAmountOut;
-    uint256[8] balance;
+    uint256 initPoolSupply;
+    uint256[TOKENS_AMOUNT] balance;
   }
 
   function _setValues(FuzzScenario memory _fuzz) internal {
@@ -305,22 +307,21 @@ contract BPool_Unit_JoinPool is Base {
     // Set finalize
     vm.store(address(bPool), bytes32(uint256(8)), bytes32(uint256(1)));
     // Set totalSupply
-    vm.store(address(bPool), bytes32(uint256(2)), bytes32(INIT_POOL_SUPPLY));
+    vm.store(address(bPool), bytes32(uint256(2)), bytes32(_fuzz.initPoolSupply));
   }
 
   function _assumeHappyPath(FuzzScenario memory _fuzz) internal view {
-    vm.assume(_fuzz.poolAmountOut > INIT_POOL_SUPPLY);
+    vm.assume(_fuzz.initPoolSupply >= INIT_POOL_SUPPLY);
+    vm.assume(_fuzz.poolAmountOut >= _fuzz.initPoolSupply);
     vm.assume(_fuzz.poolAmountOut < type(uint256).max / BONE);
 
-    uint _poolAmountOutTimesBONE = _fuzz.poolAmountOut * BONE; // bdiv uses '* BONE'
-
-    uint _ratio = _poolAmountOutTimesBONE / INIT_POOL_SUPPLY;
+    uint256 _poolAmountOutTimesBONE = _fuzz.poolAmountOut * BONE; // bdiv uses '* BONE'
+    uint256 _ratio = _poolAmountOutTimesBONE / _fuzz.initPoolSupply;
+    uint _maxTokenAmountIn = type(uint256).max / _ratio;
 
     for (uint256 i = 0; i < _fuzz.balance.length; i++) {
-      vm.assume(_fuzz.balance[i] > MIN_BALANCE);
-
-      uint _maxTokenAmountIn = type(uint256).max / _ratio;
-      vm.assume(_fuzz.balance[i] < _maxTokenAmountIn); // L272
+      vm.assume(_fuzz.balance[i] >= MIN_BALANCE);
+      vm.assume(_fuzz.balance[i] <= _maxTokenAmountIn); // L272
     }
   }
 
@@ -332,7 +333,9 @@ contract BPool_Unit_JoinPool is Base {
 
   function test_HappyPath(FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     uint256[] memory maxAmountsIn = new uint256[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) { maxAmountsIn[i] = type(uint256).max; } // Using max possible amounts
+    for (uint256 i = 0; i < tokens.length; i++) {
+      maxAmountsIn[i] = type(uint256).max;
+    } // Using max possible amounts
 
     bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
   }
