@@ -13,13 +13,13 @@ import {LibString} from 'solmate/utils/LibString.sol';
 abstract contract BasePoolTest is Test, BConst {
   using LibString for *;
 
+  uint256 public constant TOKENS_AMOUNT = 3;
+
   struct FuzzScenario {
     uint256 poolAmountOut;
     uint256 initPoolSupply;
     uint256[TOKENS_AMOUNT] balance;
   }
-
-  uint256 public constant TOKENS_AMOUNT = 3;
 
   BPool public bPool;
   address[TOKENS_AMOUNT] public tokens;
