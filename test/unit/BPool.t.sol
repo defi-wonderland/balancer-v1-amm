@@ -7,13 +7,28 @@ import {IERC20} from 'contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
 import {LibString} from 'solmate/utils/LibString.sol';
 
-abstract contract Base is Test, BConst {
+// TODO: remove once `private` keyword is removed in all test cases
+/* solhint-disable */
+
+abstract contract BasePoolTest is Test, BConst {
   using LibString for *;
+
+  struct FuzzScenario {
+    uint256 poolAmountOut;
+    uint256 initPoolSupply;
+    uint256[TOKENS_AMOUNT] balance;
+  }
 
   uint256 public constant TOKENS_AMOUNT = 3;
 
   BPool public bPool;
   address[TOKENS_AMOUNT] public tokens;
+
+  modifier happyPath(FuzzScenario memory _fuzz) {
+    _assumeHappyPath(_fuzz);
+    _setValues(_fuzz);
+    _;
+  }
 
   function setUp() public {
     bPool = new BPool();
@@ -22,295 +37,6 @@ abstract contract Base is Test, BConst {
     for (uint256 i = 0; i < tokens.length; i++) {
       tokens[i] = makeAddr(i.toString());
     }
-  }
-}
-
-contract BPool_Unit_Constructor is Base {
-  function test_Deploy() private view {}
-}
-
-contract BPool_Unit_IsPublicSwap is Base {
-  function test_Returns_IsPublicSwap() private view {}
-}
-
-contract BPool_Unit_IsFinalized is Base {
-  function test_Returns_IsFinalized() private view {}
-}
-
-contract BPool_Unit_IsBound is Base {
-  function test_Returns_IsBound() private view {}
-
-  function test_Returns_IsNotBound() private view {}
-}
-
-contract BPool_Unit_GetNumTokens is Base {
-  function test_Returns_NumTokens() private view {}
-}
-
-contract BPool_Unit_GetCurrentTokens is Base {
-  function test_Returns_CurrentTokens() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-}
-
-contract BPool_Unit_GetFinalTokens is Base {
-  function test_Returns_FinalTokens() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Revert_NotFinalized() private view {}
-}
-
-contract BPool_Unit_GetDenormalizedWeight is Base {
-  function test_Returns_DenormalizedWeight() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Revert_NotBound() private view {}
-}
-
-contract BPool_Unit_GetTotalDenormalizedWeight is Base {
-  function test_Returns_TotalDenormalizedWeight() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-}
-
-contract BPool_Unit_GetNormalizedWeight is Base {
-  function test_Returns_NormalizedWeight() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Revert_NotBound() private view {}
-}
-
-contract BPool_Unit_GetBalance is Base {
-  function test_Returns_Balance() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Revert_NotBound() private view {}
-}
-
-contract BPool_Unit_GetSwapFee is Base {
-  function test_Returns_SwapFee() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-}
-
-contract BPool_Unit_GetController is Base {
-  function test_Returns_Controller() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-}
-
-contract BPool_Unit_SetSwapFee is Base {
-  function test_Revert_Finalized() private view {}
-
-  function test_Revert_NotController() private view {}
-
-  function test_Revert_MinFee() private view {}
-
-  function test_Revert_MaxFee() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Set_SwapFee() private view {}
-
-  function test_Emit_LogCall() private view {}
-}
-
-contract BPool_Unit_SetController is Base {
-  function test_Revert_NotController() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Set_Controller() private view {}
-
-  function test_Emit_LogCall() private view {}
-}
-
-contract BPool_Unit_SetPublicSwap is Base {
-  function test_Revert_Finalized() private view {}
-
-  function test_Revert_NotController() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Set_PublicSwap() private view {}
-
-  function test_Emit_LogCall() private view {}
-}
-
-contract BPool_Unit_Finalize is Base {
-  function test_Revert_NotController() private view {}
-
-  function test_Revert_Finalized() private view {}
-
-  function test_Revert_MinTokens() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Set_Finalize() private view {}
-
-  function test_Set_PublicSwap() private view {}
-
-  function test_Mint_InitPoolSupply() private view {}
-
-  function test_Push_InitPoolSupply() private view {}
-
-  function test_Emit_LogCall() private view {}
-}
-
-contract BPool_Unit_Bind is Base {
-  function test_Revert_NotController() private view {}
-
-  function test_Revert_IsBound() private view {}
-
-  function test_Revert_Finalized() private view {}
-
-  function test_Revert_MaxPoolTokens() private view {}
-
-  function test_Set_Record() private view {}
-
-  function test_Set_TokenArray() private view {}
-
-  function test_Emit_LogCall() private view {}
-
-  function test_Call_Rebind() private view {}
-}
-
-contract BPool_Unit_Rebind is Base {
-  function test_Revert_NotController() private view {}
-
-  function test_Revert_NotBound() private view {}
-
-  function test_Revert_Finalized() private view {}
-
-  function test_Revert_MinWeight() private view {}
-
-  function test_Revert_MaxWeight() private view {}
-
-  function test_Revert_MinBalance() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Set_TotalWeightIfDenormMoreThanOldWeight() private view {}
-
-  function test_Set_TotalWeightIfDenormLessThanOldWeight() private view {}
-
-  function test_Revert_MaxTotalWeight() private view {}
-
-  function test_Set_Denorm() private view {}
-
-  function test_Set_Balance() private view {}
-
-  function test_Pull_IfBalanceMoreThanOldBalance() private view {}
-
-  function test_Push_UnderlyingIfBalanceLessThanOldBalance() private view {}
-
-  function test_Push_FeeIfBalanceLessThanOldBalance() private view {}
-
-  function test_Emit_LogCall() private view {}
-}
-
-contract BPool_Unit_Unbind is Base {
-  function test_Revert_NotController() private view {}
-
-  function test_Revert_NotBound() private view {}
-
-  function test_Revert_Finalized() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Set_TotalWeight() private view {}
-
-  function test_Set_TokenArray() private view {}
-
-  function test_Set_Index() private view {}
-
-  function test_Unset_TokenArray() private view {}
-
-  function test_Unset_Record() private view {}
-
-  function test_Push_UnderlyingBalance() private view {}
-
-  function test_Push_UnderlyingFee() private view {}
-
-  function test_Emit_LogCall() private view {}
-}
-
-contract BPool_Unit_Gulp is Base {
-  function test_Revert_NotBound() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Set_Balance() private view {}
-
-  function test_Emit_LogCall() private view {}
-}
-
-contract BPool_Unit_GetSpotPrice is Base {
-  function test_Revert_NotBoundTokenIn() private view {}
-
-  function test_Revert_NotBoundTokenOut() private view {}
-
-  function test_Returns_SpotPrice() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-}
-
-contract BPool_Unit_GetSpotPriceSansFee is Base {
-  function test_Revert_NotBoundTokenIn() private view {}
-
-  function test_Revert_NotBoundTokenOut() private view {}
-
-  function test_Returns_SpotPrice() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-}
-
-contract BPool_Unit_JoinPool is Base {
-  struct FuzzScenario {
-    uint256 poolAmountOut;
-    uint256 initPoolSupply;
-    uint256[TOKENS_AMOUNT] balance;
-  }
-
-  function test_HappyPath(FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      maxAmountsIn[i] = type(uint256).max;
-    } // Using max possible amounts
-
-    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
-  }
-
-  function test_Revert_NotFinalized() private view {}
-
-  function test_Revert_MathApprox() private view {}
-
-  function test_Revert_TokenArrayMathApprox() private view {}
-
-  function test_Revert_TokenArrayLimitIn() private view {}
-
-  function test_Revert_Reentrancy() private view {}
-
-  function test_Set_TokenArrayBalance() private view {}
-
-  function test_Emit_TokenArrayLogJoin() private view {}
-
-  function test_Pull_TokenArrayTokenAmountIn() private view {}
-
-  function test_Mint_PoolShare() private view {}
-
-  function test_Push_PoolShare() private view {}
-
-  function test_Emit_LogCall() private view {}
-
-  modifier happyPath(FuzzScenario memory _fuzz) {
-    _assumeHappyPath(_fuzz);
-    _setValues(_fuzz);
-    _;
   }
 
   function _setValues(FuzzScenario memory _fuzz) internal {
@@ -362,7 +88,284 @@ contract BPool_Unit_JoinPool is Base {
   }
 }
 
-contract BPool_Unit_ExitPool is Base {
+contract BPool_Unit_Constructor is BasePoolTest {
+  function test_Deploy() private view {}
+}
+
+contract BPool_Unit_IsPublicSwap is BasePoolTest {
+  function test_Returns_IsPublicSwap() private view {}
+}
+
+contract BPool_Unit_IsFinalized is BasePoolTest {
+  function test_Returns_IsFinalized() private view {}
+}
+
+contract BPool_Unit_IsBound is BasePoolTest {
+  function test_Returns_IsBound() private view {}
+
+  function test_Returns_IsNotBound() private view {}
+}
+
+contract BPool_Unit_GetNumTokens is BasePoolTest {
+  function test_Returns_NumTokens() private view {}
+}
+
+contract BPool_Unit_GetCurrentTokens is BasePoolTest {
+  function test_Returns_CurrentTokens() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+}
+
+contract BPool_Unit_GetFinalTokens is BasePoolTest {
+  function test_Returns_FinalTokens() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Revert_NotFinalized() private view {}
+}
+
+contract BPool_Unit_GetDenormalizedWeight is BasePoolTest {
+  function test_Returns_DenormalizedWeight() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Revert_NotBound() private view {}
+}
+
+contract BPool_Unit_GetTotalDenormalizedWeight is BasePoolTest {
+  function test_Returns_TotalDenormalizedWeight() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+}
+
+contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
+  function test_Returns_NormalizedWeight() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Revert_NotBound() private view {}
+}
+
+contract BPool_Unit_GetBalance is BasePoolTest {
+  function test_Returns_Balance() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Revert_NotBound() private view {}
+}
+
+contract BPool_Unit_GetSwapFee is BasePoolTest {
+  function test_Returns_SwapFee() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+}
+
+contract BPool_Unit_GetController is BasePoolTest {
+  function test_Returns_Controller() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+}
+
+contract BPool_Unit_SetSwapFee is BasePoolTest {
+  function test_Revert_Finalized() private view {}
+
+  function test_Revert_NotController() private view {}
+
+  function test_Revert_MinFee() private view {}
+
+  function test_Revert_MaxFee() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Set_SwapFee() private view {}
+
+  function test_Emit_LogCall() private view {}
+}
+
+contract BPool_Unit_SetController is BasePoolTest {
+  function test_Revert_NotController() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Set_Controller() private view {}
+
+  function test_Emit_LogCall() private view {}
+}
+
+contract BPool_Unit_SetPublicSwap is BasePoolTest {
+  function test_Revert_Finalized() private view {}
+
+  function test_Revert_NotController() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Set_PublicSwap() private view {}
+
+  function test_Emit_LogCall() private view {}
+}
+
+contract BPool_Unit_Finalize is BasePoolTest {
+  function test_Revert_NotController() private view {}
+
+  function test_Revert_Finalized() private view {}
+
+  function test_Revert_MinTokens() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Set_Finalize() private view {}
+
+  function test_Set_PublicSwap() private view {}
+
+  function test_Mint_InitPoolSupply() private view {}
+
+  function test_Push_InitPoolSupply() private view {}
+
+  function test_Emit_LogCall() private view {}
+}
+
+contract BPool_Unit_Bind is BasePoolTest {
+  function test_Revert_NotController() private view {}
+
+  function test_Revert_IsBound() private view {}
+
+  function test_Revert_Finalized() private view {}
+
+  function test_Revert_MaxPoolTokens() private view {}
+
+  function test_Set_Record() private view {}
+
+  function test_Set_TokenArray() private view {}
+
+  function test_Emit_LogCall() private view {}
+
+  function test_Call_Rebind() private view {}
+}
+
+contract BPool_Unit_Rebind is BasePoolTest {
+  function test_Revert_NotController() private view {}
+
+  function test_Revert_NotBound() private view {}
+
+  function test_Revert_Finalized() private view {}
+
+  function test_Revert_MinWeight() private view {}
+
+  function test_Revert_MaxWeight() private view {}
+
+  function test_Revert_MinBalance() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Set_TotalWeightIfDenormMoreThanOldWeight() private view {}
+
+  function test_Set_TotalWeightIfDenormLessThanOldWeight() private view {}
+
+  function test_Revert_MaxTotalWeight() private view {}
+
+  function test_Set_Denorm() private view {}
+
+  function test_Set_Balance() private view {}
+
+  function test_Pull_IfBalanceMoreThanOldBalance() private view {}
+
+  function test_Push_UnderlyingIfBalanceLessThanOldBalance() private view {}
+
+  function test_Push_FeeIfBalanceLessThanOldBalance() private view {}
+
+  function test_Emit_LogCall() private view {}
+}
+
+contract BPool_Unit_Unbind is BasePoolTest {
+  function test_Revert_NotController() private view {}
+
+  function test_Revert_NotBound() private view {}
+
+  function test_Revert_Finalized() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Set_TotalWeight() private view {}
+
+  function test_Set_TokenArray() private view {}
+
+  function test_Set_Index() private view {}
+
+  function test_Unset_TokenArray() private view {}
+
+  function test_Unset_Record() private view {}
+
+  function test_Push_UnderlyingBalance() private view {}
+
+  function test_Push_UnderlyingFee() private view {}
+
+  function test_Emit_LogCall() private view {}
+}
+
+contract BPool_Unit_Gulp is BasePoolTest {
+  function test_Revert_NotBound() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Set_Balance() private view {}
+
+  function test_Emit_LogCall() private view {}
+}
+
+contract BPool_Unit_GetSpotPrice is BasePoolTest {
+  function test_Revert_NotBoundTokenIn() private view {}
+
+  function test_Revert_NotBoundTokenOut() private view {}
+
+  function test_Returns_SpotPrice() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+}
+
+contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
+  function test_Revert_NotBoundTokenIn() private view {}
+
+  function test_Revert_NotBoundTokenOut() private view {}
+
+  function test_Returns_SpotPrice() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+}
+
+contract BPool_Unit_JoinPool is BasePoolTest {
+  function test_HappyPath(FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; i++) {
+      maxAmountsIn[i] = type(uint256).max;
+    } // Using max possible amounts
+
+    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+  }
+
+  function test_Revert_NotFinalized() private view {}
+
+  function test_Revert_MathApprox() private view {}
+
+  function test_Revert_TokenArrayMathApprox() private view {}
+
+  function test_Revert_TokenArrayLimitIn() private view {}
+
+  function test_Revert_Reentrancy() private view {}
+
+  function test_Set_TokenArrayBalance() private view {}
+
+  function test_Emit_TokenArrayLogJoin() private view {}
+
+  function test_Pull_TokenArrayTokenAmountIn() private view {}
+
+  function test_Mint_PoolShare() private view {}
+
+  function test_Push_PoolShare() private view {}
+
+  function test_Emit_LogCall() private view {}
+}
+
+contract BPool_Unit_ExitPool is BasePoolTest {
   function test_Revert_NotFinalized() private view {}
 
   function test_Revert_MathApprox() private view {}
@@ -388,7 +391,7 @@ contract BPool_Unit_ExitPool is Base {
   function test_Emit_LogCall() private view {}
 }
 
-contract BPool_Unit_SwapExactAmountIn is Base {
+contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
   function test_Revert_NotBoundTokenIn() private view {}
 
   function test_Revert_NotBoundTokenOut() private view {}
@@ -424,7 +427,7 @@ contract BPool_Unit_SwapExactAmountIn is Base {
   function test_Emit_LogCall() private view {}
 }
 
-contract BPool_Unit_SwapExactAmountOut is Base {
+contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
   function test_Revert_NotBoundTokenIn() private view {}
 
   function test_Revert_NotBoundTokenOut() private view {}
@@ -460,7 +463,7 @@ contract BPool_Unit_SwapExactAmountOut is Base {
   function test_Emit_LogCall() private view {}
 }
 
-contract BPool_Unit_JoinswapExternAmountIn is Base {
+contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
   function test_Revert_NotFinalized() private view {}
 
   function test_Revert_NotBound() private view {}
@@ -486,7 +489,7 @@ contract BPool_Unit_JoinswapExternAmountIn is Base {
   function test_Emit_LogCall() private view {}
 }
 
-contract BPool_Unit_JoinswapExternAmountOut is Base {
+contract BPool_Unit_JoinswapExternAmountOut is BasePoolTest {
   function test_Revert_NotFinalized() private view {}
 
   function test_Revert_NotBound() private view {}
@@ -514,7 +517,7 @@ contract BPool_Unit_JoinswapExternAmountOut is Base {
   function test_Emit_LogCall() private view {}
 }
 
-contract BPool_Unit_ExitswapPoolAmountIn is Base {
+contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
   function test_Revert_NotFinalized() private view {}
 
   function test_Revert_NotBound() private view {}
@@ -542,7 +545,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is Base {
   function test_Emit_LogCall() private view {}
 }
 
-contract BPool_Unit_ExitswapPoolAmountOut is Base {
+contract BPool_Unit_ExitswapPoolAmountOut is BasePoolTest {
   function test_Revert_NotFinalized() private view {}
 
   function test_Revert_NotBound() private view {}
