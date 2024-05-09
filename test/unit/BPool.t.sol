@@ -57,6 +57,10 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     bPool.set__records(_token, _record);
   }
 
+  function _setBalance(address _user, uint256 _balance) internal {
+    _writeUintAtAddressMapping(address(bPool), 0, _user, _balance);
+  }
+
   function _setPublicSwap(bool _isPublicSwap) internal {
     bPool.set__publicSwap(_isPublicSwap);
   }
@@ -406,6 +410,74 @@ contract BPool_Unit_JoinPool is BasePoolTest {
 }
 
 contract BPool_Unit_ExitPool is BasePoolTest {
+  struct ExitPool_FuzzScenario {
+    uint256 poolAmountIn;
+    uint256 initPoolSupply;
+    uint256[TOKENS_AMOUNT] balance;
+  }
+
+  function _setValues(ExitPool_FuzzScenario memory _fuzz) internal {
+    // Create mocks
+    for (uint256 i = 0; i < tokens.length; i++) {
+      _mockTransfer(tokens[i]);
+      _mockTransferFrom(tokens[i]);
+    }
+
+    // Set tokens
+    _setTokens(_tokensToMemory());
+
+    // Set balances
+    for (uint256 i = 0; i < tokens.length; i++) {
+      _setRecord(
+        tokens[i],
+        BPool.Record({
+          bound: true,
+          index: 0, // NOTE: irrelevant for this method
+          denorm: 0, // NOTE: irrelevant for this method
+          balance: _fuzz.balance[i]
+        })
+      );
+    }
+
+    // Set LP token balance
+    _setBalance(address(bPool), _fuzz.initPoolSupply); // bPool
+    _setBalance(address(this), _fuzz.initPoolSupply); // fn caller
+    // Set public swap
+    _setPublicSwap(true);
+    // Set finalize
+    _setFinalize(true);
+    // Set totalSupply
+    _setTotalSupply(_fuzz.initPoolSupply);
+  }
+
+  function _assumeHappyPath(ExitPool_FuzzScenario memory _fuzz) internal pure {
+    vm.assume(_fuzz.initPoolSupply >= INIT_POOL_SUPPLY);
+    vm.assume(_fuzz.initPoolSupply < type(uint256).max / BONE);
+
+    uint256 _poolAmountInAfterFee = _fuzz.poolAmountIn - (_fuzz.poolAmountIn * EXIT_FEE);
+    vm.assume(_poolAmountInAfterFee <= _fuzz.initPoolSupply);
+    vm.assume(_poolAmountInAfterFee * BONE > _fuzz.initPoolSupply);
+
+    uint256 _ratio = (_poolAmountInAfterFee * BONE) / _fuzz.initPoolSupply; // bdiv uses '* BONE'
+
+    for (uint256 i = 0; i < _fuzz.balance.length; i++) {
+      vm.assume(_fuzz.balance[i] >= BONE); // BONE > MIN_BALANCE so we can do this
+      vm.assume(_fuzz.balance[i] <= type(uint256).max / (_ratio * BONE));
+    }
+  }
+
+  modifier happyPath(ExitPool_FuzzScenario memory _fuzz) {
+    _assumeHappyPath(_fuzz);
+    _setValues(_fuzz);
+    _;
+  }
+
+  function test_HappyPath(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256[] memory minAmountsOut = new uint256[](tokens.length); // Using min possible amounts
+
+    bPool.exitPool(_fuzz.poolAmountIn, minAmountsOut);
+  }
+
   function test_Revert_NotFinalized() private view {}
 
   function test_Revert_MathApprox() private view {}
