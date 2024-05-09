@@ -37,7 +37,7 @@
     "package.json": "sort-package-json"
   },
   "dependencies": {
-    "solmate": "github:transmissions11/solmate#a9e3ea2"
+    "solmate": "github:transmissions11/solmate#c892309"
   },
   "devDependencies": {
     "@commitlint/cli": "19.3.0",
