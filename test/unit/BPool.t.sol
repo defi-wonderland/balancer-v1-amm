@@ -15,21 +15,11 @@ abstract contract BasePoolTest is Test, BConst, Utils {
   using LibString for *;
 
   uint256 public constant TOKENS_AMOUNT = 3;
-
-  struct FuzzScenario {
-    uint256 poolAmountOut;
-    uint256 initPoolSupply;
-    uint256[TOKENS_AMOUNT] balance;
-  }
+  uint256 internal constant _RECORD_MAPPING_SLOT_NUMBER = 10;
+  uint256 internal constant _TOKENS_ARRAY_SLOT_NUMBER = 9;
 
   BPool public bPool;
   address[TOKENS_AMOUNT] public tokens;
-
-  modifier happyPath(FuzzScenario memory _fuzz) {
-    _assumeHappyPath(_fuzz);
-    _setValues(_fuzz);
-    _;
-  }
 
   function setUp() public {
     bPool = new BPool();
@@ -40,47 +30,50 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     }
   }
 
-  function _setValues(FuzzScenario memory _fuzz) internal {
-    // Create mocks
+  function _tokensToMemory() internal view returns (address[] memory _tokens) {
+    _tokens = new address[](tokens.length);
     for (uint256 i = 0; i < tokens.length; i++) {
-      vm.mockCall(tokens[i], abi.encodeWithSelector(IERC20(tokens[i]).transfer.selector), abi.encode(true));
-      vm.mockCall(tokens[i], abi.encodeWithSelector(IERC20(tokens[i]).transferFrom.selector), abi.encode(true));
+      _tokens[i] = tokens[i];
     }
-
-    // Set tokens
-    uint256 _arraySlotNumber = 9;
-    _writeArrayLengthToStorage(address(bPool), _arraySlotNumber, tokens.length); // write length
-    for (uint256 i = 0; i < tokens.length; i++) {
-      _writeAddressArrayItemToStorage(address(bPool), _arraySlotNumber, i, tokens[i]); // write token
-    }
-
-    // Set balances
-    uint256 _mappingSlotNumber = 10;
-    for (uint256 i = 0; i < tokens.length; i++) {
-      _writeStructPropertyAtAddressMapping(address(bPool), _mappingSlotNumber, tokens[i], 0, 1); // bound (1 == true)
-      _writeStructPropertyAtAddressMapping(address(bPool), _mappingSlotNumber, tokens[i], 3, _fuzz.balance[i]); // balance
-    }
-
-    // Set public swap
-    _writeUintToStorage(address(bPool), 6, 0x0000000000000000000000010000000000000000000000000000000000000000);
-    // Set finalize
-    _writeUintToStorage(address(bPool), 8, 1);
-    // Set totalSupply
-    _writeUintToStorage(address(bPool), 2, _fuzz.initPoolSupply);
   }
 
-  function _assumeHappyPath(FuzzScenario memory _fuzz) internal pure {
-    vm.assume(_fuzz.initPoolSupply >= INIT_POOL_SUPPLY);
-    vm.assume(_fuzz.poolAmountOut >= _fuzz.initPoolSupply);
-    vm.assume(_fuzz.poolAmountOut < type(uint256).max / BONE);
+  function _mockTransfer(address _token) internal {
+    // TODO: add amount to transfer to check that it's called with the right amount
+    vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).transfer.selector), abi.encode(true));
+  }
 
-    uint256 _ratio = (_fuzz.poolAmountOut * BONE) / _fuzz.initPoolSupply; // bdiv uses '* BONE'
-    uint256 _maxTokenAmountIn = type(uint256).max / _ratio;
+  function _mockTransferFrom(address _token) internal {
+    // TODO: add from and amount to transfer to check that it's called with the right params
+    vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).transferFrom.selector), abi.encode(true));
+  }
 
-    for (uint256 i = 0; i < _fuzz.balance.length; i++) {
-      vm.assume(_fuzz.balance[i] >= MIN_BALANCE);
-      vm.assume(_fuzz.balance[i] <= _maxTokenAmountIn); // L272
+  function _setTokens(address[] memory _tokens) internal {
+    _writeArrayLengthToStorage(address(bPool), _TOKENS_ARRAY_SLOT_NUMBER, _tokens.length); // write length
+    for (uint256 i = 0; i < _tokens.length; i++) {
+      _writeAddressArrayItemToStorage(address(bPool), _TOKENS_ARRAY_SLOT_NUMBER, i, _tokens[i]); // write token
     }
+  }
+
+  function _setRecordBound(address _token) internal {
+    _writeStructPropertyAtAddressMapping(address(bPool), _RECORD_MAPPING_SLOT_NUMBER, _token, 0, 1); // bound (1 == true)
+  }
+
+  function _setRecordBalance(address _token, uint256 _balance) internal {
+    _writeStructPropertyAtAddressMapping(address(bPool), _RECORD_MAPPING_SLOT_NUMBER, _token, 3, _balance); // balance
+  }
+
+  function _setPublicSwap(bool _isPublicSwap) internal {
+    // TODO: make it depend on the bool value
+    _writeUintToStorage(address(bPool), 6, 0x0000000000000000000000010000000000000000000000000000000000000000);
+  }
+
+  function _setFinalize(bool _isFinalized) internal {
+    // TODO: make it depend on the bool value
+    _writeUintToStorage(address(bPool), 8, 1);
+  }
+
+  function _setTotalSupply(uint256 _totalSupply) internal {
+    _writeUintToStorage(address(bPool), 2, _totalSupply);
   }
 }
 
@@ -329,7 +322,57 @@ contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
 }
 
 contract BPool_Unit_JoinPool is BasePoolTest {
-  function test_HappyPath(FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  struct JoinPool_FuzzScenario {
+    uint256 poolAmountOut;
+    uint256 initPoolSupply;
+    uint256[TOKENS_AMOUNT] balance;
+  }
+
+  function _setValues(JoinPool_FuzzScenario memory _fuzz) internal {
+    // Create mocks
+    for (uint256 i = 0; i < tokens.length; i++) {
+      _mockTransfer(tokens[i]);
+      _mockTransferFrom(tokens[i]);
+    }
+
+    // Set tokens
+    _setTokens(_tokensToMemory());
+
+    // Set balances
+    for (uint256 i = 0; i < tokens.length; i++) {
+      _setRecordBound(tokens[i]);
+      _setRecordBalance(tokens[i], _fuzz.balance[i]);
+    }
+
+    // Set public swap
+    _setPublicSwap(true);
+    // Set finalize
+    _setFinalize(true);
+    // Set totalSupply
+    _setTotalSupply(_fuzz.initPoolSupply);
+  }
+
+  function _assumeHappyPath(JoinPool_FuzzScenario memory _fuzz) internal pure {
+    vm.assume(_fuzz.initPoolSupply >= INIT_POOL_SUPPLY);
+    vm.assume(_fuzz.poolAmountOut >= _fuzz.initPoolSupply);
+    vm.assume(_fuzz.poolAmountOut < type(uint256).max / BONE);
+
+    uint256 _ratio = (_fuzz.poolAmountOut * BONE) / _fuzz.initPoolSupply; // bdiv uses '* BONE'
+    uint256 _maxTokenAmountIn = type(uint256).max / _ratio;
+
+    for (uint256 i = 0; i < _fuzz.balance.length; i++) {
+      vm.assume(_fuzz.balance[i] >= MIN_BALANCE);
+      vm.assume(_fuzz.balance[i] <= _maxTokenAmountIn); // L272
+    }
+  }
+
+  modifier happyPath(JoinPool_FuzzScenario memory _fuzz) {
+    _assumeHappyPath(_fuzz);
+    _setValues(_fuzz);
+    _;
+  }
+
+  function test_HappyPath(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     uint256[] memory maxAmountsIn = new uint256[](tokens.length);
     for (uint256 i = 0; i < tokens.length; i++) {
       maxAmountsIn[i] = type(uint256).max;
