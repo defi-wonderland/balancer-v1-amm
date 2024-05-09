@@ -380,12 +380,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function test_HappyPath(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      maxAmountsIn[i] = type(uint256).max;
-    } // Using max possible amounts
-
-    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
   }
 
   function test_Revert_NotFinalized(JoinPool_FuzzScenario memory _fuzz) public {
