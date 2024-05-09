@@ -38,6 +38,13 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     }
   }
 
+  function _maxAmountsArray() internal pure returns (uint256[] memory _maxAmounts) {
+    _maxAmounts = new uint256[](TOKENS_AMOUNT);
+    for (uint256 i = 0; i < TOKENS_AMOUNT; i++) {
+      _maxAmounts[i] = type(uint256).max;
+    }
+  }
+
   function _mockTransfer(address _token) internal {
     // TODO: add amount to transfer to check that it's called with the right amount
     vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).transfer.selector), abi.encode(true));
@@ -396,12 +403,6 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function test_Revert_TokenArrayMathApprox(JoinPool_FuzzScenario memory _fuzz, uint256 _tokenIndex) public {
-    // TODO: internalize this to _maxAmountsIn() -> uint256[] memory
-    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      maxAmountsIn[i] = type(uint256).max;
-    } // Using max possible amounts
-
     _assumeHappyPath(_fuzz);
     _tokenIndex = bound(_tokenIndex, 0, TOKENS_AMOUNT - 1);
     _fuzz.balance[_tokenIndex] = 0;
@@ -410,7 +411,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
     _setValues(_fuzz);
 
     vm.expectRevert('ERR_MATH_APPROX');
-    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
   }
 
   function test_Revert_TokenArrayLimitIn() public {
@@ -434,26 +435,14 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function test_Mint_PoolShare(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // TODO: internalize this to _maxAmountsIn() -> uint256[] memory
-    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      maxAmountsIn[i] = type(uint256).max;
-    } // Using max possible amounts
-
-    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
 
     assertEq(bPool.totalSupply(), _fuzz.initPoolSupply + _fuzz.poolAmountOut);
   }
 
   function test_Push_PoolShare(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // TODO: internalize this to _maxAmountsIn() -> uint256[] memory
-    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      maxAmountsIn[i] = type(uint256).max;
-    } // Using max possible amounts
-
     // TODO: prank a caller
-    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
 
     // TODO: specify minted amount to caller
     assertGt(bPool.balanceOf(address(this)), 0);
