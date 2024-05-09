@@ -420,7 +420,6 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     // Create mocks
     for (uint256 i = 0; i < tokens.length; i++) {
       _mockTransfer(tokens[i]);
-      _mockTransferFrom(tokens[i]);
     }
 
     // Set tokens
