@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {BConst} from 'contracts/BConst.sol';
 import {BPool} from 'contracts/BPool.sol';
+import {MockBPool} from 'test/smock/MockBPool.sol';
+
+import {BConst} from 'contracts/BConst.sol';
 import {IERC20} from 'contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
 import {LibString} from 'solmate/utils/LibString.sol';
@@ -18,11 +20,11 @@ abstract contract BasePoolTest is Test, BConst, Utils {
   uint256 internal constant _RECORD_MAPPING_SLOT_NUMBER = 10;
   uint256 internal constant _TOKENS_ARRAY_SLOT_NUMBER = 9;
 
-  BPool public bPool;
+  MockBPool public bPool;
   address[TOKENS_AMOUNT] public tokens;
 
   function setUp() public {
-    bPool = new BPool();
+    bPool = new MockBPool();
 
     // Create fake tokens
     for (uint256 i = 0; i < tokens.length; i++) {
@@ -48,31 +50,23 @@ abstract contract BasePoolTest is Test, BConst, Utils {
   }
 
   function _setTokens(address[] memory _tokens) internal {
-    _writeArrayLengthToStorage(address(bPool), _TOKENS_ARRAY_SLOT_NUMBER, _tokens.length); // write length
-    for (uint256 i = 0; i < _tokens.length; i++) {
-      _writeAddressArrayItemToStorage(address(bPool), _TOKENS_ARRAY_SLOT_NUMBER, i, _tokens[i]); // write token
-    }
+    bPool.set__tokens(_tokens);
   }
 
-  function _setRecordBound(address _token) internal {
-    _writeStructPropertyAtAddressMapping(address(bPool), _RECORD_MAPPING_SLOT_NUMBER, _token, 0, 1); // bound (1 == true)
-  }
-
-  function _setRecordBalance(address _token, uint256 _balance) internal {
-    _writeStructPropertyAtAddressMapping(address(bPool), _RECORD_MAPPING_SLOT_NUMBER, _token, 3, _balance); // balance
+  function _setRecord(address _token, BPool.Record memory _record) internal {
+    bPool.set__records(_token, _record);
   }
 
   function _setPublicSwap(bool _isPublicSwap) internal {
-    // TODO: make it depend on the bool value
-    _writeUintToStorage(address(bPool), 6, 0x0000000000000000000000010000000000000000000000000000000000000000);
+    bPool.set__publicSwap(_isPublicSwap);
   }
 
   function _setFinalize(bool _isFinalized) internal {
-    // TODO: make it depend on the bool value
-    _writeUintToStorage(address(bPool), 8, 1);
+    bPool.set__finalized(_isFinalized);
   }
 
   function _setTotalSupply(uint256 _totalSupply) internal {
+    // NOTE: not in smock as it uses ERC20.totalSupply()
     _writeUintToStorage(address(bPool), 2, _totalSupply);
   }
 }
@@ -340,8 +334,15 @@ contract BPool_Unit_JoinPool is BasePoolTest {
 
     // Set balances
     for (uint256 i = 0; i < tokens.length; i++) {
-      _setRecordBound(tokens[i]);
-      _setRecordBalance(tokens[i], _fuzz.balance[i]);
+      _setRecord(
+        tokens[i],
+        BPool.Record({
+          bound: true,
+          index: 0, // NOTE: irrelevant for this method
+          denorm: 0, // NOTE: irrelevant for this method
+          balance: _fuzz.balance[i]
+        })
+      );
     }
 
     // Set public swap
