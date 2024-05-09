@@ -17,8 +17,6 @@ abstract contract BasePoolTest is Test, BConst, Utils {
   using LibString for *;
 
   uint256 public constant TOKENS_AMOUNT = 3;
-  uint256 internal constant _RECORD_MAPPING_SLOT_NUMBER = 10;
-  uint256 internal constant _TOKENS_ARRAY_SLOT_NUMBER = 9;
 
   MockBPool public bPool;
   address[TOKENS_AMOUNT] public tokens;
@@ -32,6 +30,7 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     }
   }
 
+  // TODO: move tokens and this method to Utils.sol
   function _tokensToMemory() internal view returns (address[] memory _tokens) {
     _tokens = new address[](tokens.length);
     for (uint256 i = 0; i < tokens.length; i++) {
@@ -382,27 +381,87 @@ contract BPool_Unit_JoinPool is BasePoolTest {
     bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
   }
 
-  function test_Revert_NotFinalized() private view {}
+  function test_Revert_NotFinalized(JoinPool_FuzzScenario memory _fuzz) public {
+    _setFinalize(false);
 
-  function test_Revert_MathApprox() private view {}
+    vm.expectRevert('ERR_NOT_FINALIZED');
+    bPool.joinPool(_fuzz.poolAmountOut, new uint256[](tokens.length));
+  }
 
-  function test_Revert_TokenArrayMathApprox() private view {}
+  function test_Revert_MathApprox(JoinPool_FuzzScenario memory _fuzz, uint256 _poolAmountOut) public happyPath(_fuzz) {
+    _poolAmountOut = bound(_poolAmountOut, 0, INIT_POOL_SUPPLY / 2 / BONE); // bdiv rounds up
 
-  function test_Revert_TokenArrayLimitIn() private view {}
+    vm.expectRevert('ERR_MATH_APPROX');
+    bPool.joinPool(_poolAmountOut, new uint256[](tokens.length));
+  }
 
-  function test_Revert_Reentrancy() private view {}
+  function test_Revert_TokenArrayMathApprox(JoinPool_FuzzScenario memory _fuzz, uint256 _tokenIndex) public {
+    // TODO: internalize this to _maxAmountsIn() -> uint256[] memory
+    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; i++) {
+      maxAmountsIn[i] = type(uint256).max;
+    } // Using max possible amounts
 
-  function test_Set_TokenArrayBalance() private view {}
+    _assumeHappyPath(_fuzz);
+    _tokenIndex = bound(_tokenIndex, 0, TOKENS_AMOUNT - 1);
+    _fuzz.balance[_tokenIndex] = 0;
+    // TODO: check range of failure
+    // _fuzz.balance[_tokenIndex] = bound(_fuzz.balance[_tokenIndex], 0, BONE);
+    _setValues(_fuzz);
 
-  function test_Emit_TokenArrayLogJoin() private view {}
+    vm.expectRevert('ERR_MATH_APPROX');
+    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+  }
 
-  function test_Pull_TokenArrayTokenAmountIn() private view {}
+  function test_Revert_TokenArrayLimitIn() public {
+    vm.skip(true);
+  }
 
-  function test_Mint_PoolShare() private view {}
+  function test_Revert_Reentrancy() public {
+    vm.skip(true);
+  }
 
-  function test_Push_PoolShare() private view {}
+  function test_Set_TokenArrayBalance() public {
+    vm.skip(true);
+  }
 
-  function test_Emit_LogCall() private view {}
+  function test_Emit_TokenArrayLogJoin() public {
+    vm.skip(true);
+  }
+
+  function test_Pull_TokenArrayTokenAmountIn() public {
+    vm.skip(true);
+  }
+
+  function test_Mint_PoolShare(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    // TODO: internalize this to _maxAmountsIn() -> uint256[] memory
+    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; i++) {
+      maxAmountsIn[i] = type(uint256).max;
+    } // Using max possible amounts
+
+    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+
+    assertEq(bPool.totalSupply(), _fuzz.initPoolSupply + _fuzz.poolAmountOut);
+  }
+
+  function test_Push_PoolShare(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    // TODO: internalize this to _maxAmountsIn() -> uint256[] memory
+    uint256[] memory maxAmountsIn = new uint256[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; i++) {
+      maxAmountsIn[i] = type(uint256).max;
+    } // Using max possible amounts
+
+    // TODO: prank a caller
+    bPool.joinPool(_fuzz.poolAmountOut, maxAmountsIn);
+
+    // TODO: specify minted amount to caller
+    assertGt(bPool.balanceOf(address(this)), 0);
+  }
+
+  function test_Emit_LogCall() public {
+    vm.skip(true);
+  }
 }
 
 contract BPool_Unit_ExitPool is BasePoolTest {
