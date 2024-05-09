@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {MockBPool} from 'test/smock/MockBPool.sol';
 import {BPool} from 'contracts/BPool.sol';
+import {MockBPool} from 'test/smock/MockBPool.sol';
 
 import {BConst} from 'contracts/BConst.sol';
 import {IERC20} from 'contracts/BToken.sol';
