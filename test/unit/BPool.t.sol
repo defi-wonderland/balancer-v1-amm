@@ -6,11 +6,12 @@ import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
 import {LibString} from 'solmate/utils/LibString.sol';
+import {Utils} from 'test/unit/Utils.sol';
 
 // TODO: remove once `private` keyword is removed in all test cases
 /* solhint-disable */
 
-abstract contract BasePoolTest is Test, BConst {
+abstract contract BasePoolTest is Test, BConst, Utils {
   using LibString for *;
 
   uint256 public constant TOKENS_AMOUNT = 3;
@@ -47,33 +48,28 @@ abstract contract BasePoolTest is Test, BConst {
     }
 
     // Set tokens
-    bytes memory _arraySlot = abi.encode(9);
-    bytes32 _hashArraySlot = keccak256(_arraySlot);
-    vm.store(address(bPool), bytes32(_arraySlot), bytes32(tokens.length)); // write length
+    uint256 _arraySlotNumber = 9;
+    _writeArrayLengthToStorage(address(bPool), _arraySlotNumber, tokens.length); // write length
     for (uint256 i = 0; i < tokens.length; i++) {
-      vm.store(address(bPool), bytes32(uint256(_hashArraySlot) + i), bytes32(abi.encode(tokens[i]))); // write token
+      _writeAddressArrayItemToStorage(address(bPool), _arraySlotNumber, i, tokens[i]); // write token
     }
 
     // Set balances
+    uint256 _mappingSlotNumber = 10;
     for (uint256 i = 0; i < tokens.length; i++) {
-      bytes32 _slot = keccak256(abi.encode(tokens[i], 10)); // mapping is found at slot 10
-      vm.store(address(bPool), bytes32(uint256(_slot) + 0), bytes32(abi.encode(1))); // bound
-      vm.store(address(bPool), bytes32(uint256(_slot) + 3), bytes32(abi.encode(_fuzz.balance[i]))); // balance
+      _writeStructPropertyAtAddressMapping(address(bPool), _mappingSlotNumber, tokens[i], 0, 1); // bound (1 == true)
+      _writeStructPropertyAtAddressMapping(address(bPool), _mappingSlotNumber, tokens[i], 3, _fuzz.balance[i]); // balance
     }
 
     // Set public swap
-    vm.store(
-      address(bPool),
-      bytes32(uint256(6)),
-      bytes32(uint256(0x0000000000000000000000010000000000000000000000000000000000000000))
-    );
+    _writeUintToStorage(address(bPool), 6, 0x0000000000000000000000010000000000000000000000000000000000000000);
     // Set finalize
-    vm.store(address(bPool), bytes32(uint256(8)), bytes32(uint256(1)));
+    _writeUintToStorage(address(bPool), 8, 1);
     // Set totalSupply
-    vm.store(address(bPool), bytes32(uint256(2)), bytes32(_fuzz.initPoolSupply));
+    _writeUintToStorage(address(bPool), 2, _fuzz.initPoolSupply);
   }
 
-  function _assumeHappyPath(FuzzScenario memory _fuzz) internal view {
+  function _assumeHappyPath(FuzzScenario memory _fuzz) internal pure {
     vm.assume(_fuzz.initPoolSupply >= INIT_POOL_SUPPLY);
     vm.assume(_fuzz.poolAmountOut >= _fuzz.initPoolSupply);
     vm.assume(_fuzz.poolAmountOut < type(uint256).max / BONE);
