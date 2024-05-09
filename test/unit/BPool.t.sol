@@ -338,8 +338,8 @@ contract BPool_Unit_JoinPool is BasePoolTest {
         tokens[i],
         BPool.Record({
           bound: true,
-          index: i,
-          denorm: BONE, // TODO: set denorm? is it relevant?
+          index: 0, // NOTE: irrelevant for this method
+          denorm: 0, // NOTE: irrelevant for this method
           balance: _fuzz.balance[i]
         })
       );
