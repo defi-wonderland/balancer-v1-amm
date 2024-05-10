@@ -49,6 +49,10 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).transferFrom.selector), abi.encode(true));
   }
 
+  function _mockPoolBalance(address _token, uint256 _balance) internal {
+    vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).balanceOf.selector, address(bPool)), abi.encode(_balance));
+  }
+
   function _setTokens(address[] memory _tokens) internal {
     bPool.set__tokens(_tokens);
   }
@@ -339,10 +343,10 @@ contract BPool_Unit_JoinPool is BasePoolTest {
         BPool.Record({
           bound: true,
           index: 0, // NOTE: irrelevant for this method
-          denorm: 0, // NOTE: irrelevant for this method
-          balance: _fuzz.balance[i]
+          denorm: 0 // NOTE: irrelevant for this method
         })
       );
+      _mockPoolBalance(tokens[i], _fuzz.balance[i]);
     }
 
     // Set public swap
