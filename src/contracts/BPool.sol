@@ -173,7 +173,7 @@ contract BPool is BBronze, BToken, BMath {
     _records[token] = Record({
       bound: true,
       index: _tokens.length,
-      denorm: 0 // balance and denorm will be validated
+      denorm: 0 // denorm will be validated
     });
     _tokens.push(token);
     rebind(token, balance, denorm);
