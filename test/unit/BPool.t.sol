@@ -69,13 +69,12 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     bPool.set__finalized(_isFinalized);
   }
 
-  function _setBalance(address _user, uint256 _balance, bool _adjustTotalSupply) internal {
-    deal(address(bPool), _user, _balance, _adjustTotalSupply);
+  function _setPoolBalance(address _user, uint256 _balance) internal {
+    deal(address(bPool), _user, _balance, true);
   }
 
   function _setTotalSupply(uint256 _totalSupply) internal {
-    // NOTE: not in smock as it uses ERC20.totalSupply()
-    _writeUintToStorage(address(bPool), 2, _totalSupply);
+    _setPoolBalance(address(0), _totalSupply);
   }
 }
 
@@ -443,13 +442,11 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     }
 
     // Set LP token balance
-    _setBalance(address(this), _fuzz.initPoolSupply, true); // give LP tokens to fn caller, update totalSupply
+    _setPoolBalance(address(this), _fuzz.initPoolSupply); // give LP tokens to fn caller, update totalSupply
     // Set public swap
     _setPublicSwap(true);
     // Set finalize
     _setFinalize(true);
-    // Set totalSupply
-    _setTotalSupply(_fuzz.initPoolSupply);
   }
 
   function _assumeHappyPath(ExitPool_FuzzScenario memory _fuzz) internal pure {
@@ -463,7 +460,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     uint256 _ratio = (_poolAmountInAfterFee * BONE) / _fuzz.initPoolSupply; // bdiv uses '* BONE'
 
     for (uint256 i = 0; i < _fuzz.balance.length; i++) {
-      vm.assume(_fuzz.balance[i] >= BONE); // BONE > MIN_BALANCE so we can do this
+      vm.assume(_fuzz.balance[i] >= BONE); // TODO: why not using MIN_BALANCE?
       vm.assume(_fuzz.balance[i] <= type(uint256).max / (_ratio * BONE));
     }
   }
@@ -475,9 +472,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   }
 
   function test_HappyPath(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    uint256[] memory minAmountsOut = _zeroAmountsArray(); // Using min possible amounts
-
-    bPool.exitPool(_fuzz.poolAmountIn, minAmountsOut);
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroAmountsArray()); // Using min possible amounts
   }
 
   function test_Revert_NotFinalized() private view {}
