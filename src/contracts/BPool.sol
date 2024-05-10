@@ -370,7 +370,6 @@ contract BPool is BBronze, BToken, BMath {
     Record storage inRecord = _records[address(tokenIn)];
     Record storage outRecord = _records[address(tokenOut)];
 
-    uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
 
     require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
