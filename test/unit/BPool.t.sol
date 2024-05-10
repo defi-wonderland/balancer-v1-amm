@@ -39,6 +39,10 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     }
   }
 
+  function _zeroAmountsArray() internal view returns (uint256[] memory _zeroAmounts) {
+    _zeroAmounts = new uint256[](tokens.length);
+  }
+
   function _mockTransfer(address _token) internal {
     // TODO: add amount to transfer to check that it's called with the right amount
     vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).transfer.selector), abi.encode(true));
@@ -57,16 +61,16 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     bPool.set__records(_token, _record);
   }
 
-  function _setBalance(address _user, uint256 _balance) internal {
-    _writeUintAtAddressMapping(address(bPool), 0, _user, _balance);
-  }
-
   function _setPublicSwap(bool _isPublicSwap) internal {
     bPool.set__publicSwap(_isPublicSwap);
   }
 
   function _setFinalize(bool _isFinalized) internal {
     bPool.set__finalized(_isFinalized);
+  }
+
+  function _setBalance(address _user, uint256 _balance, bool _adjustTotalSupply) internal {
+    deal(address(bPool), _user, _balance, _adjustTotalSupply);
   }
 
   function _setTotalSupply(uint256 _totalSupply) internal {
@@ -439,8 +443,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     }
 
     // Set LP token balance
-    _setBalance(address(bPool), _fuzz.initPoolSupply); // bPool
-    _setBalance(address(this), _fuzz.initPoolSupply); // fn caller
+    _setBalance(address(this), _fuzz.initPoolSupply, true); // give LP tokens to fn caller, update totalSupply
     // Set public swap
     _setPublicSwap(true);
     // Set finalize
@@ -472,7 +475,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   }
 
   function test_HappyPath(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    uint256[] memory minAmountsOut = new uint256[](tokens.length); // Using min possible amounts
+    uint256[] memory minAmountsOut = _zeroAmountsArray(); // Using min possible amounts
 
     bPool.exitPool(_fuzz.poolAmountIn, minAmountsOut);
   }
