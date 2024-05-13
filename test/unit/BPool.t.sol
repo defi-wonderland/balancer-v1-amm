@@ -570,14 +570,15 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest, BMath {
 
     // MAX_IN_RATIO
     vm.assume(_fuzz.tokenInBalance < type(uint256).max / MAX_IN_RATIO);
-    vm.assume(_fuzz.tokenAmountIn <= (_fuzz.tokenInBalance * MAX_IN_RATIO) / BONE);
+    vm.assume(_fuzz.tokenAmountIn <= bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
 
     // internal calculation for calcSpotPrice
-    uint _numer = (_fuzz.tokenInBalance * BONE) / _fuzz.tokenInDenorm;
-    uint _denom = (_fuzz.tokenOutBalance * BONE) / _fuzz.tokenOutDenorm;
-    uint _ratio = (_numer * BONE) / _denom;
-    uint _scale = (BONE * BONE) / (BONE - MIN_FEE);
-    vm.assume(_ratio < type(uint256).max / _scale);
+    uint _numer = bdiv(_fuzz.tokenInBalance, _fuzz.tokenInDenorm);
+    uint _denom = bdiv(_fuzz.tokenOutBalance,  _fuzz.tokenOutDenorm);
+    uint _ratio = bdiv(_numer, _denom);
+    uint _scale = bdiv(BONE, bsub(BONE, MIN_FEE));
+    // console.log('_ratio2', _ratio, _scale);
+    // vm.assume(_ratio < type(uint256).max / _scale); // NOTE: is this needed?
 
     // swap
     uint256 _spotPriceBefore =
@@ -590,8 +591,20 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest, BMath {
       _fuzz.tokenAmountIn,
       MIN_FEE
     );
-    // vm.assume(_tokenAmountOut > BONE);
-    // vm.assume(_spotPriceBefore <= (_fuzz.tokenAmountIn * BONE) / _tokenAmountOut);
+    // console.log(1, _tokenAmountOut);
+
+    // internal calculation for calcOutGivenIn
+    // uint _weightRatio = bdiv(_fuzz.tokenInDenorm, _fuzz.tokenOutDenorm);
+    // uint _adjustedIn = bsub(BONE, MIN_FEE);
+    // uint _adjustedIn2 = bmul(_fuzz.tokenAmountIn, _adjustedIn);
+    // uint _y = bdiv(_fuzz.tokenInBalance, badd(_fuzz.tokenInBalance,_adjustedIn2));
+    // uint _foo = bpow(_y, _weightRatio);
+    // uint _bar = bsub(BONE, _foo);
+    // uint _tokenAmountOut2 = bmul(_fuzz.tokenOutBalance, _bar);
+    // console.log(2, _tokenAmountOut2);
+
+    vm.assume(_tokenAmountOut > BONE);
+    vm.assume(_spotPriceBefore <= bdiv(_fuzz.tokenAmountIn, _tokenAmountOut));
   }
 
   modifier happyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) {
