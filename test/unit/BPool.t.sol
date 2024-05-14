@@ -558,53 +558,24 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest, BMath {
     vm.assume(_fuzz.tokenOutDenorm >= MIN_WEIGHT);
     vm.assume(_fuzz.tokenOutDenorm <= MAX_WEIGHT);
 
-    //
+    // min
     vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
     vm.assume(_fuzz.tokenOutBalance >= MIN_BALANCE);
 
-    vm.assume(_fuzz.tokenAmountIn > BONE);
-
-    // calcSpotPrice
+    // max - calcSpotPrice
     vm.assume(_fuzz.tokenInBalance < type(uint256).max / BONE);
     vm.assume(_fuzz.tokenOutBalance < type(uint256).max / BONE);
-
-    // MAX_IN_RATIO
-    vm.assume(_fuzz.tokenInBalance < type(uint256).max / MAX_IN_RATIO);
-    vm.assume(_fuzz.tokenAmountIn <= bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
 
     // internal calculation for calcSpotPrice
     uint _numer = bdiv(_fuzz.tokenInBalance, _fuzz.tokenInDenorm);
     uint _denom = bdiv(_fuzz.tokenOutBalance,  _fuzz.tokenOutDenorm);
     uint _ratio = bdiv(_numer, _denom);
     uint _scale = bdiv(BONE, bsub(BONE, MIN_FEE));
-    // console.log('_ratio2', _ratio, _scale);
-    // vm.assume(_ratio < type(uint256).max / _scale); // NOTE: is this needed?
+    vm.assume(_ratio < type(uint256).max / _scale);
 
-    // swap
-    uint256 _spotPriceBefore =
-      calcSpotPrice(_fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutDenorm, _fuzz.tokenOutDenorm, MIN_FEE);
-    uint256 _tokenAmountOut = calcOutGivenIn(
-      _fuzz.tokenInBalance,
-      _fuzz.tokenInDenorm,
-      _fuzz.tokenOutBalance,
-      _fuzz.tokenOutDenorm,
-      _fuzz.tokenAmountIn,
-      MIN_FEE
-    );
-    // console.log(1, _tokenAmountOut);
-
-    // internal calculation for calcOutGivenIn
-    // uint _weightRatio = bdiv(_fuzz.tokenInDenorm, _fuzz.tokenOutDenorm);
-    // uint _adjustedIn = bsub(BONE, MIN_FEE);
-    // uint _adjustedIn2 = bmul(_fuzz.tokenAmountIn, _adjustedIn);
-    // uint _y = bdiv(_fuzz.tokenInBalance, badd(_fuzz.tokenInBalance,_adjustedIn2));
-    // uint _foo = bpow(_y, _weightRatio);
-    // uint _bar = bsub(BONE, _foo);
-    // uint _tokenAmountOut2 = bmul(_fuzz.tokenOutBalance, _bar);
-    // console.log(2, _tokenAmountOut2);
-
-    vm.assume(_tokenAmountOut > BONE);
-    vm.assume(_spotPriceBefore <= bdiv(_fuzz.tokenAmountIn, _tokenAmountOut));
+    // MAX_IN_RATIO
+    // vm.assume(_fuzz.tokenInBalance < type(uint256).max / MAX_IN_RATIO);
+    vm.assume(_fuzz.tokenAmountIn <= bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
   }
 
   modifier happyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) {
