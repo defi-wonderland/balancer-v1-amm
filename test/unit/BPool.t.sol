@@ -14,7 +14,7 @@ import {Utils} from 'test/unit/Utils.sol';
 // TODO: remove once `private` keyword is removed in all test cases
 /* solhint-disable */
 
-abstract contract BasePoolTest is Test, BConst, Utils {
+abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   using LibString for *;
 
   uint256 public constant TOKENS_AMOUNT = 3;
@@ -80,6 +80,14 @@ abstract contract BasePoolTest is Test, BConst, Utils {
 
   function _setTotalSupply(uint256 _totalSupply) internal {
     _setPoolBalance(address(0), _totalSupply);
+  }
+
+  function _assumeCalcSpotPrice(uint _tokenInBalance, uint _tokenInDenorm, uint _tokenOutBalance, uint _tokenOutDenorm, uint _swapFee) internal view {
+    uint256 _numer = bdiv(_tokenInBalance, _tokenInDenorm);
+    uint256 _denom = bdiv(_tokenOutBalance, _tokenOutDenorm);
+    uint256 _ratio = bdiv(_numer, _denom);
+    uint256 _scale = bdiv(BONE, bsub(BONE, _swapFee));
+    vm.assume(_ratio < type(uint256).max / _scale);
   }
 }
 
@@ -505,7 +513,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   function test_Emit_LogCall() private view {}
 }
 
-contract BPool_Unit_SwapExactAmountIn is BasePoolTest, BMath {
+contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
   address tokenIn;
   address tokenOut;
 
@@ -646,6 +654,122 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest, BMath {
 }
 
 contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
+  address tokenIn;
+  address tokenOut;
+
+  struct SwapExactAmountOut_FuzzScenario {
+    uint256 tokenAmountOut;
+    uint256 tokenInBalance;
+    uint256 tokenInDenorm;
+    uint256 tokenOutBalance;
+    uint256 tokenOutDenorm;
+    uint256 swapFee;
+  }
+
+  function _setValues(SwapExactAmountOut_FuzzScenario memory _fuzz) internal {
+    tokenIn = tokens[0];
+    tokenOut = tokens[1];
+
+    // Create mocks for tokenIn and tokenOut (only use the first 2 tokens)
+    _mockTransferFrom(tokenIn);
+    _mockTransfer(tokenOut);
+
+    // Set balances
+    _setRecord(
+      tokenIn,
+      BPool.Record({
+        bound: true,
+        index: 0, // NOTE: irrelevant for this method
+        denorm: _fuzz.tokenInDenorm,
+        balance: _fuzz.tokenInBalance
+      })
+    );
+    _setRecord(
+      tokenOut,
+      BPool.Record({
+        bound: true,
+        index: 0, // NOTE: irrelevant for this method
+        denorm: _fuzz.tokenOutDenorm,
+        balance: _fuzz.tokenOutBalance
+      })
+    );
+
+    // Set swapFee
+    _setSwapFee(_fuzz.swapFee);
+    // Set public swap
+    _setPublicSwap(true);
+    // Set finalize
+    _setFinalize(true);
+  }
+
+  function _assumeHappyPath(SwapExactAmountOut_FuzzScenario memory _fuzz) internal view {
+    // safe bound assumptions
+    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
+
+    // min
+    vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
+    vm.assume(_fuzz.tokenOutBalance >= MIN_BALANCE);
+
+    // max - calcSpotPrice (spotPriceBefore)
+    vm.assume(_fuzz.tokenInBalance < type(uint256).max / _fuzz.tokenInDenorm);
+    vm.assume(_fuzz.tokenOutBalance < type(uint256).max / _fuzz.tokenOutDenorm);
+
+    // max - calcSpotPrice (spotPriceAfter)
+    vm.assume(_fuzz.tokenAmountOut < type(uint256).max - _fuzz.tokenOutBalance);
+    vm.assume(_fuzz.tokenOutBalance + _fuzz.tokenAmountOut < type(uint256).max / _fuzz.tokenOutDenorm);
+
+    // internal calculation for calcSpotPrice (spotPriceBefore)
+    _assumeCalcSpotPrice(_fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee);
+
+    // MAX_OUT_RATIO
+    vm.assume(_fuzz.tokenAmountOut <= bmul(_fuzz.tokenOutBalance, MAX_OUT_RATIO));
+
+    // L364 BPool.sol
+    uint256 _spotPriceBefore = calcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+
+    // internal calculation for calcInGivenOut
+    uint256 _weightRatio = bdiv(_fuzz.tokenOutDenorm, _fuzz.tokenInDenorm);
+    uint256 _diff = bsub(_fuzz.tokenOutBalance, _fuzz.tokenAmountOut);
+    uint256 _y = bdiv(_fuzz.tokenOutBalance, _diff);
+    uint256 _foo = bpow(_y, _weightRatio);
+    vm.assume(bsub(_foo, BONE) < type(uint256).max / _fuzz.tokenInBalance);
+
+    uint256 _tokenAmountIn = calcInGivenOut(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountOut,
+      _fuzz.swapFee
+    );
+
+    vm.assume(_tokenAmountIn > BONE);
+    vm.assume(bmul(_spotPriceBefore, _fuzz.tokenAmountOut) <= _tokenAmountIn);
+
+    // max - calcSpotPrice (spotPriceAfter)
+    vm.assume(_tokenAmountIn < type(uint256).max - _fuzz.tokenInBalance);
+    vm.assume(_fuzz.tokenInBalance + _tokenAmountIn < type(uint256).max / _fuzz.tokenInDenorm);
+
+    // internal calculation for calcSpotPrice (spotPriceAfter)
+    _assumeCalcSpotPrice(_fuzz.tokenInBalance + _tokenAmountIn, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance - _fuzz.tokenAmountOut, _fuzz.tokenOutDenorm, _fuzz.swapFee);
+  }
+
+  modifier happyPath(SwapExactAmountOut_FuzzScenario memory _fuzz) {
+    _assumeHappyPath(_fuzz);
+    _setValues(_fuzz);
+    _;
+  }
+
+  function test_HappyPath(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _maxPrice = type(uint256).max;
+    uint256 _maxAmountIn = type(uint256).max;
+    bPool.swapExactAmountOut(tokenIn, _maxAmountIn, tokenOut, _fuzz.tokenAmountOut, _maxPrice);
+  }
+
   function test_Revert_NotBoundTokenIn() private view {}
 
   function test_Revert_NotBoundTokenOut() private view {}
