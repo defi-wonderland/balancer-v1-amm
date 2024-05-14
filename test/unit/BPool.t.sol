@@ -62,10 +62,6 @@ abstract contract BasePoolTest is Test, BConst, Utils {
     bPool.set__records(_token, _record);
   }
 
-  function _setBalance(address _user, uint256 _balance) internal {
-    _writeUintAtAddressMapping(address(bPool), 0, _user, _balance);
-  }
-
   function _setPublicSwap(bool _isPublicSwap) internal {
     bPool.set__publicSwap(_isPublicSwap);
   }
