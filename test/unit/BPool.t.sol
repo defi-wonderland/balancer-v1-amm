@@ -563,8 +563,8 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest, BMath {
     vm.assume(_fuzz.tokenOutBalance >= MIN_BALANCE);
 
     // max - calcSpotPrice
-    vm.assume(_fuzz.tokenInBalance < type(uint256).max / BONE);
-    vm.assume(_fuzz.tokenOutBalance < type(uint256).max / BONE);
+    vm.assume(_fuzz.tokenInBalance < type(uint256).max / _fuzz.tokenInDenorm);
+    vm.assume(_fuzz.tokenOutBalance < type(uint256).max / _fuzz.tokenOutDenorm);
 
     // internal calculation for calcSpotPrice
     uint _numer = bdiv(_fuzz.tokenInBalance, _fuzz.tokenInDenorm);
@@ -576,6 +576,11 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest, BMath {
     // MAX_IN_RATIO
     // vm.assume(_fuzz.tokenInBalance < type(uint256).max / MAX_IN_RATIO);
     vm.assume(_fuzz.tokenAmountIn <= bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
+
+    // uint _spotPriceBefore = calcSpotPrice(_fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, MIN_FEE);
+    // uint _tokenAmountOut = calcOutGivenIn(_fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.tokenAmountIn, MIN_FEE);
+    // vm.assume(_tokenAmountOut > 0);
+    // vm.assume(_spotPriceBefore <= bdiv(_fuzz.tokenAmountIn, _tokenAmountOut));
   }
 
   modifier happyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) {
