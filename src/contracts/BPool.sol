@@ -335,8 +335,7 @@ contract BPool is BBronze, BToken, BMath {
     spotPriceAfter = calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, _swapFee);
     require(spotPriceAfter >= spotPriceBefore, 'ERR_MATH_APPROX');
     require(spotPriceAfter <= maxPrice, 'ERR_LIMIT_PRICE');
-    // TODO: re-enable when fuzzing is complete
-    // require(spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut), 'ERR_MATH_APPROX');
+    require(spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut), 'ERR_MATH_APPROX');
 
     emit LOG_SWAP(msg.sender, tokenIn, tokenOut, tokenAmountIn, tokenAmountOut);
 
