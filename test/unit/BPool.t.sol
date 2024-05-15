@@ -9,6 +9,7 @@ import {BMath} from 'contracts/BMath.sol';
 import {IERC20} from 'contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
 import {LibString} from 'solmate/utils/LibString.sol';
+import {Pow} from 'test/unit/Pow.sol';
 import {Utils} from 'test/unit/Utils.sol';
 
 // TODO: remove once `private` keyword is removed in all test cases
@@ -23,6 +24,10 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
   MockBPool public bPool;
   address[TOKENS_AMOUNT] public tokens;
+
+  // Deploy this external contract to perform a try-catch when calling bpow.
+  // If the call fails, it means that the function overflowed, then we reject the fuzzed inputs
+  Pow public pow = new Pow();
 
   function setUp() public {
     bPool = new MockBPool();
@@ -137,13 +142,13 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   }
 
   function _assumeCalcSingleInGivenPoolOut(
-    uint256,
+    uint256 _tokenInBalance,
     uint256 _tokenInDenorm,
     uint256 _poolSupply,
     uint256 _totalWeight,
     uint256 _poolAmountOut,
     uint256
-  ) internal pure {
+  ) internal view {
     uint256 _normalizedWeight = bdiv(_tokenInDenorm, _totalWeight);
     uint256 _newPoolSupply = badd(_poolSupply, _poolAmountOut);
     vm.assume(_newPoolSupply > _poolSupply);
@@ -153,6 +158,18 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _poolRatio = bdiv(_newPoolSupply, _poolSupply);
     vm.assume(_poolRatio < MAX_BPOW_BASE);
     vm.assume(BONE > _normalizedWeight);
+
+    uint256 _boo = bdiv(BONE, _normalizedWeight);
+    uint256 _tokenRatio;
+    try pow.pow(_poolRatio, _boo) returns (uint256 _result) {
+      // pow didn't overflow
+      _tokenRatio = _result;
+    } catch {
+      // pow did an overflow. Reject this inputs
+      vm.assume(false);
+    }
+
+    vm.assume(_tokenRatio < type(uint256).max / _tokenInBalance);
   }
 }
 
@@ -1021,7 +1038,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     _setTotalWeight(_fuzz.totalWeight);
   }
 
-  function _assumeHappyPath(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) internal pure {
+  function _assumeHappyPath(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) internal view {
     // safe bound assumptions
     _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
