@@ -123,7 +123,7 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _totalSupply
   ) internal pure {
     uint256 _normalizedWeight = bdiv(_tokenInDenorm, _totalWeight);
-    vm.assume(_normalizedWeight < BONE); // TODO: why this? if the weights are between allowed it should be fine 
+    vm.assume(_normalizedWeight < BONE); // TODO: why this? if the weights are between allowed it should be fine
 
     uint256 _zaz = bmul(bsub(BONE, _normalizedWeight), _swapFee);
     uint256 _tokenAmountInAfterFee = bmul(_tokenAmountIn, bsub(BONE, _zaz));
