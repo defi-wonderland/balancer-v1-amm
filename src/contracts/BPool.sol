@@ -20,9 +20,8 @@ import {ConditionalOrdersUtilsLib as Utils} from '../cow-swap/ConditionalOrdersU
 import {GPv2Order} from '../cow-swap/GPv2Order.sol';
 import {IConditionalOrder} from '../cow-swap/IConditionalOrder.sol';
 import 'interfaces/IBFactory.sol';
-import {IERC1271} from 'interfaces/IERC1271.sol';
 
-contract BPool is IERC1271, BBronze, BToken, BMath {
+contract BPool is BBronze, BToken, BMath {
   struct Record {
     bool bound; // is token bound to pool
     uint256 index; // internal
@@ -166,7 +165,7 @@ contract BPool is IERC1271, BBronze, BToken, BMath {
     _mintPoolShare(INIT_POOL_SUPPLY);
     _pushPoolShare(msg.sender, INIT_POOL_SUPPLY);
 
-    _grantApprovalsTo(IBFactory(_factory).getCowSwap());
+    _afterFinalize();
   }
 
   function bind(address token, uint256 balance, uint256 denorm) external _logs_ 
@@ -549,13 +548,5 @@ contract BPool is IERC1271, BBronze, BToken, BMath {
     _burn(amount);
   }
 
-  function _grantApprovalsTo(address _target) internal {
-    for (uint256 i = 0; i < _tokens.length; i++) {
-      IERC20(_tokens[i]).approve(_target, type(uint256).max);
-    }
-  }
-
-  function isValidSignature(bytes32, bytes memory) external pure override returns (bytes4 magicValue) {
-    return this.isValidSignature.selector;
-  }
+  function _afterFinalize() internal virtual {}
 }
