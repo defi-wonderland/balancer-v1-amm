@@ -179,7 +179,7 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _totalWeight,
     uint256 _poolAmountIn,
     uint256 _swapFee
-  ) internal view {
+  ) internal pure {
     uint256 _normalizedWeight = bdiv(_tokenOutDenorm, _totalWeight);
     uint256 _exitFee = bsub(BONE, EXIT_FEE);
     vm.assume(_poolAmountIn < type(uint256).max / _exitFee);
@@ -1194,7 +1194,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     _setTotalWeight(_fuzz.totalWeight);
   }
 
-  function _assumeHappyPath(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) internal view {
+  function _assumeHappyPath(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) internal pure {
     // safe bound assumptions
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
@@ -1228,9 +1228,6 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
       _fuzz.poolAmountIn,
       _fuzz.swapFee
     );
-
-    // TODO: is needed?
-    vm.assume(_tokenAmountOut > 0);
 
     // max
     vm.assume(_fuzz.tokenOutBalance < type(uint256).max - _tokenAmountOut);
