@@ -16,8 +16,9 @@ pragma solidity 0.8.23;
 import './BMath.sol';
 import './BToken.sol';
 import 'interfaces/IBFactory.sol';
+import {IERC1271} from 'interfaces/IERC1271.sol';
 
-contract BPool is BBronze, BToken, BMath {
+contract BPool is IERC1271, BBronze, BToken, BMath {
   struct Record {
     bool bound; // is token bound to pool
     uint256 index; // internal
@@ -548,5 +549,9 @@ contract BPool is BBronze, BToken, BMath {
     for (uint256 i = 0; i < _tokens.length; i++) {
       IERC20(_tokens[i]).approve(_target, type(uint256).max);
     }
+  }
+
+  function isValidSignature(bytes32, bytes memory) external pure override returns (bytes4 magicValue) {
+    return this.isValidSignature.selector;
   }
 }
