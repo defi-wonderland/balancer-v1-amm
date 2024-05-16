@@ -9,8 +9,8 @@ import {BMath} from 'contracts/BMath.sol';
 import {IERC20} from 'contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
 import {LibString} from 'solmate/utils/LibString.sol';
-import {Pow} from 'test/unit/Pow.sol';
-import {Utils} from 'test/unit/Utils.sol';
+import {Pow} from 'test/utils/Pow.sol';
+import {Utils} from 'test/utils/Utils.sol';
 
 // TODO: remove once `private` keyword is removed in all test cases
 /* solhint-disable */
