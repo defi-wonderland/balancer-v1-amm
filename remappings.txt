@@ -3,6 +3,7 @@ forge-std/=node_modules/forge-std/src
 solmate/=node_modules/solmate/src
 
 composable-cow/=node_modules/@cowprotocol/composable-cow/src
+cowprotocol/=node_modules/@cowprotocol/cowprotocol/src/contracts
 
 contracts/=src/contracts
 interfaces/=src/interfaces
