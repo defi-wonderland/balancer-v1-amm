@@ -646,8 +646,8 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
 
   function _assumeHappyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) internal pure {
     // safe bound assumptions
-    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT / 2);
-    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT / 2);
+    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
 
     // min
@@ -784,8 +784,8 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
 
   function _assumeHappyPath(SwapExactAmountOut_FuzzScenario memory _fuzz) internal pure {
     // safe bound assumptions
-    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT / 2);
-    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT / 2);
+    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
 
     // min
@@ -934,9 +934,9 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
 
   function _assumeHappyPath(JoinswapExternAmountIn_FuzzScenario memory _fuzz) internal pure {
     // safe bound assumptions
-    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT / 2);
+    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
-    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_TOTAL_WEIGHT);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
 
     vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
 
