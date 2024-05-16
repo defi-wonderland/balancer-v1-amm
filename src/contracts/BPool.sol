@@ -370,22 +370,23 @@ contract BPool is BBronze, BToken, BMath {
     Record storage inRecord = _records[address(tokenIn)];
     Record storage outRecord = _records[address(tokenOut)];
 
+    uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
 
     require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
 
     uint256 spotPriceBefore =
-      calcSpotPrice(tokenOutBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
+      calcSpotPrice(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
     require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
 
     tokenAmountIn =
-      calcInGivenOut(tokenOutBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, tokenAmountOut, _swapFee);
+      calcInGivenOut(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, tokenAmountOut, _swapFee);
     require(tokenAmountIn <= maxAmountIn, 'ERR_LIMIT_IN');
 
     tokenOutBalance = badd(tokenOutBalance, tokenAmountIn);
     tokenOutBalance = bsub(tokenOutBalance, tokenAmountOut);
 
-    spotPriceAfter = calcSpotPrice(tokenOutBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
+    spotPriceAfter = calcSpotPrice(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
     require(spotPriceAfter >= spotPriceBefore, 'ERR_MATH_APPROX');
     require(spotPriceAfter <= maxPrice, 'ERR_LIMIT_PRICE');
     require(spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut), 'ERR_MATH_APPROX');
