@@ -794,9 +794,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     _;
   }
 
-  // TODO: fix this test
   function test_HappyPath(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.skip(true); 
     uint256 _maxPrice = type(uint256).max;
     uint256 _maxAmountIn = type(uint256).max;
     bPool.swapExactAmountOut(tokenIn, _maxAmountIn, tokenOut, _fuzz.tokenAmountOut, _maxPrice);

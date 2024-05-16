@@ -383,7 +383,7 @@ contract BPool is BBronze, BToken, BMath {
       calcInGivenOut(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, tokenAmountOut, _swapFee);
     require(tokenAmountIn <= maxAmountIn, 'ERR_LIMIT_IN');
 
-    tokenOutBalance = badd(tokenOutBalance, tokenAmountIn);
+    tokenInBalance = badd(tokenInBalance, tokenAmountIn);
     tokenOutBalance = bsub(tokenOutBalance, tokenAmountOut);
 
     spotPriceAfter = calcSpotPrice(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
