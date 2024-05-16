@@ -15,6 +15,7 @@ pragma solidity 0.8.23;
 
 import './BMath.sol';
 import './BToken.sol';
+import 'interfaces/IBFactory.sol';
 
 contract BPool is BBronze, BToken, BMath {
   struct Record {
@@ -159,6 +160,8 @@ contract BPool is BBronze, BToken, BMath {
 
     _mintPoolShare(INIT_POOL_SUPPLY);
     _pushPoolShare(msg.sender, INIT_POOL_SUPPLY);
+
+    _grantApprovalsTo(IBFactory(_factory).getCowSwap());
   }
 
   function bind(address token, uint256 balance, uint256 denorm) external _logs_ 
@@ -539,5 +542,11 @@ contract BPool is BBronze, BToken, BMath {
 
   function _burnPoolShare(uint256 amount) internal {
     _burn(amount);
+  }
+
+  function _grantApprovalsTo(address _target) internal {
+    for (uint256 i = 0; i < _tokens.length; i++) {
+      IERC20(_tokens[i]).approve(_target, type(uint256).max);
+    }
   }
 }

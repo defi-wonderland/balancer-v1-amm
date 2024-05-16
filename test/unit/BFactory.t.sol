@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {BFactory} from 'contracts/BFactory.sol';
+import {BFactory, IBFactory} from 'contracts/BFactory.sol';
 import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
@@ -9,10 +9,11 @@ import {Test} from 'forge-std/Test.sol';
 abstract contract Base is Test {
   BFactory public bFactory;
   address public owner = makeAddr('owner');
+  address public cowSwap = makeAddr('cowSwap');
 
   function setUp() public {
     vm.prank(owner);
-    bFactory = new BFactory();
+    bFactory = new BFactory(cowSwap);
   }
 }
 
@@ -20,8 +21,15 @@ contract BFactory_Unit_Constructor is Base {
   /**
    * @notice Test that the owner is set correctly
    */
-  function test_Deploy() public view {
+  function test_Set_BlLabs() public view {
     assertEq(owner, bFactory.getBLabs());
+  }
+
+  /**
+   * @notice Test that the cowSwap address is set correctly
+   */
+  function test_Set_CowSwap() public view {
+    assertEq(cowSwap, bFactory.getCowSwap());
   }
 }
 
@@ -60,7 +68,7 @@ contract BFactory_Unit_NewBPool is Base {
     vm.assume(_randomCaller != VM_ADDRESS);
     vm.expectEmit(true, true, true, true);
     address _expectedPoolAddress = vm.computeCreateAddress(address(bFactory), 1);
-    emit BFactory.LOG_NEW_POOL(_randomCaller, _expectedPoolAddress);
+    emit IBFactory.LOG_NEW_POOL(_randomCaller, _expectedPoolAddress);
     vm.prank(_randomCaller);
     bFactory.newBPool();
   }
@@ -91,7 +99,7 @@ contract BFactory_Unit_GetBLabs is Base {
    */
   function test_Set_Owner(address _randomDeployer) public {
     vm.prank(_randomDeployer);
-    BFactory _bFactory = new BFactory();
+    BFactory _bFactory = new BFactory(address(0));
     assertEq(_randomDeployer, _bFactory.getBLabs());
   }
 }
@@ -112,7 +120,7 @@ contract BFactory_Unit_SetBLabs is Base {
    */
   function test_Emit_Log(address _addressToSet) public {
     vm.expectEmit(true, true, true, true);
-    emit BFactory.LOG_BLABS(owner, _addressToSet);
+    emit IBFactory.LOG_BLABS(owner, _addressToSet);
     vm.prank(owner);
     bFactory.setBLabs(_addressToSet);
   }

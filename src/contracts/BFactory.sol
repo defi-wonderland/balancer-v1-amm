@@ -16,12 +16,9 @@ pragma solidity 0.8.23;
 // Builds new BPools, logging their addresses and providing `isBPool(address) -> (bool)`
 
 import './BPool.sol';
+import 'interfaces/IBFactory.sol';
 
-contract BFactory is BBronze {
-  event LOG_NEW_POOL(address indexed caller, address indexed pool);
-
-  event LOG_BLABS(address indexed caller, address indexed blabs);
-
+contract BFactory is IBFactory, BBronze {
   mapping(address => bool) internal _isBPool;
 
   function isBPool(address b) external view returns (bool) {
@@ -29,33 +26,39 @@ contract BFactory is BBronze {
   }
 
   function newBPool() external returns (BPool) {
-    BPool bpool = new BPool();
-    _isBPool[address(bpool)] = true;
-    emit LOG_NEW_POOL(msg.sender, address(bpool));
-    bpool.setController(msg.sender);
-    return bpool;
+    BPool bPool = new BPool();
+    _isBPool[address(bPool)] = true;
+    emit LOG_NEW_POOL(msg.sender, address(bPool));
+    bPool.setController(msg.sender);
+    return bPool;
   }
 
-  address internal _blabs;
+  address internal _bLabs;
+  address internal _cowSwap;
 
-  constructor() {
-    _blabs = msg.sender;
+  constructor(address cowSwap) {
+    _bLabs = msg.sender;
+    _cowSwap = cowSwap;
   }
 
   function getBLabs() external view returns (address) {
-    return _blabs;
+    return _bLabs;
+  }
+
+  function getCowSwap() external view returns (address) {
+    return _cowSwap;
   }
 
   function setBLabs(address b) external {
-    require(msg.sender == _blabs, 'ERR_NOT_BLABS');
+    require(msg.sender == _bLabs, 'ERR_NOT_BLABS');
     emit LOG_BLABS(msg.sender, b);
-    _blabs = b;
+    _bLabs = b;
   }
 
   function collect(BPool pool) external {
-    require(msg.sender == _blabs, 'ERR_NOT_BLABS');
+    require(msg.sender == _bLabs, 'ERR_NOT_BLABS');
     uint256 collected = IERC20(pool).balanceOf(address(this));
-    bool xfer = pool.transfer(_blabs, collected);
+    bool xfer = pool.transfer(_bLabs, collected);
     require(xfer, 'ERR_ERC20_FAILED');
   }
 }

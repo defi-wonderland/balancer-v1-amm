@@ -12,7 +12,7 @@ contract Deploy is Script, Params {
     DeploymentParams memory _params = _deploymentParams[block.chainid];
 
     vm.startBroadcast();
-    BFactory bFactory = new BFactory();
+    BFactory bFactory = new BFactory(_params.cowSwap);
     bFactory.setBLabs(_params.bLabs);
     vm.stopBroadcast();
   }

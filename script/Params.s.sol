@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 contract Params {
   struct DeploymentParams {
     address bLabs;
+    address cowSwap;
   }
 
   /// @notice Deployment parameters for each chain
@@ -11,9 +12,9 @@ contract Params {
 
   constructor() {
     // Mainnet
-    _deploymentParams[1] = DeploymentParams(address(this));
+    _deploymentParams[1] = DeploymentParams({bLabs: address(this), cowSwap: address(this)});
 
     // Sepolia
-    _deploymentParams[11_155_111] = DeploymentParams(address(this));
+    _deploymentParams[11_155_111] = DeploymentParams({bLabs: address(this), cowSwap: address(this)});
   }
 }

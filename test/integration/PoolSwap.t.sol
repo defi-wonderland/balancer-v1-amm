@@ -25,7 +25,7 @@ abstract contract PoolSwapIntegrationTest is Test {
 
     deal(address(tokenA), address(swapper), 1e18);
 
-    factory = new BFactory();
+    factory = new BFactory(swapper);
 
     vm.startPrank(lp);
     pool = factory.newBPool();
@@ -74,11 +74,6 @@ contract DirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
 
 contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
   function _makeSwap() internal override {
-    vm.startPrank(address(pool));
-    tokenA.approve(address(swapper), type(uint256).max);
-    tokenB.approve(address(swapper), type(uint256).max);
-    vm.stopPrank();
-
     vm.startPrank(swapper);
     // swap 0.5 tokenA for tokenB
     tokenA.transfer(address(pool), 0.5e18);
