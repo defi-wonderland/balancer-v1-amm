@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
+import {BCoWPool as BPool} from 'contracts/BCoWPool.sol';
 import {BFactory, IBFactory} from 'contracts/BFactory.sol';
-import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
 

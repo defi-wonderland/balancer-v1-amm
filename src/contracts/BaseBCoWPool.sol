@@ -33,7 +33,8 @@ abstract contract BaseBCoWPool is IERC1271 {
 
   /// All data used by an order to validate the AMM conditions.
   struct TradingParams {
-    // TODO: add BAL related parameters
+    address buyToken;
+    address sellToken;
     /// The app data that must be used in the order.
     /// See `GPv2Order.Data` for more information on the app data.
     bytes32 appData;
@@ -301,23 +302,8 @@ abstract contract BaseBCoWPool is IERC1271 {
    * @return true if the order parameters match, false otherwise
    */
   // TODO: make abstract and implement in the inheriting contract
-  function matchFreeOrderParams(GPv2Order.Data memory lhs, GPv2Order.Data memory rhs) internal pure returns (bool) {
-    bool sameSellToken = lhs.sellToken == rhs.sellToken;
-    bool sameBuyToken = lhs.buyToken == rhs.buyToken;
-    bool sameSellAmount = lhs.sellAmount == rhs.sellAmount;
-    bool sameBuyAmount = lhs.buyAmount == rhs.buyAmount;
-    bool sameValidTo = lhs.validTo == rhs.validTo;
-    bool sameKind = lhs.kind == rhs.kind;
-    bool samePartiallyFillable = lhs.partiallyFillable == rhs.partiallyFillable;
-
-    // The following parameters are untested:
-    // - receiver
-    // - appData
-    // - feeAmount
-    // - sellTokenBalance
-    // - buyTokenBalance
-
-    return sameSellToken && sameBuyToken && sameSellAmount && sameBuyAmount && sameValidTo && sameKind
-      && samePartiallyFillable;
-  }
+  function matchFreeOrderParams(
+    GPv2Order.Data memory lhs,
+    GPv2Order.Data memory rhs
+  ) internal pure virtual returns (bool);
 }

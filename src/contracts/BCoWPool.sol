@@ -14,4 +14,27 @@ contract BCoWPool is BaseBCoWPool, BPool {
   constructor() BaseBCoWPool(ISettlement(address(0))) BPool() {}
 
   function verify(TradingParams memory tradingParams, GPv2Order.Data memory order) public view override {}
+
+  function matchFreeOrderParams(
+    GPv2Order.Data memory lhs,
+    GPv2Order.Data memory rhs
+  ) internal pure override returns (bool) {
+    bool sameSellToken = lhs.sellToken == rhs.sellToken;
+    bool sameBuyToken = lhs.buyToken == rhs.buyToken;
+    bool sameSellAmount = lhs.sellAmount == rhs.sellAmount;
+    bool sameBuyAmount = lhs.buyAmount == rhs.buyAmount;
+    bool sameValidTo = lhs.validTo == rhs.validTo;
+    bool sameKind = lhs.kind == rhs.kind;
+    bool samePartiallyFillable = lhs.partiallyFillable == rhs.partiallyFillable;
+
+    // The following parameters are untested:
+    // - receiver
+    // - appData
+    // - feeAmount
+    // - sellTokenBalance
+    // - buyTokenBalance
+
+    return sameSellToken && sameBuyToken && sameSellAmount && sameBuyAmount && sameValidTo && sameKind
+      && samePartiallyFillable;
+  }
 }
