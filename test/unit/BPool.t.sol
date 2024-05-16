@@ -178,10 +178,13 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _poolSupply,
     uint256 _totalWeight,
     uint256 _poolAmountIn,
-    uint256
+    uint256 _swapFee
   ) internal view {
     uint256 _normalizedWeight = bdiv(_tokenOutDenorm, _totalWeight);
-    uint256 _poolAmountInAfterExitFee = bmul(_poolAmountIn, bsub(BONE, EXIT_FEE));
+    uint256 _exitFee = bsub(BONE, EXIT_FEE);
+    vm.assume(_poolAmountIn < type(uint256).max / _exitFee);
+
+    uint256 _poolAmountInAfterExitFee = bmul(_poolAmountIn, _exitFee);
     uint256 _newPoolSupply = bsub(_poolSupply, _poolAmountInAfterExitFee);
     vm.assume(_newPoolSupply < type(uint256).max / BONE);
     vm.assume(_newPoolSupply * BONE < type(uint256).max - (_poolSupply / 2)); // bdiv require
@@ -193,11 +196,10 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _tokenOutRatio = bpow(_poolRatio, bdiv(BONE, _normalizedWeight));
     vm.assume(_tokenOutRatio < type(uint256).max / _tokenOutBalance);
 
-    // uint256 _newTokenOutBalance = bmul(_tokenOutRatio, _tokenOutBalance);
-    // uint256 _tokenAmountOutBeforeSwapFee = bsub(_tokenOutBalance, _newTokenOutBalance);
-    // uint256 _zaz = bmul(bsub(BONE, _normalizedWeight), _swapFee);
-
-    // _tokenAmountOut = bmul(_tokenAmountOutBeforeSwapFee, bsub(BONE, _zaz));
+    uint256 _newTokenOutBalance = bmul(_tokenOutRatio, _tokenOutBalance);
+    uint256 _tokenAmountOutBeforeSwapFee = bsub(_tokenOutBalance, _newTokenOutBalance);
+    uint256 _zaz = bmul(bsub(BONE, _normalizedWeight), _swapFee);
+    vm.assume(_tokenAmountOutBeforeSwapFee < type(uint256).max / bsub(BONE, _zaz));
   }
 }
 
@@ -1184,12 +1186,12 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     _setPublicSwap(true);
     // Set finalize
     _setFinalize(true);
-    // Set totalSupply
-    _setTotalSupply(_fuzz.totalSupply);
-    // Set totalWeight
-    _setTotalWeight(_fuzz.totalWeight);
     // Set balance
     _setPoolBalance(address(this), _fuzz.poolAmountIn); // give LP tokens to fn caller
+    // Set totalSupply
+    _setTotalSupply(_fuzz.totalSupply - _fuzz.poolAmountIn);
+    // Set totalWeight
+    _setTotalWeight(_fuzz.totalWeight);
   }
 
   function _assumeHappyPath(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) internal view {
@@ -1202,6 +1204,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
 
     // max
+    vm.assume(_fuzz.poolAmountIn < _fuzz.totalSupply);
     vm.assume(_fuzz.totalSupply < type(uint256).max - _fuzz.poolAmountIn);
 
     // min
@@ -1226,7 +1229,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
       _fuzz.swapFee
     );
 
-    //
+    // TODO: is needed?
     vm.assume(_tokenAmountOut > 0);
 
     // max
