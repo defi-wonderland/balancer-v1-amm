@@ -6,7 +6,7 @@ import {BFactory} from 'contracts/BFactory.sol';
 import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
 
-import {GasSnapshot} from "forge-gas-snapshot/GasSnapshot.sol";
+import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
 
 abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
   BFactory public factory;
