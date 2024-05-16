@@ -174,6 +174,14 @@
     "@types/conventional-commits-parser" "^5.0.0"
     chalk "^5.3.0"
 
+"@cowprotocol/composable-cow@github:cowprotocol/composable-cow#9ea0394":
+  version "0.0.0"
+  resolved "https://codeload.github.com/cowprotocol/composable-cow/tar.gz/9ea0394e15eec16550ba4c327d10c920880eb355"
+
+"@cowprotocol/cowprotocol@github:rndlabs/cowswap-contracts#5c25837":
+  version "1.4.0"
+  resolved "https://codeload.github.com/rndlabs/cowswap-contracts/tar.gz/5c25837f585d79dc5450fb80f66c41f596c3198d"
+
 "@defi-wonderland/natspec-smells@1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@defi-wonderland/natspec-smells/-/natspec-smells-1.1.1.tgz#1eed85765ebe4799f8861247308d6365dbf6dbaa"

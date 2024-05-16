@@ -15,8 +15,11 @@ pragma solidity 0.8.23;
 
 import './BMath.sol';
 import './BToken.sol';
+
 import 'interfaces/IBFactory.sol';
 import {IERC1271} from 'interfaces/IERC1271.sol';
+import {GPv2Order, IConditionalOrder} from 'composable-cow/BaseConditionalOrder.sol';
+import {ConditionalOrdersUtilsLib as Utils} from 'composable-cow/types/ConditionalOrdersUtilsLib.sol';
 
 contract BPool is IERC1271, BBronze, BToken, BMath {
   struct Record {
