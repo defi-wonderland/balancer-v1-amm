@@ -11,7 +11,9 @@ sort_imports = true
 [profile.default]
 solc_version = '0.8.23'
 libs = ["node_modules", "lib"]
-optimizer_runs = 10_000
+optimizer_runs = 50             # TODO: increase for production and add via-ir
+ffi = true
+fs_permissions = [{ access = "read-write", path = ".forge-snapshots/"}]
 
 [profile.optimized]
 via_ir = true
@@ -26,7 +28,7 @@ src = 'src/interfaces/'
 
 [fuzz]
 runs = 1000
-max_test_rejects = 500000
+max_test_rejects = 1_000_000
 
 [rpc_endpoints]
 mainnet = "${MAINNET_RPC}"
