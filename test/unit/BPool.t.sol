@@ -171,6 +171,34 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
     vm.assume(_tokenRatio < type(uint256).max / _tokenInBalance);
   }
+
+  function _assumeCalcSingleOutGivenPoolIn(
+    uint256 _tokenOutBalance,
+    uint256 _tokenOutDenorm,
+    uint256 _poolSupply,
+    uint256 _totalWeight,
+    uint256 _poolAmountIn,
+    uint256
+  ) internal view {
+    uint256 _normalizedWeight = bdiv(_tokenOutDenorm, _totalWeight);
+    uint256 _poolAmountInAfterExitFee = bmul(_poolAmountIn, bsub(BONE, EXIT_FEE));
+    uint256 _newPoolSupply = bsub(_poolSupply, _poolAmountInAfterExitFee);
+    vm.assume(_newPoolSupply < type(uint256).max / BONE);
+    vm.assume(_newPoolSupply * BONE < type(uint256).max - (_poolSupply / 2)); // bdiv require
+
+    uint256 _poolRatio = bdiv(_newPoolSupply, _poolSupply);
+    vm.assume(_poolRatio < MAX_BPOW_BASE);
+    vm.assume(BONE > _normalizedWeight);
+
+    uint256 _tokenOutRatio = bpow(_poolRatio, bdiv(BONE, _normalizedWeight));
+    vm.assume(_tokenOutRatio < type(uint256).max / _tokenOutBalance);
+
+    // uint256 _newTokenOutBalance = bmul(_tokenOutRatio, _tokenOutBalance);
+    // uint256 _tokenAmountOutBeforeSwapFee = bsub(_tokenOutBalance, _newTokenOutBalance);
+    // uint256 _zaz = bmul(bsub(BONE, _normalizedWeight), _swapFee);
+
+    // _tokenAmountOut = bmul(_tokenAmountOutBeforeSwapFee, bsub(BONE, _zaz));
+  }
 }
 
 contract BPool_Unit_Constructor is BasePoolTest {
@@ -1173,42 +1201,40 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     // min
     vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
 
-    revert('stop');
+    // max
+    vm.assume(_fuzz.totalSupply < type(uint256).max - _fuzz.poolAmountIn);
 
-    // // max
-    // vm.assume(_fuzz.totalSupply < type(uint256).max - _fuzz.poolAmountOut);
+    // min
+    vm.assume(_fuzz.tokenOutBalance >= MIN_BALANCE);
 
-    // // min
-    // vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
+    // internal calculation for calcSingleOutGivenPoolIn
+    _assumeCalcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
 
-    // // internal calculation for calcSingleInGivenPoolOut
-    // _assumeCalcSingleInGivenPoolOut(
-    //   _fuzz.tokenInBalance,
-    //   _fuzz.tokenInDenorm,
-    //   _fuzz.totalSupply,
-    //   _fuzz.totalWeight,
-    //   _fuzz.poolAmountOut,
-    //   _fuzz.swapFee
-    // );
+    uint256 _tokenAmountOut = calcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
 
-    // uint256 _tokenAmountIn = calcSingleInGivenPoolOut(
-    //   _fuzz.tokenInBalance,
-    //   _fuzz.tokenInDenorm,
-    //   _fuzz.totalSupply,
-    //   _fuzz.totalWeight,
-    //   _fuzz.poolAmountOut,
-    //   _fuzz.swapFee
-    // );
+    //
+    vm.assume(_tokenAmountOut > 0);
 
-    // // L428 BPool.sol
-    // vm.assume(_tokenAmountIn > 0);
+    // max
+    vm.assume(_fuzz.tokenOutBalance < type(uint256).max - _tokenAmountOut);
 
-    // // max
-    // vm.assume(_fuzz.tokenInBalance < type(uint256).max - _tokenAmountIn);
-
-    // // MAX_IN_RATIO
-    // vm.assume(_fuzz.tokenInBalance < type(uint256).max / MAX_IN_RATIO);
-    // vm.assume(_tokenAmountIn <= bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
+    // MAX_OUT_RATIO
+    vm.assume(_fuzz.tokenOutBalance < type(uint256).max / MAX_OUT_RATIO);
+    vm.assume(_tokenAmountOut <= bmul(_fuzz.tokenOutBalance, MAX_OUT_RATIO));
   }
 
   modifier happyPath(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) {
