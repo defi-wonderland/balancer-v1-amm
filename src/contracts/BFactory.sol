@@ -15,7 +15,9 @@ pragma solidity 0.8.25;
 
 // Builds new BPools, logging their addresses and providing `isBPool(address) -> (bool)`
 
-import './BPool.sol';
+import {BCoWPool as BPool} from './BCoWPool.sol';
+import {BBronze} from './BColor.sol';
+import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 import 'interfaces/IBFactory.sol';
 
 contract BFactory is IBFactory, BBronze {
@@ -57,7 +59,7 @@ contract BFactory is IBFactory, BBronze {
 
   function collect(BPool pool) external {
     require(msg.sender == _bLabs, 'ERR_NOT_BLABS');
-    uint256 collected = IERC20(pool).balanceOf(address(this));
+    uint256 collected = IERC20(address(pool)).balanceOf(address(this));
     bool xfer = pool.transfer(_bLabs, collected);
     require(xfer, 'ERR_ERC20_FAILED');
   }
