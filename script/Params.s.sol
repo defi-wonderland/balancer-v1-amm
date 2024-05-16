@@ -12,9 +12,11 @@ contract Params {
 
   constructor() {
     // Mainnet
-    _deploymentParams[1] = DeploymentParams({bLabs: address(this), cowSwap: address(this)});
+    _deploymentParams[1] =
+      DeploymentParams({bLabs: address(this), cowSwap: address(0xC92E8bdf79f0507f65a392b0ab4667716BFE0110)});
 
     // Sepolia
-    _deploymentParams[11_155_111] = DeploymentParams({bLabs: address(this), cowSwap: address(this)});
+    _deploymentParams[11_155_111] =
+      DeploymentParams({bLabs: address(this), cowSwap: address(0xC92E8bdf79f0507f65a392b0ab4667716BFE0110)});
   }
 }
