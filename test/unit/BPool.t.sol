@@ -499,35 +499,63 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function test_Revert_TokenArrayMathApprox(JoinPool_FuzzScenario memory _fuzz, uint256 _tokenIndex) public {
-    // _assumeHappyPath(_fuzz);
-    // _tokenIndex = bound(_tokenIndex, 0, TOKENS_AMOUNT - 1);
-    // _fuzz.balance[_tokenIndex] = 0;
-    // // TODO: check range of failure
-    // // _fuzz.balance[_tokenIndex] = bound(_fuzz.balance[_tokenIndex], 0, BONE);
-    // _setValues(_fuzz);
+    _assumeHappyPath(_fuzz);
+    _tokenIndex = bound(_tokenIndex, 0, TOKENS_AMOUNT - 1);
+    _fuzz.balance[_tokenIndex] = 0;
+    _setValues(_fuzz);
 
-    // vm.expectRevert('ERR_MATH_APPROX');
-    // bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
+    vm.expectRevert('ERR_MATH_APPROX');
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
   }
 
-  function test_Revert_TokenArrayLimitIn() public {
-    vm.skip(true);
+  function test_Revert_TokenArrayLimitIn(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.expectRevert('ERR_LIMIT_IN');
+    bPool.joinPool(_fuzz.poolAmountOut, _zeroAmountsArray());
   }
 
   function test_Revert_Reentrancy() public {
     vm.skip(true);
   }
 
-  function test_Set_TokenArrayBalance() public {
-    vm.skip(true);
+  function test_Set_TokenArrayBalance(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
+
+    uint256 _poolTotal = _fuzz.initPoolSupply;
+    uint256 _ratio = bdiv(_fuzz.poolAmountOut, _poolTotal);
+
+    for (uint256 i = 0; i < tokens.length; i++) {
+      uint256 _bal = _fuzz.balance[i];
+      uint256 _tokenAmountIn = bmul(_ratio, _bal);
+      assertEq(bPool.getBalance(tokens[i]), _bal + _tokenAmountIn);
+    }
   }
 
-  function test_Emit_TokenArrayLogJoin() public {
-    vm.skip(true);
+  function test_Emit_TokenArrayLogJoin(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _poolTotal = _fuzz.initPoolSupply;
+    uint256 _ratio = bdiv(_fuzz.poolAmountOut, _poolTotal);
+
+    for (uint256 i = 0; i < tokens.length; i++) {
+      uint256 _bal = _fuzz.balance[i];
+      uint256 _tokenAmountIn = bmul(_ratio, _bal);
+      vm.expectEmit(true, true, true, true);
+      emit BPool.LOG_JOIN(address(this), tokens[i], _tokenAmountIn);
+    }
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
   }
 
-  function test_Pull_TokenArrayTokenAmountIn() public {
-    vm.skip(true);
+  function test_Pull_TokenArrayTokenAmountIn(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _poolTotal = _fuzz.initPoolSupply;
+    uint256 _ratio = bdiv(_fuzz.poolAmountOut, _poolTotal);
+
+    for (uint256 i = 0; i < tokens.length; i++) {
+      uint256 _bal = _fuzz.balance[i];
+      uint256 _tokenAmountIn = bmul(_ratio, _bal);
+      vm.expectCall(
+        address(tokens[i]),
+        abi.encodeWithSelector(IERC20.transferFrom.selector, address(this), address(bPool), _tokenAmountIn)
+      );
+    }
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
   }
 
   function test_Mint_PoolShare(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -536,16 +564,22 @@ contract BPool_Unit_JoinPool is BasePoolTest {
     assertEq(bPool.totalSupply(), _fuzz.initPoolSupply + _fuzz.poolAmountOut);
   }
 
-  function test_Push_PoolShare(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // TODO: prank a caller
+  function test_Push_PoolShare(JoinPool_FuzzScenario memory _fuzz, address _caller) public happyPath(_fuzz) {
+    vm.assume(_caller != address(VM_ADDRESS));
+    vm.assume(_caller != address(0));
+
+    vm.prank(_caller);
     bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
 
-    // TODO: specify minted amount to caller
-    assertGt(bPool.balanceOf(address(this)), 0);
+    assertEq(bPool.balanceOf(_caller), _fuzz.poolAmountOut);
   }
 
-  function test_Emit_LogCall() public {
-    vm.skip(true);
+  function test_Emit_LogCall(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.expectEmit(true, true, true, true);
+    bytes memory _data = abi.encodeWithSelector(BPool.joinPool.selector, _fuzz.poolAmountOut, _maxAmountsArray());
+    emit BPool.LOG_CALL(BPool.joinPool.selector, address(this), _data);
+
+    bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
   }
 }
 
