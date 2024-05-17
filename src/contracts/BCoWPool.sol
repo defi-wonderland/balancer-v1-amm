@@ -13,16 +13,6 @@ import {BaseBCoWPool, ISettlement} from './BaseBCoWPool.sol';
 contract BCoWPool is BaseBCoWPool, BPool {
   constructor() BaseBCoWPool(ISettlement(address(0))) BPool() {}
 
-  function getTradeableOrder(TradingParams memory tradingParams)
-    public
-    view
-    override
-    returns (GPv2Order.Data memory order)
-  {
-    // TODO: Implement logic to create order data from trading params
-    // NOTE: Trading params must be whitelisted for `enableTrading` and `disableTrading` to work
-  }
-
   function verify(TradingParams memory tradingParams, GPv2Order.Data memory order) public view override {
     Record memory inRecord = _records[address(order.sellToken)];
     Record memory outRecord = _records[address(order.buyToken)];
@@ -39,7 +29,8 @@ contract BCoWPool is BaseBCoWPool, BPool {
     // TODO: Add more checks depending on the order data
     require(tokenAmountOut >= order.buyAmount, 'BCoWPool: INSUFFICIENT_OUTPUT_AMOUNT');
 
-    order = GPv2Order.Data({
+    // NOTE: struct is just to temporarily display the information inside GPv2Order.Data
+    GPv2Order.Data({
       sellToken: tradingParams.sellToken,
       buyToken: tradingParams.buyToken,
       receiver: address(0),
@@ -53,29 +44,6 @@ contract BCoWPool is BaseBCoWPool, BPool {
       sellTokenBalance: bytes32(0),
       buyTokenBalance: bytes32(0)
     });
-  }
-
-  function matchFreeOrderParams(
-    GPv2Order.Data memory lhs,
-    GPv2Order.Data memory rhs
-  ) internal pure override returns (bool) {
-    // TODO: Cross-check (trading params > order data) ~= (order data)
-    // bool sameSellToken = lhs.sellToken == rhs.sellToken;
-    // bool sameBuyToken = lhs.buyToken == rhs.buyToken;
-
-    // The following parameters are untested:
-    // - buyAmount
-    // - sellAmount
-    // - validTo
-    // - kind
-    // - receiver
-    // - partiallyFillable
-    // - appData
-    // - feeAmount
-    // - sellTokenBalance
-    // - buyTokenBalance
-
-    return true; // sameSellToken && sameBuyToken;
   }
 
   function _afterFinalize() internal override {

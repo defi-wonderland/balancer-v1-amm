@@ -231,7 +231,7 @@ abstract contract BaseBCoWPool is IERC1271 {
       revert OrderDoesNotMatchMessageHash();
     }
 
-    requireMatchingCommitment(orderHash, tradingParams, order);
+    requireMatchingCommitment(orderHash);
 
     verify(tradingParams, order);
 
@@ -239,19 +239,6 @@ abstract contract BaseBCoWPool is IERC1271 {
     // its selector as the so-called "magic value".
     return this.isValidSignature.selector;
   }
-
-  /**
-   * @notice The order returned by this function is the order that needs to be
-   * executed for the price on this AMM to match that of the reference pair.
-   * @param tradingParams the trading parameters of all discrete orders cut
-   * from this AMM
-   * @return order the tradeable order for submission to the CoW Protocol API
-   */
-  function getTradeableOrder(TradingParams memory tradingParams)
-    public
-    view
-    virtual
-    returns (GPv2Order.Data memory order);
 
   /**
    * @notice This function checks that the input order is admissible for the
@@ -285,24 +272,15 @@ abstract contract BaseBCoWPool is IERC1271 {
    * `getTradeableOrder` don't match those of the input order.
    * @param orderHash the hash of the current order as defined by the
    * `GPv2Order` library.
-   * @param tradingParams the trading parameters of all discrete orders cut
-   * from this AMM
-   * @param order `GPv2Order.Data` of a discrete order to be verified
    */
   function requireMatchingCommitment(
-    bytes32 orderHash,
-    TradingParams memory tradingParams,
-    GPv2Order.Data memory order
+    bytes32 orderHash
   ) internal view {
     bytes32 committedOrderHash = commitment();
 
     if (orderHash != committedOrderHash) {
       if (committedOrderHash != EMPTY_COMMITMENT) {
         revert OrderDoesNotMatchCommitmentHash();
-      }
-      GPv2Order.Data memory computedOrder = getTradeableOrder(tradingParams);
-      if (!matchFreeOrderParams(order, computedOrder)) {
-        revert OrderDoesNotMatchDefaultTradeableOrder();
       }
     }
   }
@@ -317,17 +295,4 @@ abstract contract BaseBCoWPool is IERC1271 {
   function hash(TradingParams memory tradingParams) public pure returns (bytes32) {
     return keccak256(abi.encode(tradingParams));
   }
-
-  /**
-   * @notice Check if the parameters of the two input orders are the same,
-   * with the exception of those parameters that have a single possible value
-   * that passes the validation of `verify`.
-   * @param lhs a CoW Swap order
-   * @param rhs another CoW Swap order
-   * @return true if the order parameters match, false otherwise
-   */
-  function matchFreeOrderParams(
-    GPv2Order.Data memory lhs,
-    GPv2Order.Data memory rhs
-  ) internal pure virtual returns (bool);
 }
