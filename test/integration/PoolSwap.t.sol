@@ -117,12 +117,11 @@ contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
       buyTokenBalance: 0
     });
 
-    bytes memory orderData = abi.encode(tradingParams, order);
+    bytes memory orderData = abi.encode(order, tradingParams);
     bytes32 orderHash = GPv2Order.hash(order, bytes32(0));
 
     BaseBCoWPool bCowPool = BaseBCoWPool(address(pool));
     vm.prank(cowSwap);
-    // TODO: verify that the transient state is persistent
     bCowPool.commit(orderHash);
 
     bCowPool.isValidSignature(orderHash, orderData);
