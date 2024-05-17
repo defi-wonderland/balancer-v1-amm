@@ -50,6 +50,11 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
     pool.bind(address(tokenB), 1e18, 8e18); // 80%
 
     pool.finalize();
+
+    BaseBCoWPool(address(pool)).enableTrading(
+      BaseBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''})
+    );
+
     vm.stopPrank();
   }
 

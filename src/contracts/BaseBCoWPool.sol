@@ -209,7 +209,7 @@ abstract contract BaseBCoWPool is IERC1271 {
     (GPv2Order.Data memory order, TradingParams memory tradingParams) =
       abi.decode(signature, (GPv2Order.Data, TradingParams));
 
-    if (tradingParamsHash[hash(tradingParams)]) {
+    if (!tradingParamsHash[hash(tradingParams)]) {
       revert TradingParamsDoNotMatchHash();
     }
     bytes32 orderHash = order.hash(solutionSettlerDomainSeparator);
