@@ -209,7 +209,18 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _tokenAmountOut,
     uint256 _swapFee
   ) internal pure {
-    //
+    uint256 _normalizedWeight = bdiv(_tokenOutDenorm, _totalWeight);
+    vm.assume(BONE > _normalizedWeight);
+
+    uint256 _zoo = bsub(BONE, _normalizedWeight);
+    uint256 _zar = bmul(_zoo, _swapFee);
+    uint256 _tokenAmountOutBeforeSwapFee = bdiv(_tokenAmountOut, bsub(BONE, _zar));
+    uint256 _newTokenOutBalance = bsub(_tokenOutBalance, _tokenAmountOutBeforeSwapFee);
+    vm.assume(_newTokenOutBalance < type(uint256).max / _tokenOutBalance);
+
+    uint256 _tokenOutRatio = bdiv(_newTokenOutBalance, _tokenOutBalance);
+    uint256 _poolRatio = bpow(_tokenOutRatio, _normalizedWeight);
+    vm.assume(_poolRatio < type(uint256).max / _poolSupply);
   }
 }
 
