@@ -514,7 +514,14 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    vm.skip(true);
+    // Assert that the contract is accesible
+    assertEq(bPool.call__mutex(), false);
+
+    // Simulate ongoing call to the contract
+    bPool.set__mutex(true);
+
+    vm.expectRevert('ERR_REENTRY');
+    bPool.joinPool(0, _zeroAmountsArray());
   }
 
   function test_Set_TokenArrayBalance(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
