@@ -93,7 +93,7 @@ abstract contract BaseBCoWPool is IERC1271 {
    * If trading is enabled, then this value will be the [`hash`] of the only
    * admissible [`TradingParams`].
    */
-  bytes32 public tradingParamsHash;
+  mapping(bytes32 => bool) public tradingParamsHash;
 
   /**
    * Emitted when the manager disables all trades by the AMM. Existing open
@@ -101,6 +101,12 @@ abstract contract BaseBCoWPool is IERC1271 {
    * different parameters at a later point.
    */
   event TradingDisabled();
+  /**
+   * Emitted when the manager disables the AMM to trade on CoW Protocol.
+   * @param hash The hash of the trading parameters.
+   * @param params Trading has been disabled for these parameters.
+   */
+  event TradingDisabled(bytes32 indexed hash, TradingParams params);
   /**
    * Emitted when the manager enables the AMM to trade on CoW Protocol.
    * @param hash The hash of the trading parameters.
@@ -168,18 +174,28 @@ abstract contract BaseBCoWPool is IERC1271 {
    * @param tradingParams Trading is enabled with the parameters specified
    * here.
    */
-  // TODO: move from O(0) to O(1) (mapping tradingParamsHash => true)
   function enableTrading(TradingParams calldata tradingParams) external onlyManager {
     bytes32 _tradingParamsHash = hash(tradingParams);
-    tradingParamsHash = _tradingParamsHash;
+    tradingParamsHash[_tradingParamsHash] = true;
     emit TradingEnabled(_tradingParamsHash, tradingParams);
+  }
+
+  /**
+   * @notice Disable a specific form of trading on CoW Protocol by this AMM.
+   */
+  function disableTrading(TradingParams calldata tradingParams) external onlyManager {
+    bytes32 _tradingParamsHash = hash(tradingParams);
+    tradingParamsHash[_tradingParamsHash] = false;
+    emit TradingDisabled(_tradingParamsHash, tradingParams);
   }
 
   /**
    * @notice Disable any form of trading on CoW Protocol by this AMM.
    */
   function disableTrading() external onlyManager {
-    tradingParamsHash = NO_TRADING;
+    // TODO: loop through tokens and set tradingParamsHash[tokenA,tokenB] = false
+    tradingParamsHash[NO_TRADING];
+    // tradingParamsHash = NO_TRADING;
     emit TradingDisabled();
   }
 
@@ -207,7 +223,7 @@ abstract contract BaseBCoWPool is IERC1271 {
     (GPv2Order.Data memory order, TradingParams memory tradingParams) =
       abi.decode(signature, (GPv2Order.Data, TradingParams));
 
-    if (hash(tradingParams) != tradingParamsHash) {
+    if (tradingParamsHash[hash(tradingParams)]) {
       revert TradingParamsDoNotMatchHash();
     }
     bytes32 orderHash = order.hash(solutionSettlerDomainSeparator);
@@ -310,7 +326,6 @@ abstract contract BaseBCoWPool is IERC1271 {
    * @param rhs another CoW Swap order
    * @return true if the order parameters match, false otherwise
    */
-  // TODO: make abstract and implement in the inheriting contract
   function matchFreeOrderParams(
     GPv2Order.Data memory lhs,
     GPv2Order.Data memory rhs

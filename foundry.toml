@@ -12,14 +12,15 @@ sort_imports = true
 evm_version = 'cancun'
 solc_version = '0.8.25'
 libs = ["node_modules", "lib"]
-optimizer_runs = 50             # TODO: increase for production and add via-ir
+optimizer_runs = 50             # TODO: increase for production
+via-ir = false                  # TODO: set to true for production
 
 [profile.optimized]
 via_ir = true
 out = 'out-via-ir'
 
 [profile.test]
-via_ir = true
+via_ir = false
 out = 'out-via-ir'
 
 [profile.docs]

@@ -20,7 +20,7 @@ contract BCoWPool is BaseBCoWPool, BPool {
     returns (GPv2Order.Data memory order)
   {
     // TODO: Implement logic to create order data from trading params
-    // NOTE: Trading params is a struct that contains information that must be whitelisted for `enableTrading` and `disableTrading` to work
+    // NOTE: Trading params must be whitelisted for `enableTrading` and `disableTrading` to work
   }
 
   function verify(TradingParams memory tradingParams, GPv2Order.Data memory order) public view override {
@@ -46,7 +46,7 @@ contract BCoWPool is BaseBCoWPool, BPool {
       sellAmount: order.sellAmount,
       buyAmount: order.buyAmount,
       validTo: uint32(0),
-      appData: bytes32(0),
+      appData: order.appData,
       feeAmount: uint256(0),
       kind: bytes32(0),
       partiallyFillable: false,
