@@ -4,9 +4,7 @@ pragma solidity 0.8.25;
 import './BMath.sol';
 import './BToken.sol';
 
-import {ConditionalOrdersUtilsLib as Utils} from '../cow-swap/ConditionalOrdersUtilsLib.sol';
 import {GPv2Order} from '../cow-swap/GPv2Order.sol';
-import {IConditionalOrder} from '../cow-swap/IConditionalOrder.sol';
 import 'interfaces/IBFactory.sol';
 
 contract BPool is BBronze, BToken, BMath {

@@ -16,9 +16,7 @@ pragma solidity 0.8.25;
 import './BMath.sol';
 import './BToken.sol';
 
-import {ConditionalOrdersUtilsLib as Utils} from '../cow-swap/ConditionalOrdersUtilsLib.sol';
 import {GPv2Order, IERC20} from '../cow-swap/GPv2Order.sol';
-import {IConditionalOrder} from '../cow-swap/IConditionalOrder.sol';
 import {IERC1271} from 'interfaces/IERC1271.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
