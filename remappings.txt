@@ -8,3 +8,4 @@ cowprotocol/=node_modules/@cowprotocol/cowprotocol/src/contracts
 
 contracts/=src/contracts
 interfaces/=src/interfaces
+cow-swap/=src/cow-swap

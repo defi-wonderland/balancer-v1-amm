@@ -10,7 +10,7 @@ import {BPool} from './BPool.sol';
 import {BaseBCoWPool, ISettlement} from './BaseBCoWPool.sol';
 
 contract BCoWPool is BaseBCoWPool, BPool {
-  constructor() BaseBCoWPool(ISettlement(address(0))) BPool() {}
+  constructor(address cowSwap) BaseBCoWPool(ISettlement(cowSwap)) BPool() {}
 
   function verify(TradingParams memory tradingParams, GPv2Order.Data memory order) public view override {
     Record memory inRecord = _records[address(order.sellToken)];
@@ -50,5 +50,8 @@ contract BCoWPool is BaseBCoWPool, BPool {
       address token = _tokens[i];
       approveUnlimited(IERC20(token), vaultRelayer);
     }
+
+    // sets BPool controller as BaseBCoWPool manager
+    manager = _controller;
   }
 }

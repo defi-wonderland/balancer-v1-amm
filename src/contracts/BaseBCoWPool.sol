@@ -1,16 +1,4 @@
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.25;
 
 import './BMath.sol';
@@ -74,7 +62,7 @@ abstract contract BaseBCoWPool is IERC1271 {
    * @notice The address that can execute administrative tasks on this AMM,
    * as for example enabling/disabling trading or withdrawing funds.
    */
-  address public immutable manager;
+  address public manager;
   /**
    * @notice The address that can pull funds from the AMM vault to execute an order
    */
@@ -271,9 +259,7 @@ abstract contract BaseBCoWPool is IERC1271 {
    * @param orderHash the hash of the current order as defined by the
    * `GPv2Order` library.
    */
-  function requireMatchingCommitment(
-    bytes32 orderHash
-  ) internal view {
+  function requireMatchingCommitment(bytes32 orderHash) internal view {
     bytes32 committedOrderHash = commitment();
 
     if (orderHash != committedOrderHash) {

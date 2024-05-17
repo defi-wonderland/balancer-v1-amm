@@ -16,7 +16,7 @@ contract BFactory is IBFactory, BBronze {
   }
 
   function newBPool() external returns (BPool) {
-    BPool bPool = new BPool();
+    BPool bPool = new BPool(_cowSwap);
     _isBPool[address(bPool)] = true;
     emit LOG_NEW_POOL(msg.sender, address(bPool));
     bPool.setController(msg.sender);

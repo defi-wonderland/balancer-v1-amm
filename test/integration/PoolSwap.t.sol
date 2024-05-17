@@ -5,6 +5,8 @@ import {Test} from 'forge-std/Test.sol';
 import {BFactory} from 'contracts/BFactory.sol';
 import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
+import {BaseBCoWPool} from 'contracts/BaseBCoWPool.sol';
+import {GPv2Order} from 'cow-swap/GPv2Order.sol';
 
 import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
 
@@ -17,6 +19,8 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
   address public lp = address(420);
   address public swapper = address(69);
+  address public bLabs = address(0x614B5);
+  address public cowSwap = address(0xbeef);
 
   function setUp() public {
     tokenA = IERC20(address(deployMockERC20('TokenA', 'TKA', 18)));
@@ -27,7 +31,14 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     deal(address(tokenA), address(swapper), 1e18);
 
-    factory = new BFactory(swapper);
+    /**
+     * BaseBCoWPool requirements
+     * TODO: move to a separate factory contract (reuse tests by inheritance)
+     */
+    vm.mockCall(cowSwap, abi.encodeWithSignature('domainSeparator()'), abi.encode(bytes32(0)));
+    vm.mockCall(cowSwap, abi.encodeWithSignature('vaultRelayer()'), abi.encode(swapper));
+
+    factory = new BFactory(cowSwap);
 
     vm.startPrank(lp);
     pool = factory.newBPool();
@@ -80,6 +91,43 @@ contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
   function _makeSwap() internal override {
     vm.startPrank(swapper);
     // swap 0.5 tokenA for tokenB
+    tokenA.transfer(address(pool), 0.5e18);
+    tokenB.transferFrom(address(pool), address(swapper), 0.096397921069149814e18);
+    vm.stopPrank();
+  }
+}
+
+contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
+  function _makeSwap() internal override {
+    BaseBCoWPool.TradingParams memory tradingParams =
+      BaseBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''});
+
+    GPv2Order.Data memory order = GPv2Order.Data({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      receiver: swapper,
+      sellAmount: 0.5e18,
+      buyAmount: 0.096397921069149814e18,
+      validTo: 0,
+      appData: '',
+      feeAmount: 0,
+      kind: '',
+      partiallyFillable: false,
+      sellTokenBalance: 0,
+      buyTokenBalance: 0
+    });
+
+    bytes memory orderData = abi.encode(tradingParams, order);
+    bytes32 orderHash = GPv2Order.hash(order, bytes32(0));
+
+    BaseBCoWPool bCowPool = BaseBCoWPool(address(pool));
+    vm.prank(cowSwap);
+    // TODO: verify that the transient state is persistent
+    bCowPool.commit(orderHash);
+
+    bCowPool.isValidSignature(orderHash, orderData);
+
+    vm.startPrank(swapper);
     tokenA.transfer(address(pool), 0.5e18);
     tokenB.transferFrom(address(pool), address(swapper), 0.096397921069149814e18);
     vm.stopPrank();
