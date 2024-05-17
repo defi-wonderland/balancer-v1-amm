@@ -14,6 +14,8 @@ solc_version = '0.8.25'
 libs = ["node_modules", "lib"]
 optimizer_runs = 50             # TODO: increase for production
 via-ir = false                  # TODO: set to true for production
+ffi = true
+fs_permissions = [{ access = "read-write", path = ".forge-snapshots/"}]
 
 [profile.optimized]
 via_ir = true
