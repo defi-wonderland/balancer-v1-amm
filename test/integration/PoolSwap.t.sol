@@ -96,8 +96,11 @@ contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
   function _makeSwap() internal override {
     vm.startPrank(swapper);
     // swap 0.5 tokenA for tokenB
+
+    snapStart('indirectSwap');
     tokenA.transfer(address(pool), 0.5e18);
     tokenB.transferFrom(address(pool), address(swapper), 0.096397921069149814e18);
+    snapEnd();
     vm.stopPrank();
   }
 }
@@ -126,6 +129,7 @@ contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
     bytes32 orderHash = GPv2Order.hash(order, bytes32(0));
 
     BaseBCoWPool bCowPool = BaseBCoWPool(address(pool));
+    snapStart('signatureSwap');
     vm.prank(cowSwap);
     bCowPool.commit(orderHash);
 
@@ -134,6 +138,7 @@ contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
     vm.startPrank(swapper);
     tokenA.transfer(address(pool), 0.5e18);
     tokenB.transferFrom(address(pool), address(swapper), 0.096397921069149814e18);
+    snapEnd();
     vm.stopPrank();
   }
 }
