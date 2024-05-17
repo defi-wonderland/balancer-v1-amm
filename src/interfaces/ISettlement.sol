@@ -3,4 +3,5 @@ pragma solidity 0.8.25;
 
 interface ISettlement {
   function domainSeparator() external view returns (bytes32);
+  function vaultRelayer() external view returns (address);
 }

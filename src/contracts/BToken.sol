@@ -13,22 +13,10 @@
 
 pragma solidity 0.8.25;
 
+import {IERC20} from '../cow-swap/GPv2Order.sol';
 import './BNum.sol';
 
 // Highly opinionated token implementation
-
-interface IERC20 {
-  event Approval(address indexed src, address indexed dst, uint256 amt);
-  event Transfer(address indexed src, address indexed dst, uint256 amt);
-
-  function totalSupply() external view returns (uint256);
-  function balanceOf(address whom) external view returns (uint256);
-  function allowance(address src, address dst) external view returns (uint256);
-
-  function approve(address dst, uint256 amt) external returns (bool);
-  function transfer(address dst, uint256 amt) external returns (bool);
-  function transferFrom(address src, address dst, uint256 amt) external returns (bool);
-}
 
 abstract contract BTokenBase is BNum, IERC20 {
   mapping(address => uint256) internal _balance;

@@ -17,7 +17,7 @@ import './BMath.sol';
 import './BToken.sol';
 
 import {ConditionalOrdersUtilsLib as Utils} from '../cow-swap/ConditionalOrdersUtilsLib.sol';
-import {GPv2Order} from '../cow-swap/GPv2Order.sol';
+import {GPv2Order, IERC20} from '../cow-swap/GPv2Order.sol';
 import {IConditionalOrder} from '../cow-swap/IConditionalOrder.sol';
 import {IERC1271} from 'interfaces/IERC1271.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
@@ -33,8 +33,8 @@ abstract contract BaseBCoWPool is IERC1271 {
 
   /// All data used by an order to validate the AMM conditions.
   struct TradingParams {
-    address buyToken;
-    address sellToken;
+    IERC20 buyToken;
+    IERC20 sellToken;
     /// The app data that must be used in the order.
     /// See `GPv2Order.Data` for more information on the app data.
     bytes32 appData;
@@ -77,6 +77,10 @@ abstract contract BaseBCoWPool is IERC1271 {
    * as for example enabling/disabling trading or withdrawing funds.
    */
   address public immutable manager;
+  /**
+   * @notice The address that can pull funds from the AMM vault to execute an order
+   */
+  address public immutable vaultRelayer;
   /**
    * @notice The domain separator used for hashing CoW Protocol orders.
    */
@@ -155,6 +159,7 @@ abstract contract BaseBCoWPool is IERC1271 {
   constructor(ISettlement _solutionSettler) {
     solutionSettler = _solutionSettler;
     solutionSettlerDomainSeparator = _solutionSettler.domainSeparator();
+    vaultRelayer = _solutionSettler.vaultRelayer();
   }
 
   /**
@@ -226,7 +231,11 @@ abstract contract BaseBCoWPool is IERC1271 {
    * from this AMM
    * @return order the tradeable order for submission to the CoW Protocol API
    */
-  function getTradeableOrder(TradingParams memory tradingParams) public view returns (GPv2Order.Data memory order) {}
+  function getTradeableOrder(TradingParams memory tradingParams)
+    public
+    view
+    virtual
+    returns (GPv2Order.Data memory order);
 
   /**
    * @notice This function checks that the input order is admissible for the
