@@ -151,7 +151,6 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   ) internal view {
     uint256 _normalizedWeight = bdiv(_tokenInDenorm, _totalWeight);
     uint256 _newPoolSupply = badd(_poolSupply, _poolAmountOut);
-    vm.assume(_newPoolSupply > _poolSupply);
     vm.assume(_newPoolSupply < type(uint256).max / BONE);
     vm.assume(_newPoolSupply * BONE < type(uint256).max - (_poolSupply / 2)); // bdiv require
 
