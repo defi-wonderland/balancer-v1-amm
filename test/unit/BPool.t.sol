@@ -1078,10 +1078,10 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
       BPool.Record({
         bound: true,
         index: 0, // NOTE: irrelevant for this method
-        denorm: _fuzz.tokenInDenorm,
-        balance: _fuzz.tokenInBalance
+        denorm: _fuzz.tokenInDenorm
       })
     );
+    _mockPoolBalance(tokenIn, _fuzz.tokenInBalance);
 
     // Set swapFee
     _setSwapFee(_fuzz.swapFee);
@@ -1202,10 +1202,10 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
       BPool.Record({
         bound: true,
         index: 0, // NOTE: irrelevant for this method
-        denorm: _fuzz.tokenOutDenorm,
-        balance: _fuzz.tokenOutBalance
+        denorm: _fuzz.tokenOutDenorm
       })
     );
+    _mockPoolBalance(tokenOut, _fuzz.tokenOutBalance);
 
     // Set swapFee
     _setSwapFee(_fuzz.swapFee);
@@ -1326,10 +1326,10 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
       BPool.Record({
         bound: true,
         index: 0, // NOTE: irrelevant for this method
-        denorm: _fuzz.tokenOutDenorm,
-        balance: _fuzz.tokenOutBalance
+        denorm: _fuzz.tokenOutDenorm
       })
     );
+    _mockPoolBalance(tokenOut, _fuzz.tokenOutBalance);
 
     // Set swapFee
     _setSwapFee(_fuzz.swapFee);
