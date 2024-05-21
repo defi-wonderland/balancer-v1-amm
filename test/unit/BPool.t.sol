@@ -964,9 +964,13 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
   }
 
   function test_Revert_BadLimitPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.skip(true);
-    // vm.expectRevert('ERR_BAD_LIMIT_PRICE');
-    // bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, 0);
+    uint256 _spotPriceBefore = calcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+    vm.assume(_spotPriceBefore > 0);
+
+    vm.expectRevert('ERR_BAD_LIMIT_PRICE');
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, 0);
   }
 
   function test_Revert_LimitOut(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -1001,8 +1005,29 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     vm.skip(true);
   }
 
-  function test_Revert_LimitPrice() public {
-    vm.skip(true);
+  function test_Revert_LimitPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _tokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
+    );
+    uint256 _spotPriceBefore = calcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+    uint256 _spotPriceAfter = calcSpotPrice(
+      _fuzz.tokenInBalance + _fuzz.tokenAmountIn,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance - _tokenAmountOut,
+      _fuzz.tokenOutDenorm,
+      _fuzz.swapFee
+    );
+    vm.assume(_spotPriceAfter > _spotPriceBefore);
+
+    vm.expectRevert('ERR_LIMIT_PRICE');
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, _spotPriceBefore);
   }
 
   function test_Revert_MathApprox2() public {
@@ -1047,9 +1072,27 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
   }
 
   function test_Returns_AmountAndPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.skip(true);
-    // (uint256 _tokenAmountOut, uint256 _spotPriceAfter) =
-    //   bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
+    uint256 _expectedTokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
+    );
+    uint256 _expectedSpotPriceAfter = calcSpotPrice(
+      _fuzz.tokenInBalance + _fuzz.tokenAmountIn,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance - _expectedTokenAmountOut,
+      _fuzz.tokenOutDenorm,
+      _fuzz.swapFee
+    );
+
+    (uint256 _tokenAmountOut, uint256 _spotPriceAfter) =
+      bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
+
+    assertEq(_tokenAmountOut, _expectedTokenAmountOut);
+    assertEq(_spotPriceAfter, _expectedSpotPriceAfter);
   }
 
   function test_Emit_LogCall(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
