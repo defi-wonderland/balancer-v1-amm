@@ -729,7 +729,6 @@ contract BPool_Unit_ExitPool is BasePoolTest {
 
   function test_Push_PoolShare(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
-
     uint256 _balanceBefore = bPool.balanceOf(bPool.call__factory());
 
     bPool.exitPool(_fuzz.poolAmountIn, _zeroAmountsArray());
@@ -740,7 +739,6 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   function test_Burn_PoolShare(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
     uint256 _pAiAfterExitFee = bsub(_fuzz.poolAmountIn, _exitFee);
-
     uint256 _totalSupplyBefore = bPool.totalSupply();
 
     bPool.exitPool(_fuzz.poolAmountIn, _zeroAmountsArray());
