@@ -935,39 +935,132 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, _minAmountOut, _maxPrice);
   }
 
-  function test_Revert_NotBoundTokenIn() private view {}
+  function test_Revert_NotBoundTokenIn(address _tokenIn) public {
+    vm.assume(_tokenIn != VM_ADDRESS);
 
-  function test_Revert_NotBoundTokenOut() private view {}
+    vm.expectRevert('ERR_NOT_BOUND');
+    bPool.swapExactAmountIn(_tokenIn, 0, tokenOut, 0, 0);
+  }
 
-  function test_Revert_NotPublic() private view {}
+  function test_Revert_NotBoundTokenOut(address _tokenOut) public {
+    vm.assume(_tokenOut != VM_ADDRESS);
 
-  function test_Revert_MaxInRatio() private view {}
+    vm.expectRevert('ERR_NOT_BOUND');
+    bPool.swapExactAmountIn(tokenIn, 0, _tokenOut, 0, 0);
+  }
 
-  function test_Revert_BadLimitPrice() private view {}
+  function test_Revert_NotPublic(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    _setPublicSwap(false);
 
-  function test_Revert_LimitOut() private view {}
+    vm.expectRevert('ERR_SWAP_NOT_PUBLIC');
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
+  }
 
-  function test_Revert_Reentrancy() private view {}
+  function test_Revert_MaxInRatio(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _tokenAmountIn = bmul(_fuzz.tokenInBalance, MAX_IN_RATIO) + 1;
 
-  function test_Set_InRecord() private view {}
+    vm.expectRevert('ERR_MAX_IN_RATIO');
+    bPool.swapExactAmountIn(tokenIn, _tokenAmountIn, tokenOut, 0, type(uint256).max);
+  }
 
-  function test_Set_OutRecord() private view {}
+  function test_Revert_BadLimitPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.skip(true);
+    // vm.expectRevert('ERR_BAD_LIMIT_PRICE');
+    // bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, 0);
+  }
 
-  function test_Revert_MathApprox() private view {}
+  function test_Revert_LimitOut(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.expectRevert('ERR_LIMIT_OUT');
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, type(uint256).max, type(uint256).max);
+  }
 
-  function test_Revert_LimitPrice() private view {}
+  function test_Revert_Reentrancy() public {
+    // Assert that the contract is accesible
+    assertEq(bPool.call__mutex(), false);
 
-  function test_Revert_MathApprox2() private view {}
+    // Simulate ongoing call to the contract
+    bPool.set__mutex(true);
 
-  function test_Emit_LogSwap() private view {}
+    vm.expectRevert('ERR_REENTRY');
+    bPool.swapExactAmountIn(tokenIn, 0, tokenOut, 0, 0);
+  }
 
-  function test_Pull_TokenAmountIn() private view {}
+  function test_Set_InRecord(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
 
-  function test_Push_TokenAmountOut() private view {}
+    assertEq(bPool.getBalance(tokenIn), _fuzz.tokenInBalance + _fuzz.tokenAmountIn);
+  }
 
-  function test_Returns_AmountAndPrice() private view {}
+  function test_Set_OutRecord(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    (uint256 _tokenAmountOut,) = bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
 
-  function test_Emit_LogCall() private view {}
+    assertEq(bPool.getBalance(tokenOut), _fuzz.tokenOutBalance - _tokenAmountOut);
+  }
+
+  function test_Revert_MathApprox() public {
+    vm.skip(true);
+  }
+
+  function test_Revert_LimitPrice() public {
+    vm.skip(true);
+  }
+
+  function test_Revert_MathApprox2() public {
+    vm.skip(true);
+  }
+
+  function test_Emit_LogSwap(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _tokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
+    );
+
+    vm.expectEmit(true, true, true, true);
+    emit BPool.LOG_SWAP(address(this), tokenIn, tokenOut, _fuzz.tokenAmountIn, _tokenAmountOut);
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
+  }
+
+  function test_Pull_TokenAmountIn(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.expectCall(
+      address(tokenIn),
+      abi.encodeWithSelector(IERC20.transferFrom.selector, address(this), address(bPool), _fuzz.tokenAmountIn)
+    );
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
+  }
+
+  function test_Push_TokenAmountOut(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _tokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
+    );
+
+    vm.expectCall(address(tokenOut), abi.encodeWithSelector(IERC20.transfer.selector, address(this), _tokenAmountOut));
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
+  }
+
+  function test_Returns_AmountAndPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.skip(true);
+    // (uint256 _tokenAmountOut, uint256 _spotPriceAfter) =
+    //   bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
+  }
+
+  function test_Emit_LogCall(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.expectEmit(true, true, true, true);
+    bytes memory _data = abi.encodeWithSelector(
+      BPool.swapExactAmountIn.selector, tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max
+    );
+    emit BPool.LOG_CALL(BPool.swapExactAmountIn.selector, address(this), _data);
+
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
+  }
 }
 
 contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
