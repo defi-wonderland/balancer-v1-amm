@@ -999,12 +999,21 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     vm.assume(_spotPriceBefore > 0);
 
     vm.expectRevert('ERR_BAD_LIMIT_PRICE');
-    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, 0);
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, _spotPriceBefore - 1);
   }
 
   function test_Revert_LimitOut(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _tokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
+    );
+
     vm.expectRevert('ERR_LIMIT_OUT');
-    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, type(uint256).max, type(uint256).max);
+    bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, _tokenAmountOut + 1, type(uint256).max);
   }
 
   function test_Revert_Reentrancy() public {
