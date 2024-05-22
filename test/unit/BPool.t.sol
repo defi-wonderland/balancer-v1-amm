@@ -705,11 +705,11 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     bPool.exitPool(_fuzz.poolAmountIn, _zeroAmountsArray());
   }
 
-  function test_Revert_NotFinalized(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_NotFinalized() public {
     _setFinalize(false);
 
     vm.expectRevert('ERR_NOT_FINALIZED');
-    bPool.exitPool(_fuzz.poolAmountIn, _zeroAmountsArray());
+    bPool.exitPool(0, _zeroAmountsArray());
   }
 
   function test_Revert_MathApprox(ExitPool_FuzzScenario memory _fuzz, uint256 _poolAmountIn) public happyPath(_fuzz) {
@@ -728,12 +728,13 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   }
 
   function test_Push_PoolShare(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    address _factoryAddress = bPool.call__factory();
     uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
-    uint256 _balanceBefore = bPool.balanceOf(bPool.call__factory());
+    uint256 _balanceBefore = bPool.balanceOf(_factoryAddress);
 
     bPool.exitPool(_fuzz.poolAmountIn, _zeroAmountsArray());
 
-    assertEq(bPool.balanceOf(bPool.call__factory()), _balanceBefore - _fuzz.poolAmountIn + _exitFee);
+    assertEq(bPool.balanceOf(_factoryAddress), _balanceBefore - _fuzz.poolAmountIn + _exitFee);
   }
 
   function test_Burn_PoolShare(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
