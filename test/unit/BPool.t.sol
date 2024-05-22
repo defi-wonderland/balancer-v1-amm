@@ -1368,7 +1368,10 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
   }
 
   function test_Revert_MathApprox(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.skip(true);
+    _fuzz.poolAmountOut = 0;
+
+    vm.expectRevert('ERR_MATH_APPROX');
+    bPool.joinswapPoolAmountOut(tokenIn, _fuzz.poolAmountOut, type(uint256).max);
   }
 
   function test_Revert_LimitIn(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
