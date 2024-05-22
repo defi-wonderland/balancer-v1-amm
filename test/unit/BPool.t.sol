@@ -899,7 +899,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     vm.assume(_fuzz.tokenAmountIn < type(uint256).max - _fuzz.tokenInBalance);
     vm.assume(_fuzz.tokenInBalance + _fuzz.tokenAmountIn < type(uint256).max / _fuzz.tokenInDenorm);
 
-    // internal calculation for calcSpotPrice
+    // internal calculation for calcSpotPrice (spotPriceBefore)
     _assumeCalcSpotPrice(
       _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
     );
@@ -920,6 +920,12 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
       _fuzz.swapFee
     );
     vm.assume(_tokenAmountOut > BONE);
+
+    // internal calculation for calcSpotPrice (spotPriceAfter)
+    _assumeCalcSpotPrice(
+      _fuzz.tokenInBalance + _fuzz.tokenAmountIn, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance - _tokenAmountOut, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+
     vm.assume(bmul(_spotPriceBefore, _tokenAmountOut) <= _fuzz.tokenAmountIn);
   }
 
