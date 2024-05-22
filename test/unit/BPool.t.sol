@@ -1003,6 +1003,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
 
   function test_Revert_MathApprox() public {
     vm.skip(true);
+    // TODO
   }
 
   function test_Revert_LimitPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -1032,6 +1033,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
 
   function test_Revert_MathApprox2() public {
     vm.skip(true);
+    // TODO
   }
 
   function test_Emit_LogSwap(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
