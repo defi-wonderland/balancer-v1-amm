@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 import {BMath} from './BMath.sol';
-import {BToken, BBronze, IERC20} from './BToken.sol';
+import {BBronze, BToken, IERC20} from './BToken.sol';
 
 import {GPv2Order} from '../cow-swap/GPv2Order.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';

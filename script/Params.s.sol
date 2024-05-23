@@ -14,11 +14,9 @@ contract Params {
 
   constructor() {
     // Mainnet
-    _deploymentParams[1] =
-      DeploymentParams({bLabs: address(this), cowSwap: COW_SWAP_SOLUTION_SETTLER});
+    _deploymentParams[1] = DeploymentParams({bLabs: address(this), cowSwap: COW_SWAP_SOLUTION_SETTLER});
 
     // Sepolia
-    _deploymentParams[11_155_111] =
-      DeploymentParams({bLabs: address(this), cowSwap: COW_SWAP_SOLUTION_SETTLER});
+    _deploymentParams[11_155_111] = DeploymentParams({bLabs: address(this), cowSwap: COW_SWAP_SOLUTION_SETTLER});
   }
 }

@@ -583,7 +583,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   function test_Set_TokenArrayBalance(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     // TODO: adapt to new functionality
     vm.skip(true);
-    
+
     bPool.joinPool(_fuzz.poolAmountOut, _maxAmountsArray());
 
     uint256 _poolTotal = _fuzz.initPoolSupply;

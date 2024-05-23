@@ -2,10 +2,10 @@ pragma solidity 0.8.25;
 
 import {Test} from 'forge-std/Test.sol';
 
+import {BCoWPool, IBCoWPool} from 'contracts/BCoWPool.sol';
 import {BFactory} from 'contracts/BFactory.sol';
 import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
-import {BCoWPool, IBCoWPool} from 'contracts/BCoWPool.sol';
 import {GPv2Order} from 'cow-swap/GPv2Order.sol';
 
 import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
@@ -51,9 +51,7 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     pool.finalize();
 
-    BCoWPool(address(pool)).enableTrading(
-      IBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''})
-    );
+    BCoWPool(address(pool)).enableTrading(IBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''}));
 
     vm.stopPrank();
   }

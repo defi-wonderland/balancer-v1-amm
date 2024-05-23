@@ -11,7 +11,7 @@ import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IERC1271} from 'interfaces/IERC1271.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
-contract BCoWPool is BPool, IBCoWPool {
+contract BCoWPool is BPool, IERC1271, IBCoWPool {
   using GPv2Order for GPv2Order.Data;
 
   /**
@@ -162,7 +162,7 @@ contract BCoWPool is BPool, IBCoWPool {
   /**
    * @inheritdoc IERC1271
    */
-  function isValidSignature(bytes32 _hash, bytes calldata signature) external view returns (bytes4) {
+  function isValidSignature(bytes32 _hash, bytes memory signature) external view returns (bytes4) {
     (GPv2Order.Data memory order, TradingParams memory tradingParams) =
       abi.decode(signature, (GPv2Order.Data, TradingParams));
 
