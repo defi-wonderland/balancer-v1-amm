@@ -1388,8 +1388,19 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     bPool.joinswapPoolAmountOut(tokenIn, _fuzz.poolAmountOut, _tokenAmountIn - 1);
   }
 
-  function test_Revert_MaxInRatio() public {
-    vm.skip(true);
+  function test_Revert_MaxInRatio(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public {
+    // TODO: improve and remove hardcoded values
+    _fuzz.poolAmountOut = 39_000_000 ether;
+    _fuzz.tokenInBalance = 110 ether;
+    _fuzz.tokenInDenorm = MIN_WEIGHT;
+    _fuzz.totalSupply = 38_000_000_000 ether;
+    _fuzz.totalWeight = 392 ether;
+    _fuzz.swapFee = 0.03 ether;
+
+    _setValues(_fuzz);
+
+    vm.expectRevert('ERR_MAX_IN_RATIO');
+    bPool.joinswapPoolAmountOut(tokenIn, _fuzz.poolAmountOut, type(uint256).max);
   }
 
   function test_Revert_Reentrancy() public {
