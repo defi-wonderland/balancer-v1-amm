@@ -7,7 +7,7 @@ pragma solidity 0.8.25;
 import {BCoWPool as BPool} from './BCoWPool.sol';
 import {BBronze} from './BColor.sol';
 import {IERC20} from 'forge-std/interfaces/IERC20.sol';
-import 'interfaces/IBFactory.sol';
+import {IBFactory} from 'interfaces/IBFactory.sol';
 
 contract BFactory is IBFactory, BBronze {
   mapping(address => bool) internal _isBPool;

@@ -50,9 +50,5 @@
     "lint-staged": ">=10",
     "solhint": "github:solhint-community/solhint-community#v4.0.0-rc01",
     "sort-package-json": "2.10.0"
-  },
-  "TODO: install after fixing the issue with the package": {
-    "@cowprotocol/composable-cow": "github:cowprotocol/composable-cow#9ea0394",
-    "@cowprotocol/cowprotocol": "github:rndlabs/cowswap-contracts#5c25837"
   }
 }

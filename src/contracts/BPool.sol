@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.25;
 
-import './BMath.sol';
-import './BToken.sol';
+import {BMath} from './BMath.sol';
+import {BToken, BBronze, IERC20} from './BToken.sol';
 
 import {GPv2Order} from '../cow-swap/GPv2Order.sol';
-import 'interfaces/IBFactory.sol';
+import {IBFactory} from 'interfaces/IBFactory.sol';
 
 contract BPool is BBronze, BToken, BMath {
   struct Record {

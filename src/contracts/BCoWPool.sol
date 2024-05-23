@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.25;
 
-import './BMath.sol';
-import './BToken.sol';
+import {IERC20} from './BToken.sol';
 
 import {GPv2Order} from '../cow-swap/GPv2Order.sol';
 
@@ -235,8 +234,7 @@ contract BCoWPool is BPool, IBCoWPool {
    */
   function _afterFinalize() internal override {
     for (uint256 i; i < _tokens.length; i++) {
-      address token = _tokens[i];
-      approveUnlimited(IERC20(token), vaultRelayer);
+      approveUnlimited(IERC20(_tokens[i]), vaultRelayer);
     }
   }
 

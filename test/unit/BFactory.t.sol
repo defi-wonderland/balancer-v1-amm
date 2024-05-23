@@ -25,7 +25,7 @@ contract BFactory_Unit_Constructor is Base {
   /**
    * @notice Test that the owner is set correctly
    */
-  function test_Set_BlLabs() public view {
+  function test_Set_BLabs() public view {
     assertEq(owner, bFactory.getBLabs());
   }
 
