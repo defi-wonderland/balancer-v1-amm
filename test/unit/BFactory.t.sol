@@ -10,10 +10,14 @@ abstract contract Base is Test {
   BFactory public bFactory;
   address public owner = makeAddr('owner');
   address public cowSwap = makeAddr('cowSwap');
+  address public vaultRelayer = makeAddr('vaultRelayer');
 
   function setUp() public {
     vm.prank(owner);
     bFactory = new BFactory(cowSwap);
+
+    vm.mockCall(cowSwap, abi.encodeWithSignature('domainSeparator()'), abi.encode(bytes32(0)));
+    vm.mockCall(cowSwap, abi.encodeWithSignature('vaultRelayer()'), abi.encode(vaultRelayer));
   }
 }
 

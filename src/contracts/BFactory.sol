@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Builds new BPools, logging their addresses and providing `isBPool(address) -> (bool)`
 
+// TODO: create a separate factory contract for BCoWPool
 import {BCoWPool as BPool} from './BCoWPool.sol';
 import {BBronze} from './BColor.sol';
 import {IERC20} from 'forge-std/interfaces/IERC20.sol';

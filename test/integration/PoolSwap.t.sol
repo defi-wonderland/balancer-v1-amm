@@ -5,7 +5,7 @@ import {Test} from 'forge-std/Test.sol';
 import {BFactory} from 'contracts/BFactory.sol';
 import {BPool} from 'contracts/BPool.sol';
 import {IERC20} from 'contracts/BToken.sol';
-import {BaseBCoWPool} from 'contracts/BaseBCoWPool.sol';
+import {BCoWPool, IBCoWPool} from 'contracts/BCoWPool.sol';
 import {GPv2Order} from 'cow-swap/GPv2Order.sol';
 
 import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
@@ -32,7 +32,7 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
     deal(address(tokenA), address(swapper), 1e18);
 
     /**
-     * BaseBCoWPool requirements
+     * BCoWPool requirements
      * TODO: move to a separate factory contract (reuse tests by inheritance)
      */
     vm.mockCall(cowSwap, abi.encodeWithSignature('domainSeparator()'), abi.encode(bytes32(0)));
@@ -51,8 +51,8 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     pool.finalize();
 
-    BaseBCoWPool(address(pool)).enableTrading(
-      BaseBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''})
+    BCoWPool(address(pool)).enableTrading(
+      IBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''})
     );
 
     vm.stopPrank();
@@ -107,8 +107,8 @@ contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
 
 contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
   function _makeSwap() internal override {
-    BaseBCoWPool.TradingParams memory tradingParams =
-      BaseBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''});
+    IBCoWPool.TradingParams memory tradingParams =
+      IBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''});
 
     GPv2Order.Data memory order = GPv2Order.Data({
       sellToken: tokenA,
@@ -128,7 +128,7 @@ contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
     bytes memory orderData = abi.encode(order, tradingParams);
     bytes32 orderHash = GPv2Order.hash(order, bytes32(0));
 
-    BaseBCoWPool bCowPool = BaseBCoWPool(address(pool));
+    BCoWPool bCowPool = BCoWPool(address(pool));
     snapStart('signatureSwap');
     vm.prank(cowSwap);
     bCowPool.commit(orderHash);
