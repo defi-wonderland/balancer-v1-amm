@@ -1629,8 +1629,11 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
     bPool.exitswapExternAmountOut(tokenOut, _maxTokenAmountOut + 1, type(uint256).max);
   }
 
-  function test_Revert_MathApprox() public {
-    vm.skip(true);
+  function test_Revert_MathApprox(ExitswapExternAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    _fuzz.tokenAmountOut = 0;
+
+    vm.expectRevert('ERR_MATH_APPROX');
+    bPool.exitswapExternAmountOut(tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
   function test_Revert_LimitIn(ExitswapExternAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
