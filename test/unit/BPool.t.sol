@@ -1575,7 +1575,9 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     uint256 _balanceBefore = bPool.balanceOf(_factoryAddress);
     uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
 
-    assertEq(bPool.balanceOf(_factoryAddress), _balanceBefore + _exitFee);
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
+
+    assertEq(bPool.balanceOf(_factoryAddress), _balanceBefore - _fuzz.poolAmountIn + _exitFee);
   }
 
   function test_Push_Underlying(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
