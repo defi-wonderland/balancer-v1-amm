@@ -196,6 +196,7 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
     uint256 _poolRatio = bdiv(_newPoolSupply, _poolSupply);
     vm.assume(_poolRatio < MAX_BPOW_BASE);
+    vm.assume(_poolRatio > MIN_BPOW_BASE);
     vm.assume(BONE > _normalizedWeight);
 
     uint256 _tokenOutRatio = bpow(_poolRatio, bdiv(BONE, _normalizedWeight));
@@ -1474,31 +1475,145 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, _minAmountOut);
   }
 
-  function test_Revert_NotFinalized() private view {}
+  function test_Revert_NotFinalized() public {
+    _setFinalize(false);
 
-  function test_Revert_NotBound() private view {}
+    vm.expectRevert('ERR_NOT_FINALIZED');
+    bPool.exitswapPoolAmountIn(tokenOut, 0, 0);
+  }
 
-  function test_Revert_LimitOut() private view {}
+  function test_Revert_NotBound(
+    ExitswapPoolAmountIn_FuzzScenario memory _fuzz,
+    address _tokenIn
+  ) public happyPath(_fuzz) {
+    vm.assume(_tokenIn != VM_ADDRESS);
 
-  function test_Revert_MaxOutRatio() private view {}
+    vm.expectRevert('ERR_NOT_BOUND');
+    bPool.exitswapPoolAmountIn(_tokenIn, 0, 0);
+  }
 
-  function test_Revert_Reentrancy() private view {}
+  function test_Revert_LimitOut(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _tokenAmountOut = calcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
 
-  function test_Set_Balance() private view {}
+    vm.expectRevert('ERR_LIMIT_OUT');
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, _tokenAmountOut + 1);
+  }
 
-  function test_Emit_LogExit() private view {}
+  function test_Revert_MaxOutRatio() public {
+    vm.skip(true);
+  }
 
-  function test_Pull_PoolShare() private view {}
+  function test_Revert_Reentrancy() public {
+    // Assert that the contract is accesible
+    assertEq(bPool.call__mutex(), false);
 
-  function test_Burn_PoolShare() private view {}
+    // Simulate ongoing call to the contract
+    bPool.set__mutex(true);
 
-  function test_Push_PoolShare() private view {}
+    vm.expectRevert('ERR_REENTRY');
+    bPool.exitswapPoolAmountIn(tokenOut, 0, 0);
+  }
 
-  function test_Push_Underlying() private view {}
+  function test_Set_Balance(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _balanceBefore = bPool.getBalance(tokenOut);
+    uint256 _tokenAmountOut = calcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
 
-  function test_Returns_TokenAmountOut() private view {}
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
 
-  function test_Emit_LogCall() private view {}
+    assertEq(bPool.getBalance(tokenOut), _balanceBefore - _tokenAmountOut);
+  }
+
+  function test_Emit_LogExit(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _tokenAmountOut = calcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
+
+    vm.expectEmit(true, true, true, true);
+    emit BPool.LOG_EXIT(address(this), tokenOut, _tokenAmountOut);
+
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
+  }
+
+  function test_Pull_PoolShare(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _balanceBefore = bPool.balanceOf(address(this));
+
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
+
+    assertEq(bPool.balanceOf(address(this)), _balanceBefore - _fuzz.poolAmountIn);
+  }
+
+  function test_Burn_PoolShare(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _totalSupplyBefore = bPool.totalSupply();
+    uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
+
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
+
+    assertEq(bPool.totalSupply(), _totalSupplyBefore - bsub(_fuzz.poolAmountIn, _exitFee));
+  }
+
+  function test_Push_PoolShare(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    address _factoryAddress = bPool.call__factory();
+    uint256 _balanceBefore = bPool.balanceOf(_factoryAddress);
+    uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
+
+    assertEq(bPool.balanceOf(_factoryAddress), _balanceBefore + _exitFee);
+  }
+
+  function test_Push_Underlying(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 tokenAmountOut = calcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
+
+    vm.expectCall(address(tokenOut), abi.encodeWithSelector(IERC20.transfer.selector, address(this), tokenAmountOut));
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
+  }
+
+  function test_Returns_TokenAmountOut(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _expectedTokenAmountOut = calcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
+
+    (uint256 _tokenAmountOut) = bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
+
+    assertEq(_tokenAmountOut, _expectedTokenAmountOut);
+  }
+
+  function test_Emit_LogCall(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.expectEmit(true, true, true, true);
+    bytes memory _data = abi.encodeWithSelector(BPool.exitswapPoolAmountIn.selector, tokenOut, _fuzz.poolAmountIn, 0);
+    emit BPool.LOG_CALL(BPool.exitswapPoolAmountIn.selector, address(this), _data);
+
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
+  }
 }
 
 contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
