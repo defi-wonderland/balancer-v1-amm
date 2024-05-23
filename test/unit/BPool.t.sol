@@ -1365,8 +1365,19 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     bPool.swapExactAmountOut(tokenIn, type(uint256).max, tokenOut, _fuzz.tokenAmountOut, _spotPriceBefore);
   }
 
-  function test_Revert_MathApprox2() public {
-    vm.skip(true);
+  function test_Revert_MathApprox2(SwapExactAmountOut_FuzzScenario memory _fuzz) public {
+    // TODO: improve and remove hardcoded values
+    _fuzz.tokenAmountOut = 12_176_700_000 ether;
+    _fuzz.tokenInBalance = 220_000_000_000_000_000_000_000_000 ether;
+    _fuzz.tokenInDenorm = 50 ether;
+    _fuzz.tokenOutBalance = 425_400_000_000_000_000_000_000 ether;
+    _fuzz.tokenOutDenorm = 2.65 ether;
+    _fuzz.swapFee = 0;
+
+    _setValues(_fuzz);
+
+    vm.expectRevert('ERR_MATH_APPROX');
+    bPool.swapExactAmountOut(tokenIn, type(uint256).max, tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
   function test_Emit_LogSwap(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
