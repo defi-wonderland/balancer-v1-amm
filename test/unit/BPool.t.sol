@@ -1438,13 +1438,45 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
   }
 
   function test_Revert_MathApprox2(SwapExactAmountOut_FuzzScenario memory _fuzz) public {
-    // TODO: improve and remove hardcoded values
-    _fuzz.tokenAmountOut = 12_176_700_000 ether;
-    _fuzz.tokenInBalance = 220_000_000_000_000_000_000_000_000 ether;
-    _fuzz.tokenInDenorm = 50 ether;
-    _fuzz.tokenOutBalance = 425_400_000_000_000_000_000_000 ether;
-    _fuzz.tokenOutDenorm = 2.65 ether;
-    _fuzz.swapFee = 0;
+    // Replicating _assumeHappyPath, but removing irrelevant assumptions and conditioning the revert
+    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
+    vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
+    vm.assume(_fuzz.tokenOutBalance >= MIN_BALANCE);
+    vm.assume(_fuzz.tokenInBalance < type(uint256).max / _fuzz.tokenInDenorm);
+    vm.assume(_fuzz.tokenOutBalance < type(uint256).max / _fuzz.tokenOutDenorm);
+    vm.assume(_fuzz.tokenAmountOut < type(uint256).max - _fuzz.tokenOutBalance);
+    vm.assume(_fuzz.tokenOutBalance + _fuzz.tokenAmountOut < type(uint256).max / _fuzz.tokenOutDenorm);
+    vm.assume(_fuzz.tokenAmountOut <= bmul(_fuzz.tokenOutBalance, MAX_OUT_RATIO));
+    _assumeCalcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+    uint256 _spotPriceBefore = calcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+    _assumeCalcInGivenOut(
+      _fuzz.tokenOutDenorm, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenAmountOut, _fuzz.tokenInBalance
+    );
+    uint256 _tokenAmountIn = calcInGivenOut(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountOut,
+      _fuzz.swapFee
+    );
+    vm.assume(_tokenAmountIn > BONE);
+    vm.assume(_tokenAmountIn < type(uint256).max - _fuzz.tokenInBalance);
+    vm.assume(_fuzz.tokenInBalance + _tokenAmountIn < type(uint256).max / _fuzz.tokenInDenorm);
+    _assumeCalcSpotPrice(
+      _fuzz.tokenInBalance + _tokenAmountIn,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance - _fuzz.tokenAmountOut,
+      _fuzz.tokenOutDenorm,
+      _fuzz.swapFee
+    );
+    vm.assume(_spotPriceBefore > bdiv(_tokenAmountIn, _fuzz.tokenAmountOut));
 
     _setValues(_fuzz);
 
