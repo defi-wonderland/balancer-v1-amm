@@ -1506,8 +1506,37 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, _tokenAmountOut + 1);
   }
 
-  function test_Revert_MaxOutRatio() public {
-    vm.skip(true);
+  function test_Revert_MaxOutRatio(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public {
+    // Replicating _assumeHappyPath, but removing irrelevant assumptions and conditioning the revert
+    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
+    _fuzz.tokenOutBalance = bound(_fuzz.tokenOutBalance, MIN_BALANCE, type(uint256).max / MAX_OUT_RATIO);
+    vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
+    vm.assume(_fuzz.totalSupply < type(uint256).max - _fuzz.poolAmountIn);
+    vm.assume(_fuzz.poolAmountIn < _fuzz.totalSupply);
+    _assumeCalcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
+    uint256 _tokenAmountOut = calcSingleOutGivenPoolIn(
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountIn,
+      _fuzz.swapFee
+    );
+    vm.assume(_tokenAmountOut > bmul(_fuzz.tokenOutBalance, MAX_OUT_RATIO));
+
+    _setValues(_fuzz);
+
+    vm.expectRevert('ERR_MAX_OUT_RATIO');
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
   }
 
   function test_Revert_Reentrancy() public {
