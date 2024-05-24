@@ -8,8 +8,6 @@ import {ISettlement} from 'interfaces/ISettlement.sol';
 interface IBCoWPool is IERC1271 {
   /// All data used by an order to validate the AMM conditions.
   struct TradingParams {
-    IERC20 buyToken;
-    IERC20 sellToken;
     /// The app data that must be used in the order.
     /// See `GPv2Order.Data` for more information on the app data.
     bytes32 appData;

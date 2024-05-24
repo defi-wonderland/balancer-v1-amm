@@ -51,7 +51,7 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     pool.finalize();
 
-    BCoWPool(address(pool)).enableTrading(IBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''}));
+    BCoWPool(address(pool)).enableTrading(IBCoWPool.TradingParams({appData: ''}));
 
     vm.stopPrank();
   }
@@ -105,8 +105,7 @@ contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
 
 contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
   function _makeSwap() internal override {
-    IBCoWPool.TradingParams memory tradingParams =
-      IBCoWPool.TradingParams({sellToken: tokenA, buyToken: tokenB, appData: ''});
+    IBCoWPool.TradingParams memory tradingParams = IBCoWPool.TradingParams({appData: ''});
 
     GPv2Order.Data memory order = GPv2Order.Data({
       sellToken: tokenA,

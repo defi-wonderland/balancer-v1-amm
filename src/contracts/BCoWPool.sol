@@ -53,14 +53,13 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   ISettlement public immutable solutionSettler;
 
   /**
-   * TODO: review natspec
    * The hash of the data describing which `TradingParams` currently apply
    * to this AMM. If this parameter is set to `NO_TRADING`, then the AMM
    * does not accept any order as valid.
    * If trading is enabled, then this value will be the [`hash`] of the only
    * admissible [`TradingParams`].
    */
-  mapping(bytes32 => bool) public tradingParamsHash;
+  bytes32 tradingParamsHash;
 
   constructor(address _cowSolutionSettler) BPool() {
     solutionSettler = ISettlement(_cowSolutionSettler);
@@ -79,33 +78,20 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     Record memory inRecord = _records[address(order.sellToken)];
     Record memory outRecord = _records[address(order.buyToken)];
 
-    uint256 tokenAmountOut = calcOutGivenIn(
-      order.sellToken.balanceOf(address(this)),
-      inRecord.denorm,
-      order.buyToken.balanceOf(address(this)),
-      outRecord.denorm,
-      order.sellAmount,
-      0
-    );
+    require(inRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');
+    require(outRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');
+
+    uint256 tokenAmountOut = calcOutGivenIn({
+      tokenBalanceIn: order.sellToken.balanceOf(address(this)),
+      tokenWeightIn: inRecord.denorm,
+      tokenBalanceOut: order.buyToken.balanceOf(address(this)),
+      tokenWeightOut: outRecord.denorm,
+      tokenAmountIn: order.sellAmount,
+      swapFee: 0
+    });
 
     // TODO: Add more checks depending on the order data
     require(tokenAmountOut >= order.buyAmount, 'BCoWPool: INSUFFICIENT_OUTPUT_AMOUNT');
-
-    // NOTE: struct is just to temporarily display the information inside GPv2Order.Data
-    GPv2Order.Data({
-      sellToken: tradingParams.sellToken,
-      buyToken: tradingParams.buyToken,
-      receiver: address(0),
-      sellAmount: order.sellAmount,
-      buyAmount: order.buyAmount,
-      validTo: uint32(0),
-      appData: order.appData,
-      feeAmount: uint256(0),
-      kind: bytes32(0),
-      partiallyFillable: false,
-      sellTokenBalance: bytes32(0),
-      buyTokenBalance: bytes32(0)
-    });
   }
 
   /**
@@ -114,31 +100,19 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    * @param tradingParams Trading is enabled with the parameters specified
    * here.
    */
-  // TODO: unify with BPool
+  // TODO: unify onlyController with BPool
   function enableTrading(TradingParams calldata tradingParams) external onlyController {
     bytes32 _tradingParamsHash = hash(tradingParams);
-    tradingParamsHash[_tradingParamsHash] = true;
+    tradingParamsHash = _tradingParamsHash;
     emit TradingEnabled(_tradingParamsHash, tradingParams);
-  }
-
-  /**
-   * @notice Disable a specific form of trading on CoW Protocol by this AMM.
-   */
-  // TODO: unify with BPool
-  function disableTrading(TradingParams calldata tradingParams) external onlyController {
-    bytes32 _tradingParamsHash = hash(tradingParams);
-    tradingParamsHash[_tradingParamsHash] = false;
-    emit TradingDisabled(_tradingParamsHash, tradingParams);
   }
 
   /**
    * @notice Disable any form of trading on CoW Protocol by this AMM.
    */
-  // TODO: unify with BPool
+  // TODO: unify onlyController with BPool
   function disableTrading() external onlyController {
-    // TODO: loop through tokens and set tradingParamsHash[tokenA,tokenB] = false
-    tradingParamsHash[NO_TRADING];
-    // tradingParamsHash = NO_TRADING;
+    tradingParamsHash = NO_TRADING;
     emit TradingDisabled();
   }
 
@@ -166,7 +140,7 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     (GPv2Order.Data memory order, TradingParams memory tradingParams) =
       abi.decode(signature, (GPv2Order.Data, TradingParams));
 
-    if (!tradingParamsHash[hash(tradingParams)]) {
+    if (tradingParamsHash != hash(tradingParams)) {
       revert TradingParamsDoNotMatchHash();
     }
     bytes32 orderHash = order.hash(solutionSettlerDomainSeparator);
