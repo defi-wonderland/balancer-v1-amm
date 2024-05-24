@@ -106,6 +106,9 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   ) internal pure {
     uint256 _numer = bdiv(_tokenInBalance, _tokenInDenorm);
     uint256 _denom = bdiv(_tokenOutBalance, _tokenOutDenorm);
+    vm.assume(_numer < type(uint256).max / BONE);
+    vm.assume(_numer * BONE < type(uint256).max - (_denom / 2));
+
     uint256 _ratio = bdiv(_numer, _denom);
     uint256 _scale = bdiv(BONE, bsub(BONE, _swapFee));
     vm.assume(_ratio < type(uint256).max / _scale);
@@ -123,6 +126,20 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _y = bdiv(_tokenOutBalance, _diff);
     uint256 _foo = bpow(_y, _weightRatio);
     vm.assume(bsub(_foo, BONE) < type(uint256).max / _tokenInBalance);
+  }
+
+  function _assumeCalcOutGivenIn(
+    uint256 _tokenInBalance,
+    uint256 _tokenInDenorm,
+    uint256 _tokenOutBalance,
+    uint256 _tokenOutDenorm,
+    uint256 _tokenAmountIn,
+    uint256 _swapFee
+  ) internal pure {
+    uint256 _adjustedIn = bsub(BONE, _swapFee);
+    _adjustedIn = bmul(_tokenAmountIn, _adjustedIn);
+    vm.assume(_tokenInBalance < type(uint256).max / BONE);
+    vm.assume(_tokenInBalance * BONE < type(uint256).max - (badd(_tokenInBalance, _adjustedIn) / 2));
   }
 
   function _assumeCalcPoolOutGivenIn(
@@ -929,6 +946,15 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     // L338 BPool.sol
     uint256 _spotPriceBefore = calcSpotPrice(
       _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+
+    _assumeCalcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
     );
     uint256 _tokenAmountOut = calcOutGivenIn(
       _fuzz.tokenInBalance,
