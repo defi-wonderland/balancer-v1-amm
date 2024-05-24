@@ -36,6 +36,12 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   bytes32 public constant NO_TRADING = bytes32(0);
 
   /**
+   * @notice The largest possible duration of any AMM order, starting from the
+   * current block timestamp.
+   */
+  uint32 public constant MAX_ORDER_DURATION = 5 * 60;
+
+  /**
    * @notice The transient storage slot specified in this variable stores the
    * value of the order commitment, that is, the only order hash that can be
    * validated by calling `isValidSignature`.
@@ -79,7 +85,11 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     Record memory outRecord = _records[address(order.buyToken)];
 
     require(inRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');
-    require(outRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');
+    require(outRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');        
+    
+    require(order.validTo < block.timestamp + MAX_ORDER_DURATION, 'BCoWPool: ORDER_EXPIRED');
+    require(order.feeAmount == 0, 'BCoWPool: FEE_NOT_ZERO');
+    require(order.kind == GPv2Order.KIND_SELL, 'BCoWPool: INVALID_OPERATION');
 
     uint256 tokenAmountOut = calcOutGivenIn({
       tokenBalanceIn: order.sellToken.balanceOf(address(this)),

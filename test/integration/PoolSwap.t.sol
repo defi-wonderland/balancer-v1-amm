@@ -116,7 +116,7 @@ contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
       validTo: 0,
       appData: '',
       feeAmount: 0,
-      kind: '',
+      kind: GPv2Order.KIND_SELL,
       partiallyFillable: false,
       sellTokenBalance: 0,
       buyTokenBalance: 0
