@@ -1389,13 +1389,30 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
   }
 
   function test_Revert_MaxInRatio(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public {
-    // TODO: improve and remove hardcoded values
-    _fuzz.poolAmountOut = 39_000_000 ether;
-    _fuzz.tokenInBalance = 110 ether;
-    _fuzz.tokenInDenorm = MIN_WEIGHT;
-    _fuzz.totalSupply = 38_000_000_000 ether;
-    _fuzz.totalWeight = 392 ether;
-    _fuzz.swapFee = 0.03 ether;
+    // Replicating _assumeHappyPath, but removing irrelevant assumptions and conditioning the revert
+    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
+    _fuzz.tokenInBalance = bound(_fuzz.tokenInBalance, MIN_BALANCE, type(uint256).max / MAX_IN_RATIO);
+    vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
+    vm.assume(_fuzz.totalSupply < type(uint256).max - _fuzz.poolAmountOut);
+    _assumeCalcSingleInGivenPoolOut(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountOut,
+      _fuzz.swapFee
+    );
+    uint256 _tokenAmountIn = calcSingleInGivenPoolOut(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.totalSupply,
+      _fuzz.totalWeight,
+      _fuzz.poolAmountOut,
+      _fuzz.swapFee
+    );
+    vm.assume(_tokenAmountIn > bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
 
     _setValues(_fuzz);
 
