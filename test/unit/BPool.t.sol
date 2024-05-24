@@ -106,6 +106,9 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   ) internal pure {
     uint256 _numer = bdiv(_tokenInBalance, _tokenInDenorm);
     uint256 _denom = bdiv(_tokenOutBalance, _tokenOutDenorm);
+    vm.assume(_numer < type(uint256).max / BONE);
+    vm.assume(_numer * BONE < type(uint256).max - (_denom / 2));
+
     uint256 _ratio = bdiv(_numer, _denom);
     uint256 _scale = bdiv(BONE, bsub(BONE, _swapFee));
     vm.assume(_ratio < type(uint256).max / _scale);
@@ -123,6 +126,20 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _y = bdiv(_tokenOutBalance, _diff);
     uint256 _foo = bpow(_y, _weightRatio);
     vm.assume(bsub(_foo, BONE) < type(uint256).max / _tokenInBalance);
+  }
+
+  function _assumeCalcOutGivenIn(
+    uint256 _tokenInBalance,
+    uint256 _tokenInDenorm,
+    uint256 _tokenOutBalance,
+    uint256 _tokenOutDenorm,
+    uint256 _tokenAmountIn,
+    uint256 _swapFee
+  ) internal pure {
+    uint256 _adjustedIn = bsub(BONE, _swapFee);
+    _adjustedIn = bmul(_tokenAmountIn, _adjustedIn);
+    vm.assume(_tokenInBalance < type(uint256).max / BONE);
+    vm.assume(_tokenInBalance * BONE < type(uint256).max - (badd(_tokenInBalance, _adjustedIn) / 2));
   }
 
   function _assumeCalcPoolOutGivenIn(
@@ -930,6 +947,15 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     uint256 _spotPriceBefore = calcSpotPrice(
       _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
     );
+
+    _assumeCalcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
+    );
     uint256 _tokenAmountOut = calcOutGivenIn(
       _fuzz.tokenInBalance,
       _fuzz.tokenInDenorm,
@@ -1070,13 +1096,40 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
   }
 
   function test_Revert_MathApprox2(SwapExactAmountIn_FuzzScenario memory _fuzz) public {
-    // TODO: improve and remove hardcoded values
-    _fuzz.tokenAmountIn = 14_000_000_000 ether;
-    _fuzz.tokenInBalance = 19_368_000_000_000_000_000_000_000 ether;
-    _fuzz.tokenInDenorm = MIN_WEIGHT;
-    _fuzz.tokenOutBalance = 5_500_000_000_000_000 ether;
-    _fuzz.tokenOutDenorm = MIN_WEIGHT;
-    _fuzz.swapFee = 0;
+    // Replicating _assumeHappyPath, but removing irrelevant assumptions and conditioning the revert
+    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
+    vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
+    vm.assume(_fuzz.tokenOutBalance >= MIN_BALANCE);
+    vm.assume(_fuzz.tokenInBalance < type(uint256).max / _fuzz.tokenInDenorm);
+    vm.assume(_fuzz.tokenOutBalance < type(uint256).max / _fuzz.tokenOutDenorm);
+    vm.assume(_fuzz.tokenAmountIn < type(uint256).max - _fuzz.tokenInBalance);
+    vm.assume(_fuzz.tokenInBalance + _fuzz.tokenAmountIn < type(uint256).max / _fuzz.tokenInDenorm);
+    _assumeCalcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+    vm.assume(_fuzz.tokenAmountIn <= bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
+    uint256 _spotPriceBefore = calcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+    uint256 _tokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
+    );
+    vm.assume(_tokenAmountOut > BONE);
+    _assumeCalcSpotPrice(
+      _fuzz.tokenInBalance + _fuzz.tokenAmountIn,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance - _tokenAmountOut,
+      _fuzz.tokenOutDenorm,
+      _fuzz.swapFee
+    );
+    vm.assume(_spotPriceBefore > bdiv(_fuzz.tokenAmountIn, _tokenAmountOut));
 
     _setValues(_fuzz);
 
