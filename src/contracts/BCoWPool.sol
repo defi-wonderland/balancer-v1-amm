@@ -90,6 +90,8 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     require(order.validTo < block.timestamp + MAX_ORDER_DURATION, 'BCoWPool: ORDER_EXPIRED');
     require(order.feeAmount == 0, 'BCoWPool: FEE_NOT_ZERO');
     require(order.kind == GPv2Order.KIND_SELL, 'BCoWPool: INVALID_OPERATION');
+    require(order.buyTokenBalance == GPv2Order.BALANCE_ERC20, 'BCoWPool: INVALID_BALANCE');
+    require(order.sellTokenBalance == GPv2Order.BALANCE_ERC20, 'BCoWPool: INVALID_BALANCE');
 
     uint256 tokenAmountOut = calcOutGivenIn({
       tokenBalanceIn: order.sellToken.balanceOf(address(this)),

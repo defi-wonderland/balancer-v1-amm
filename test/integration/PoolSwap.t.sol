@@ -118,8 +118,8 @@ contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
       feeAmount: 0,
       kind: GPv2Order.KIND_SELL,
       partiallyFillable: false,
-      sellTokenBalance: 0,
-      buyTokenBalance: 0
+      sellTokenBalance: GPv2Order.BALANCE_ERC20,
+      buyTokenBalance: GPv2Order.BALANCE_ERC20
     });
 
     bytes memory orderData = abi.encode(order, tradingParams);
