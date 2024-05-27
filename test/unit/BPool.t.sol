@@ -112,12 +112,24 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _tokenOutDenorm,
     uint256 _swapFee
   ) internal pure {
+    vm.assume(_tokenInDenorm > 0);
+    vm.assume(_tokenInBalance < type(uint256).max / BONE);
+    vm.assume(_tokenInBalance * BONE < type(uint256).max - (_tokenInDenorm / 2));
+
     uint256 _numer = bdiv(_tokenInBalance, _tokenInDenorm);
+    vm.assume(_tokenOutDenorm > 0);
+    vm.assume(_tokenOutBalance < type(uint256).max / BONE);
+    vm.assume(_tokenOutBalance * BONE < type(uint256).max - (_tokenOutDenorm / 2));
+
     uint256 _denom = bdiv(_tokenOutBalance, _tokenOutDenorm);
+    vm.assume(_denom > 0);
     vm.assume(_numer < type(uint256).max / BONE);
     vm.assume(_numer * BONE < type(uint256).max - (_denom / 2));
+    vm.assume(_swapFee <= BONE);
 
     uint256 _ratio = bdiv(_numer, _denom);
+    vm.assume(bsub(BONE, _swapFee) > 0);
+
     uint256 _scale = bdiv(BONE, bsub(BONE, _swapFee));
     vm.assume(_ratio < type(uint256).max / _scale);
   }
@@ -631,8 +643,26 @@ contract BPool_Unit_GetSpotPrice is BasePoolTest {
     bPool.getSpotPrice(_tokenIn, _tokenOut);
   }
 
-  function test_Returns_SpotPrice() public {
-    vm.skip(true);
+  function test_Returns_SpotPrice(
+    address _tokenIn,
+    address _tokenOut,
+    uint256 _tokenInBalance,
+    uint256 _tokenInDenorm,
+    uint256 _tokenOutBalance,
+    uint256 _tokenOutDenorm,
+    uint256 _swapFee
+  ) public {
+    vm.assume(_tokenIn != _tokenOut);
+    _assumeCalcSpotPrice(_tokenInBalance, _tokenInDenorm, _tokenOutBalance, _tokenOutDenorm, _swapFee);
+
+    _setRecord(_tokenIn, BPool.Record({bound: true, index: 0, denorm: _tokenInDenorm, balance: _tokenInBalance}));
+    _setRecord(_tokenOut, BPool.Record({bound: true, index: 0, denorm: _tokenOutDenorm, balance: _tokenOutBalance}));
+    _setSwapFee(_swapFee);
+
+    uint256 _expectedSpotPrice =
+      calcSpotPrice(_tokenInBalance, _tokenInDenorm, _tokenOutBalance, _tokenOutDenorm, _swapFee);
+    uint256 _spotPrice = bPool.getSpotPrice(_tokenIn, _tokenOut);
+    assertEq(_spotPrice, _expectedSpotPrice);
   }
 
   function test_Revert_Reentrancy() public {
@@ -660,8 +690,23 @@ contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
     bPool.getSpotPriceSansFee(_tokenIn, _tokenOut);
   }
 
-  function test_Returns_SpotPrice() public {
-    vm.skip(true);
+  function test_Returns_SpotPrice(
+    address _tokenIn,
+    address _tokenOut,
+    uint256 _tokenInBalance,
+    uint256 _tokenInDenorm,
+    uint256 _tokenOutBalance,
+    uint256 _tokenOutDenorm
+  ) public {
+    vm.assume(_tokenIn != _tokenOut);
+    _assumeCalcSpotPrice(_tokenInBalance, _tokenInDenorm, _tokenOutBalance, _tokenOutDenorm, 0);
+
+    _setRecord(_tokenIn, BPool.Record({bound: true, index: 0, denorm: _tokenInDenorm, balance: _tokenInBalance}));
+    _setRecord(_tokenOut, BPool.Record({bound: true, index: 0, denorm: _tokenOutDenorm, balance: _tokenOutBalance}));
+
+    uint256 _expectedSpotPrice = calcSpotPrice(_tokenInBalance, _tokenInDenorm, _tokenOutBalance, _tokenOutDenorm, 0);
+    uint256 _spotPrice = bPool.getSpotPriceSansFee(_tokenIn, _tokenOut);
+    assertEq(_spotPrice, _expectedSpotPrice);
   }
 
   function test_Revert_Reentrancy() public {
