@@ -522,23 +522,87 @@ contract BPool_Unit_SetPublicSwap is BasePoolTest {
 }
 
 contract BPool_Unit_Finalize is BasePoolTest {
-  function test_Revert_NotController() private view {}
+  function test_Revert_NotController(address _controller, address _caller) public {
+    vm.assume(_controller != _caller);
+    vm.assume(_caller != address(this));
 
-  function test_Revert_Finalized() private view {}
+    vm.prank(_caller);
+    vm.expectRevert('ERR_NOT_CONTROLLER');
+    bPool.finalize();
+  }
 
-  function test_Revert_MinTokens() private view {}
+  function test_Revert_Finalized() public {
+    _setFinalize(true);
 
-  function test_Revert_Reentrancy() private view {}
+    vm.expectRevert('ERR_IS_FINALIZED');
+    bPool.finalize();
+  }
 
-  function test_Set_Finalize() private view {}
+  function test_Revert_MinTokens(uint256 _tokensLength) public {
+    _tokensLength = bound(_tokensLength, 0, MIN_BOUND_TOKENS - 1);
+    _setRandomTokens(_tokensLength);
 
-  function test_Set_PublicSwap() private view {}
+    vm.expectRevert('ERR_MIN_TOKENS');
+    bPool.finalize();
+  }
 
-  function test_Mint_InitPoolSupply() private view {}
+  function test_Revert_Reentrancy() public {
+    // Assert that the contract is accesible
+    assertEq(bPool.call__mutex(), false);
 
-  function test_Push_InitPoolSupply() private view {}
+    // Simulate ongoing call to the contract
+    bPool.set__mutex(true);
 
-  function test_Emit_LogCall() private view {}
+    vm.expectRevert('ERR_REENTRY');
+    bPool.finalize();
+  }
+
+  function test_Set_Finalize(uint256 _tokensLength) public {
+    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
+    _setRandomTokens(_tokensLength);
+
+    bPool.finalize();
+
+    assertEq(bPool.call__finalized(), true);
+  }
+
+  function test_Set_PublicSwap(uint256 _tokensLength) public {
+    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
+    _setRandomTokens(_tokensLength);
+
+    bPool.finalize();
+
+    assertEq(bPool.call__publicSwap(), true);
+  }
+
+  function test_Mint_InitPoolSupply(uint256 _tokensLength) public {
+    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
+    _setRandomTokens(_tokensLength);
+
+    bPool.finalize();
+
+    assertEq(bPool.totalSupply(), INIT_POOL_SUPPLY);
+  }
+
+  function test_Push_InitPoolSupply(uint256 _tokensLength) public {
+    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
+    _setRandomTokens(_tokensLength);
+
+    bPool.finalize();
+
+    assertEq(bPool.balanceOf(address(this)), INIT_POOL_SUPPLY);
+  }
+
+  function test_Emit_LogCall(uint256 _tokensLength) public {
+    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
+    _setRandomTokens(_tokensLength);
+
+    vm.expectEmit(true, true, true, true);
+    bytes memory _data = abi.encodeWithSelector(BPool.finalize.selector);
+    emit BPool.LOG_CALL(BPool.finalize.selector, address(this), _data);
+
+    bPool.finalize();
+  }
 }
 
 contract BPool_Unit_Bind is BasePoolTest {
