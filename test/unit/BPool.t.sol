@@ -326,41 +326,145 @@ contract BPool_Unit_GetController is BasePoolTest {
 }
 
 contract BPool_Unit_SetSwapFee is BasePoolTest {
-  function test_Revert_Finalized() private view {}
+  function test_Revert_Finalized() public {
+    _setFinalize(true);
 
-  function test_Revert_NotController() private view {}
+    vm.expectRevert('ERR_IS_FINALIZED');
+    bPool.setSwapFee(0);
+  }
 
-  function test_Revert_MinFee() private view {}
+  function test_Revert_NotController(address _controller, address _caller) public {
+    vm.assume(_controller != _caller);
+    bPool.set__controller(_controller);
 
-  function test_Revert_MaxFee() private view {}
+    vm.expectRevert('ERR_NOT_CONTROLLER');
+    vm.prank(_caller);
+    bPool.setSwapFee(0);
+  }
 
-  function test_Revert_Reentrancy() private view {}
+  function test_Revert_MinFee(uint256 _fee) public {
+    vm.assume(_fee < MIN_FEE);
 
-  function test_Set_SwapFee() private view {}
+    vm.expectRevert('ERR_MIN_FEE');
+    bPool.setSwapFee(_fee);
+  }
 
-  function test_Emit_LogCall() private view {}
+  function test_Revert_MaxFee(uint256 _fee) public {
+    vm.assume(_fee > MAX_FEE);
+
+    vm.expectRevert('ERR_MAX_FEE');
+    bPool.setSwapFee(_fee);
+  }
+
+  function test_Revert_Reentrancy() public {
+    // Assert that the contract is accesible
+    assertEq(bPool.call__mutex(), false);
+
+    // Simulate ongoing call to the contract
+    bPool.set__mutex(true);
+
+    vm.expectRevert('ERR_REENTRY');
+    bPool.setSwapFee(0);
+  }
+
+  function test_Set_SwapFee(uint256 _fee) public {
+    vm.assume(_fee >= MIN_FEE);
+    vm.assume(_fee <= MAX_FEE);
+
+    bPool.setSwapFee(_fee);
+
+    assertEq(bPool.call__swapFee(), _fee);
+  }
+
+  function test_Emit_LogCall(uint256 _fee) public {
+    vm.assume(_fee >= MIN_FEE);
+    vm.assume(_fee <= MAX_FEE);
+
+    vm.expectEmit(true, true, true, true);
+    bytes memory _data = abi.encodeWithSelector(BPool.setSwapFee.selector, _fee);
+    emit BPool.LOG_CALL(BPool.setSwapFee.selector, address(this), _data);
+
+    bPool.setSwapFee(_fee);
+  }
 }
 
 contract BPool_Unit_SetController is BasePoolTest {
-  function test_Revert_NotController() private view {}
+  function test_Revert_NotController(address _controller, address _caller) public {
+    vm.assume(_controller != _caller);
+    bPool.set__controller(_controller);
 
-  function test_Revert_Reentrancy() private view {}
+    vm.expectRevert('ERR_NOT_CONTROLLER');
+    vm.prank(_caller);
+    bPool.setController(address(0));
+  }
 
-  function test_Set_Controller() private view {}
+  function test_Revert_Reentrancy() public {
+    // Assert that the contract is accesible
+    assertEq(bPool.call__mutex(), false);
 
-  function test_Emit_LogCall() private view {}
+    // Simulate ongoing call to the contract
+    bPool.set__mutex(true);
+
+    vm.expectRevert('ERR_REENTRY');
+    bPool.setController(address(0));
+  }
+
+  function test_Set_Controller(address _controller) public {
+    bPool.setController(_controller);
+
+    assertEq(bPool.call__controller(), _controller);
+  }
+
+  function test_Emit_LogCall(address _controller) public {
+    vm.expectEmit(true, true, true, true);
+    bytes memory _data = abi.encodeWithSelector(BPool.setController.selector, _controller);
+    emit BPool.LOG_CALL(BPool.setController.selector, address(this), _data);
+
+    bPool.setController(_controller);
+  }
 }
 
 contract BPool_Unit_SetPublicSwap is BasePoolTest {
-  function test_Revert_Finalized() private view {}
+  function test_Revert_Finalized() public {
+    _setFinalize(true);
 
-  function test_Revert_NotController() private view {}
+    vm.expectRevert('ERR_IS_FINALIZED');
+    bPool.setPublicSwap(false);
+  }
 
-  function test_Revert_Reentrancy() private view {}
+  function test_Revert_NotController(address _controller, address _caller) public {
+    vm.assume(_controller != _caller);
+    bPool.set__controller(_controller);
 
-  function test_Set_PublicSwap() private view {}
+    vm.expectRevert('ERR_NOT_CONTROLLER');
+    vm.prank(_caller);
+    bPool.setPublicSwap(false);
+  }
 
-  function test_Emit_LogCall() private view {}
+  function test_Revert_Reentrancy() public {
+    // Assert that the contract is accesible
+    assertEq(bPool.call__mutex(), false);
+
+    // Simulate ongoing call to the contract
+    bPool.set__mutex(true);
+
+    vm.expectRevert('ERR_REENTRY');
+    bPool.setPublicSwap(false);
+  }
+
+  function test_Set_PublicSwap(bool _isPublicSwap) public {
+    bPool.setPublicSwap(_isPublicSwap);
+
+    assertEq(bPool.call__publicSwap(), _isPublicSwap);
+  }
+
+  function test_Emit_LogCall(bool _isPublicSwap) public {
+    vm.expectEmit(true, true, true, true);
+    bytes memory _data = abi.encodeWithSelector(BPool.setPublicSwap.selector, _isPublicSwap);
+    emit BPool.LOG_CALL(BPool.setPublicSwap.selector, address(this), _data);
+
+    bPool.setPublicSwap(_isPublicSwap);
+  }
 }
 
 contract BPool_Unit_Finalize is BasePoolTest {
