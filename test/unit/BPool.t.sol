@@ -394,15 +394,14 @@ contract BPool_Unit_GetTotalDenormalizedWeight is BasePoolTest {
 }
 
 contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
-  function test_Returns_NormalizedWeight(address _token, uint256 _weight, uint256 totalWeight) public {
-    vm.assume(_weight > MIN_WEIGHT);
-    vm.assume(_weight < MAX_WEIGHT);
-    vm.assume(_weight <= totalWeight);
-    vm.assume(totalWeight < MAX_TOTAL_WEIGHT);
+  function test_Returns_NormalizedWeight(address _token, uint256 _weight, uint256 _totalWeight) public {
+    _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
+    _totalWeight = bound(_totalWeight, MIN_WEIGHT, MAX_WEIGHT * MAX_BOUND_TOKENS);
+    vm.assume(_weight < _totalWeight);
     _setRecord(_token, BPool.Record({bound: true, index: 0, denorm: _weight, balance: 0}));
-    _setTotalWeight(totalWeight);
+    _setTotalWeight(_totalWeight);
 
-    assertEq(bPool.getNormalizedWeight(_token), bdiv(_weight, totalWeight));
+    assertEq(bPool.getNormalizedWeight(_token), bdiv(_weight, _totalWeight));
   }
 
   function test_Revert_Reentrancy() public {
