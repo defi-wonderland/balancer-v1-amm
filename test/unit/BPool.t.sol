@@ -538,16 +538,26 @@ contract BPool_Unit_SetPublicSwap is BasePoolTest {
 }
 
 contract BPool_Unit_Finalize is BasePoolTest {
-  function test_Revert_NotController(address _controller, address _caller) public {
+  modifier happyPath(uint256 _tokensLength) {
+    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
+    _setRandomTokens(_tokensLength);
+    _;
+  }
+
+  function test_Revert_NotController(
+    address _controller,
+    address _caller,
+    uint256 _tokensLength
+  ) public happyPath(_tokensLength) {
     vm.assume(_controller != _caller);
-    vm.assume(_caller != address(this));
+    bPool.set__controller(_controller);
 
     vm.prank(_caller);
     vm.expectRevert('ERR_NOT_CONTROLLER');
     bPool.finalize();
   }
 
-  function test_Revert_Finalized() public {
+  function test_Revert_Finalized(uint256 _tokensLength) public happyPath(_tokensLength) {
     _setFinalize(true);
 
     vm.expectRevert('ERR_IS_FINALIZED');
@@ -562,8 +572,8 @@ contract BPool_Unit_Finalize is BasePoolTest {
     bPool.finalize();
   }
 
-  function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+  function test_Revert_Reentrancy(uint256 _tokensLength) public happyPath(_tokensLength) {
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -573,46 +583,31 @@ contract BPool_Unit_Finalize is BasePoolTest {
     bPool.finalize();
   }
 
-  function test_Set_Finalize(uint256 _tokensLength) public {
-    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
-    _setRandomTokens(_tokensLength);
-
+  function test_Set_Finalize(uint256 _tokensLength) public happyPath(_tokensLength) {
     bPool.finalize();
 
     assertEq(bPool.call__finalized(), true);
   }
 
-  function test_Set_PublicSwap(uint256 _tokensLength) public {
-    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
-    _setRandomTokens(_tokensLength);
-
+  function test_Set_PublicSwap(uint256 _tokensLength) public happyPath(_tokensLength) {
     bPool.finalize();
 
     assertEq(bPool.call__publicSwap(), true);
   }
 
-  function test_Mint_InitPoolSupply(uint256 _tokensLength) public {
-    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
-    _setRandomTokens(_tokensLength);
-
+  function test_Mint_InitPoolSupply(uint256 _tokensLength) public happyPath(_tokensLength) {
     bPool.finalize();
 
     assertEq(bPool.totalSupply(), INIT_POOL_SUPPLY);
   }
 
-  function test_Push_InitPoolSupply(uint256 _tokensLength) public {
-    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
-    _setRandomTokens(_tokensLength);
-
+  function test_Push_InitPoolSupply(uint256 _tokensLength) public happyPath(_tokensLength) {
     bPool.finalize();
 
     assertEq(bPool.balanceOf(address(this)), INIT_POOL_SUPPLY);
   }
 
-  function test_Emit_LogCall(uint256 _tokensLength) public {
-    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
-    _setRandomTokens(_tokensLength);
-
+  function test_Emit_LogCall(uint256 _tokensLength) public happyPath(_tokensLength) {
     vm.expectEmit(true, true, true, true);
     bytes memory _data = abi.encodeWithSelector(BPool.finalize.selector);
     emit BPool.LOG_CALL(BPool.finalize.selector, address(this), _data);
