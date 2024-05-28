@@ -567,7 +567,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -785,7 +785,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -1268,7 +1268,7 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -1558,11 +1558,14 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, _minAmountOut);
   }
 
-  function test_Revert_NotFinalized() public {
+  function test_Revert_NotFinalized(
+    ExitswapPoolAmountIn_FuzzScenario memory _fuzz,
+    uint256 _minAmountOut
+  ) public happyPath(_fuzz) {
     _setFinalize(false);
 
     vm.expectRevert('ERR_NOT_FINALIZED');
-    bPool.exitswapPoolAmountIn(tokenOut, 0, 0);
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, _minAmountOut);
   }
 
   function test_Revert_NotBound(
@@ -1622,15 +1625,18 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, 0);
   }
 
-  function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+  function test_Revert_Reentrancy(
+    ExitswapPoolAmountIn_FuzzScenario memory _fuzz,
+    uint256 _minAmountOut
+  ) public happyPath(_fuzz) {
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
     bPool.set__mutex(true);
 
     vm.expectRevert('ERR_REENTRY');
-    bPool.exitswapPoolAmountIn(tokenOut, 0, 0);
+    bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, _minAmountOut);
   }
 
   function test_Set_Balance(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -1880,7 +1886,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
