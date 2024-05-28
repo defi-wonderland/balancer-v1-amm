@@ -248,21 +248,37 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 }
 
 contract BPool_Unit_Constructor is BasePoolTest {
-  function test_Deploy() private view {}
+  function test_Deploy(address _deployer) public {
+    vm.prank(_deployer);
+    MockBPool _newBPool = new MockBPool();
+
+    assertEq(_newBPool.call__controller(), _deployer);
+    assertEq(_newBPool.call__factory(), _deployer);
+    assertEq(_newBPool.call__swapFee(), MIN_FEE);
+    assertEq(_newBPool.call__publicSwap(), false);
+    assertEq(_newBPool.call__finalized(), false);
+  }
 }
 
 contract BPool_Unit_IsPublicSwap is BasePoolTest {
-  function test_Returns_IsPublicSwap() private view {}
+  function test_Returns_IsPublicSwap(bool _isPublicSwap) public {
+    bPool.set__publicSwap(_isPublicSwap);
+    assertEq(bPool.isPublicSwap(), _isPublicSwap);
+  }
 }
 
 contract BPool_Unit_IsFinalized is BasePoolTest {
-  function test_Returns_IsFinalized() private view {}
+  function test_Returns_IsFinalized(bool _isFinalized) public {
+    bPool.set__finalized(_isFinalized);
+    assertEq(bPool.isFinalized(), _isFinalized);
+  }
 }
 
 contract BPool_Unit_IsBound is BasePoolTest {
-  function test_Returns_IsBound() private view {}
-
-  function test_Returns_IsNotBound() private view {}
+  function test_Returns_IsBound(address _token, bool _isBound) public {
+    bPool.set__records(_token, BPool.Record({bound: _isBound, index: 0, denorm: 0, balance: 0}));
+    assertEq(bPool.isBound(_token), _isBound);
+  }
 }
 
 contract BPool_Unit_GetNumTokens is BasePoolTest {
