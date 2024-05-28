@@ -1362,18 +1362,28 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     bPool.swapExactAmountOut(tokenIn, _maxAmountIn, tokenOut, _fuzz.tokenAmountOut, _maxPrice);
   }
 
-  function test_Revert_NotBoundTokenIn(address _tokenIn) public {
+  function test_Revert_NotBoundTokenIn(
+    address _tokenIn,
+    SwapExactAmountOut_FuzzScenario memory _fuzz,
+    uint256 _maxAmountIn,
+    uint256 _maxPrice
+  ) public happyPath(_fuzz) {
     vm.assume(_tokenIn != VM_ADDRESS);
 
     vm.expectRevert('ERR_NOT_BOUND');
-    bPool.swapExactAmountOut(_tokenIn, 0, tokenOut, 0, 0);
+    bPool.swapExactAmountOut(_tokenIn, _maxAmountIn, tokenOut, _fuzz.tokenAmountOut, _maxPrice);
   }
 
-  function test_Revert_NotBoundTokenOut(address _tokenOut) public {
+  function test_Revert_NotBoundTokenOut(
+    address _tokenOut,
+    SwapExactAmountOut_FuzzScenario memory _fuzz,
+    uint256 _maxAmountIn,
+    uint256 _maxPrice
+  ) public happyPath(_fuzz) {
     vm.assume(_tokenOut != VM_ADDRESS);
 
     vm.expectRevert('ERR_NOT_BOUND');
-    bPool.swapExactAmountOut(tokenIn, 0, _tokenOut, 0, 0);
+    bPool.swapExactAmountOut(tokenIn, _maxAmountIn, _tokenOut, _fuzz.tokenAmountOut, _maxPrice);
   }
 
   function test_Revert_NotPublic(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -1414,15 +1424,19 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     bPool.swapExactAmountOut(tokenIn, _tokenAmountIn - 1, tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
-  function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+  function test_Revert_Reentrancy(
+    SwapExactAmountOut_FuzzScenario memory _fuzz,
+    uint256 _maxAmountIn,
+    uint256 _maxPrice
+  ) public happyPath(_fuzz) {
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
     bPool.set__mutex(true);
 
     vm.expectRevert('ERR_REENTRY');
-    bPool.swapExactAmountOut(tokenIn, 0, tokenOut, 0, 0);
+    bPool.swapExactAmountOut(tokenIn, _maxAmountIn, tokenOut, _fuzz.tokenAmountOut, _maxPrice);
   }
 
   function test_Set_InRecord(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -1440,6 +1454,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
 
   function test_Revert_MathApprox() public {
     vm.skip(true);
+    // TODO: this revert might be unreachable. Find a way to test it or remove the revert in the code.
   }
 
   function test_Revert_LimitPrice(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
