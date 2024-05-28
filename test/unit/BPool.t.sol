@@ -323,7 +323,7 @@ contract BPool_Unit_GetCurrentTokens is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -345,7 +345,7 @@ contract BPool_Unit_GetFinalTokens is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -374,7 +374,7 @@ contract BPool_Unit_GetDenormalizedWeight is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -398,7 +398,7 @@ contract BPool_Unit_GetTotalDenormalizedWeight is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -421,7 +421,7 @@ contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -445,7 +445,7 @@ contract BPool_Unit_GetBalance is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -469,7 +469,7 @@ contract BPool_Unit_GetSwapFee is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -488,7 +488,7 @@ contract BPool_Unit_GetController is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
@@ -646,93 +646,152 @@ contract BPool_Unit_Gulp is BasePoolTest {
 }
 
 contract BPool_Unit_GetSpotPrice is BasePoolTest {
-  function test_Revert_NotBoundTokenIn(address _tokenIn, address _tokenOut) public {
-    vm.expectRevert('ERR_NOT_BOUND');
-    bPool.getSpotPrice(_tokenIn, _tokenOut);
+  struct GetSpotPrice_FuzzScenario {
+    address tokenIn;
+    address tokenOut;
+    uint256 tokenInBalance;
+    uint256 tokenInDenorm;
+    uint256 tokenOutBalance;
+    uint256 tokenOutDenorm;
+    uint256 swapFee;
   }
 
-  function test_Revert_NotBoundTokenOut(address _tokenIn, address _tokenOut) public {
-    _setRecord(_tokenIn, BPool.Record({bound: true, index: 0, denorm: 0, balance: 0}));
-
-    vm.expectRevert('ERR_NOT_BOUND');
-    bPool.getSpotPrice(_tokenIn, _tokenOut);
+  function _setValues(GetSpotPrice_FuzzScenario memory _fuzz) internal {
+    _setRecord(
+      _fuzz.tokenIn, BPool.Record({bound: true, index: 0, denorm: _fuzz.tokenInDenorm, balance: _fuzz.tokenInBalance})
+    );
+    _setRecord(
+      _fuzz.tokenOut,
+      BPool.Record({bound: true, index: 0, denorm: _fuzz.tokenOutDenorm, balance: _fuzz.tokenOutBalance})
+    );
+    _setSwapFee(_fuzz.swapFee);
   }
 
-  function test_Returns_SpotPrice(
+  function _assumeHappyPath(GetSpotPrice_FuzzScenario memory _fuzz) internal pure {
+    vm.assume(_fuzz.tokenIn != _fuzz.tokenOut);
+    _assumeCalcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+  }
+
+  modifier happyPath(GetSpotPrice_FuzzScenario memory _fuzz) {
+    _assumeHappyPath(_fuzz);
+    _setValues(_fuzz);
+    _;
+  }
+
+  function test_Revert_NotBoundTokenIn(
     address _tokenIn,
+    GetSpotPrice_FuzzScenario memory _fuzz
+  ) public happyPath(_fuzz) {
+    vm.assume(_tokenIn != _fuzz.tokenIn);
+    vm.assume(_tokenIn != _fuzz.tokenOut);
+
+    vm.expectRevert('ERR_NOT_BOUND');
+    bPool.getSpotPrice(_tokenIn, _fuzz.tokenOut);
+  }
+
+  function test_Revert_NotBoundTokenOut(
     address _tokenOut,
-    uint256 _tokenInBalance,
-    uint256 _tokenInDenorm,
-    uint256 _tokenOutBalance,
-    uint256 _tokenOutDenorm,
-    uint256 _swapFee
-  ) public {
-    vm.assume(_tokenIn != _tokenOut);
-    _assumeCalcSpotPrice(_tokenInBalance, _tokenInDenorm, _tokenOutBalance, _tokenOutDenorm, _swapFee);
+    GetSpotPrice_FuzzScenario memory _fuzz
+  ) public happyPath(_fuzz) {
+    vm.assume(_tokenOut != _fuzz.tokenIn);
+    vm.assume(_tokenOut != _fuzz.tokenOut);
 
-    _setRecord(_tokenIn, BPool.Record({bound: true, index: 0, denorm: _tokenInDenorm, balance: _tokenInBalance}));
-    _setRecord(_tokenOut, BPool.Record({bound: true, index: 0, denorm: _tokenOutDenorm, balance: _tokenOutBalance}));
-    _setSwapFee(_swapFee);
+    vm.expectRevert('ERR_NOT_BOUND');
+    bPool.getSpotPrice(_fuzz.tokenIn, _tokenOut);
+  }
 
-    uint256 _expectedSpotPrice =
-      calcSpotPrice(_tokenInBalance, _tokenInDenorm, _tokenOutBalance, _tokenOutDenorm, _swapFee);
-    uint256 _spotPrice = bPool.getSpotPrice(_tokenIn, _tokenOut);
+  function test_Returns_SpotPrice(GetSpotPrice_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _expectedSpotPrice = calcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+    uint256 _spotPrice = bPool.getSpotPrice(_fuzz.tokenIn, _fuzz.tokenOut);
     assertEq(_spotPrice, _expectedSpotPrice);
   }
 
-  function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+  function test_Revert_Reentrancy(GetSpotPrice_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
     bPool.set__mutex(true);
 
     vm.expectRevert('ERR_REENTRY');
-    bPool.getSpotPrice(address(0), address(0));
+    bPool.getSpotPrice(_fuzz.tokenIn, _fuzz.tokenOut);
   }
 }
 
 contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
-  function test_Revert_NotBoundTokenIn(address _tokenIn, address _tokenOut) public {
-    vm.expectRevert('ERR_NOT_BOUND');
-    bPool.getSpotPriceSansFee(_tokenIn, _tokenOut);
+  struct GetSpotPriceSansFee_FuzzScenario {
+    address tokenIn;
+    address tokenOut;
+    uint256 tokenInBalance;
+    uint256 tokenInDenorm;
+    uint256 tokenOutBalance;
+    uint256 tokenOutDenorm;
   }
 
-  function test_Revert_NotBoundTokenOut(address _tokenIn, address _tokenOut) public {
-    _setRecord(_tokenIn, BPool.Record({bound: true, index: 0, denorm: 0, balance: 0}));
-
-    vm.expectRevert('ERR_NOT_BOUND');
-    bPool.getSpotPriceSansFee(_tokenIn, _tokenOut);
+  function _setValues(GetSpotPriceSansFee_FuzzScenario memory _fuzz) internal {
+    _setRecord(
+      _fuzz.tokenIn, BPool.Record({bound: true, index: 0, denorm: _fuzz.tokenInDenorm, balance: _fuzz.tokenInBalance})
+    );
+    _setRecord(
+      _fuzz.tokenOut,
+      BPool.Record({bound: true, index: 0, denorm: _fuzz.tokenOutDenorm, balance: _fuzz.tokenOutBalance})
+    );
+    _setSwapFee(0);
   }
 
-  function test_Returns_SpotPrice(
+  function _assumeHappyPath(GetSpotPriceSansFee_FuzzScenario memory _fuzz) internal pure {
+    vm.assume(_fuzz.tokenIn != _fuzz.tokenOut);
+    _assumeCalcSpotPrice(_fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, 0);
+  }
+
+  modifier happyPath(GetSpotPriceSansFee_FuzzScenario memory _fuzz) {
+    _assumeHappyPath(_fuzz);
+    _setValues(_fuzz);
+    _;
+  }
+
+  function test_Revert_NotBoundTokenIn(
     address _tokenIn,
+    GetSpotPriceSansFee_FuzzScenario memory _fuzz
+  ) public happyPath(_fuzz) {
+    vm.assume(_tokenIn != _fuzz.tokenIn);
+    vm.assume(_tokenIn != _fuzz.tokenOut);
+
+    vm.expectRevert('ERR_NOT_BOUND');
+    bPool.getSpotPriceSansFee(_tokenIn, _fuzz.tokenOut);
+  }
+
+  function test_Revert_NotBoundTokenOut(
     address _tokenOut,
-    uint256 _tokenInBalance,
-    uint256 _tokenInDenorm,
-    uint256 _tokenOutBalance,
-    uint256 _tokenOutDenorm
-  ) public {
-    vm.assume(_tokenIn != _tokenOut);
-    _assumeCalcSpotPrice(_tokenInBalance, _tokenInDenorm, _tokenOutBalance, _tokenOutDenorm, 0);
+    GetSpotPriceSansFee_FuzzScenario memory _fuzz
+  ) public happyPath(_fuzz) {
+    vm.assume(_tokenOut != _fuzz.tokenIn);
+    vm.assume(_tokenOut != _fuzz.tokenOut);
 
-    _setRecord(_tokenIn, BPool.Record({bound: true, index: 0, denorm: _tokenInDenorm, balance: _tokenInBalance}));
-    _setRecord(_tokenOut, BPool.Record({bound: true, index: 0, denorm: _tokenOutDenorm, balance: _tokenOutBalance}));
+    vm.expectRevert('ERR_NOT_BOUND');
+    bPool.getSpotPriceSansFee(_fuzz.tokenIn, _tokenOut);
+  }
 
-    uint256 _expectedSpotPrice = calcSpotPrice(_tokenInBalance, _tokenInDenorm, _tokenOutBalance, _tokenOutDenorm, 0);
-    uint256 _spotPrice = bPool.getSpotPriceSansFee(_tokenIn, _tokenOut);
+  function test_Returns_SpotPrice(GetSpotPriceSansFee_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _expectedSpotPrice =
+      calcSpotPrice(_fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, 0);
+    uint256 _spotPrice = bPool.getSpotPriceSansFee(_fuzz.tokenIn, _fuzz.tokenOut);
     assertEq(_spotPrice, _expectedSpotPrice);
   }
 
-  function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+  function test_Revert_Reentrancy(GetSpotPriceSansFee_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
     bPool.set__mutex(true);
 
     vm.expectRevert('ERR_REENTRY');
-    bPool.getSpotPriceSansFee(address(0), address(0));
+    bPool.getSpotPriceSansFee(_fuzz.tokenIn, _fuzz.tokenOut);
   }
 }
 
