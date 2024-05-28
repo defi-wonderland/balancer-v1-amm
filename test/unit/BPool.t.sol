@@ -342,20 +342,26 @@ contract BPool_Unit_GetController is BasePoolTest {
 }
 
 contract BPool_Unit_SetSwapFee is BasePoolTest {
-  function test_Revert_Finalized() public {
+  modifier happyPath(uint256 _fee) {
+    vm.assume(_fee >= MIN_FEE);
+    vm.assume(_fee <= MAX_FEE);
+    _;
+  }
+
+  function test_Revert_Finalized(uint256 _fee) public happyPath(_fee) {
     _setFinalize(true);
 
     vm.expectRevert('ERR_IS_FINALIZED');
-    bPool.setSwapFee(0);
+    bPool.setSwapFee(_fee);
   }
 
-  function test_Revert_NotController(address _controller, address _caller) public {
+  function test_Revert_NotController(address _controller, address _caller, uint256 _fee) public happyPath(_fee) {
     vm.assume(_controller != _caller);
     bPool.set__controller(_controller);
 
     vm.expectRevert('ERR_NOT_CONTROLLER');
     vm.prank(_caller);
-    bPool.setSwapFee(0);
+    bPool.setSwapFee(_fee);
   }
 
   function test_Revert_MinFee(uint256 _fee) public {
@@ -372,18 +378,18 @@ contract BPool_Unit_SetSwapFee is BasePoolTest {
     bPool.setSwapFee(_fee);
   }
 
-  function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+  function test_Revert_Reentrancy(uint256 _fee) public happyPath(_fee) {
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
     bPool.set__mutex(true);
 
     vm.expectRevert('ERR_REENTRY');
-    bPool.setSwapFee(0);
+    bPool.setSwapFee(_fee);
   }
 
-  function test_Set_SwapFee(uint256 _fee) public {
+  function test_Set_SwapFee(uint256 _fee) public happyPath(_fee) {
     vm.assume(_fee >= MIN_FEE);
     vm.assume(_fee <= MAX_FEE);
 
@@ -392,10 +398,7 @@ contract BPool_Unit_SetSwapFee is BasePoolTest {
     assertEq(bPool.call__swapFee(), _fee);
   }
 
-  function test_Emit_LogCall(uint256 _fee) public {
-    vm.assume(_fee >= MIN_FEE);
-    vm.assume(_fee <= MAX_FEE);
-
+  function test_Emit_LogCall(uint256 _fee) public happyPath(_fee) {
     vm.expectEmit(true, true, true, true);
     bytes memory _data = abi.encodeWithSelector(BPool.setSwapFee.selector, _fee);
     emit BPool.LOG_CALL(BPool.setSwapFee.selector, address(this), _data);
@@ -405,24 +408,24 @@ contract BPool_Unit_SetSwapFee is BasePoolTest {
 }
 
 contract BPool_Unit_SetController is BasePoolTest {
-  function test_Revert_NotController(address _controller, address _caller) public {
+  function test_Revert_NotController(address _controller, address _caller, address _newController) public {
     vm.assume(_controller != _caller);
     bPool.set__controller(_controller);
 
     vm.expectRevert('ERR_NOT_CONTROLLER');
     vm.prank(_caller);
-    bPool.setController(address(0));
+    bPool.setController(_newController);
   }
 
-  function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+  function test_Revert_Reentrancy(address _controller) public {
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
     bPool.set__mutex(true);
 
     vm.expectRevert('ERR_REENTRY');
-    bPool.setController(address(0));
+    bPool.setController(_controller);
   }
 
   function test_Set_Controller(address _controller) public {
@@ -441,31 +444,31 @@ contract BPool_Unit_SetController is BasePoolTest {
 }
 
 contract BPool_Unit_SetPublicSwap is BasePoolTest {
-  function test_Revert_Finalized() public {
+  function test_Revert_Finalized(bool _isPublicSwap) public {
     _setFinalize(true);
 
     vm.expectRevert('ERR_IS_FINALIZED');
-    bPool.setPublicSwap(false);
+    bPool.setPublicSwap(_isPublicSwap);
   }
 
-  function test_Revert_NotController(address _controller, address _caller) public {
+  function test_Revert_NotController(address _controller, address _caller, bool _isPublicSwap) public {
     vm.assume(_controller != _caller);
     bPool.set__controller(_controller);
 
     vm.expectRevert('ERR_NOT_CONTROLLER');
     vm.prank(_caller);
-    bPool.setPublicSwap(false);
+    bPool.setPublicSwap(_isPublicSwap);
   }
 
-  function test_Revert_Reentrancy() public {
-    // Assert that the contract is accesible
+  function test_Revert_Reentrancy(bool _isPublicSwap) public {
+    // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
     // Simulate ongoing call to the contract
     bPool.set__mutex(true);
 
     vm.expectRevert('ERR_REENTRY');
-    bPool.setPublicSwap(false);
+    bPool.setPublicSwap(_isPublicSwap);
   }
 
   function test_Set_PublicSwap(bool _isPublicSwap) public {
