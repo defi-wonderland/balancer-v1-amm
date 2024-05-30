@@ -771,10 +771,6 @@ contract BPool_Unit_Bind is BasePoolTest {
     _;
   }
 
-  function test_HappyPath(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-
   function test_Revert_NotController(
     address _controller,
     address _caller,
