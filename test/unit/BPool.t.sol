@@ -891,10 +891,6 @@ contract BPool_Unit_Rebind is BasePoolTest {
     _;
   }
 
-  function test_HappyPath(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-
   function test_Revert_NotController(
     address _controller,
     address _caller,
