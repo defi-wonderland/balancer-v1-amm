@@ -930,10 +930,6 @@ contract BPool_Unit_Unbind is BasePoolTest {
     _;
   }
 
-  function test_HappyPath(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    bPool.unbind(_fuzz.previousTokens[_fuzz.tokenIndex]);
-  }
-
   function test_Revert_NotController(
     address _controller,
     address _caller,
@@ -1003,13 +999,13 @@ contract BPool_Unit_Unbind is BasePoolTest {
     }
   }
 
-  function test_Unset_TokenArray(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_PopArray_TokenArray(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     bPool.unbind(_fuzz.previousTokens[_fuzz.tokenIndex]);
 
     assertEq(bPool.call__tokens().length, _fuzz.previousTokensAmount - 1);
   }
 
-  function test_Unset_Record(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Set_Record(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     bPool.unbind(_fuzz.previousTokens[_fuzz.tokenIndex]);
 
     assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).index, 0);
