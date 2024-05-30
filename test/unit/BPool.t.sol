@@ -816,7 +816,7 @@ contract BPool_Unit_Bind is BasePoolTest {
     assertEq(bPool.call__records(_fuzz.token).index, _fuzz.previousTokensAmount);
   }
 
-  function test_Set_TokenArray(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_PushArray_TokenArray(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
 
     assertEq(bPool.getCurrentTokens().length, _fuzz.previousTokensAmount + 1);
