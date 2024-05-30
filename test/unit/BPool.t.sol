@@ -168,9 +168,9 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
   function _assumeCalcOutGivenIn(
     uint256 _tokenInBalance,
-    uint256 _tokenInDenorm,
-    uint256 _tokenOutBalance,
-    uint256 _tokenOutDenorm,
+    uint256 ,
+    uint256 ,
+    uint256 ,
     uint256 _tokenAmountIn,
     uint256 _swapFee
   ) internal pure {
