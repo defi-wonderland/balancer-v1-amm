@@ -12,9 +12,6 @@ import {LibString} from 'solmate/utils/LibString.sol';
 import {Pow} from 'test/utils/Pow.sol';
 import {Utils} from 'test/utils/Utils.sol';
 
-// TODO: remove once `private` keyword is removed in all test cases
-/* solhint-disable */
-
 abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   using LibString for *;
 
