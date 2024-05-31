@@ -165,9 +165,6 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
   function _assumeCalcOutGivenIn(
     uint256 _tokenInBalance,
-    uint256,
-    uint256,
-    uint256,
     uint256 _tokenAmountIn,
     uint256 _swapFee
   ) internal pure {
@@ -204,8 +201,7 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     uint256 _tokenInDenorm,
     uint256 _poolSupply,
     uint256 _totalWeight,
-    uint256 _poolAmountOut,
-    uint256
+    uint256 _poolAmountOut
   ) internal view {
     uint256 _normalizedWeight = bdiv(_tokenInDenorm, _totalWeight);
     uint256 _newPoolSupply = badd(_poolSupply, _poolAmountOut);
@@ -1870,9 +1866,6 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
 
     _assumeCalcOutGivenIn(
       _fuzz.tokenInBalance,
-      _fuzz.tokenInDenorm,
-      _fuzz.tokenOutBalance,
-      _fuzz.tokenOutDenorm,
       _fuzz.tokenAmountIn,
       _fuzz.swapFee
     );
@@ -2787,8 +2780,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
       _fuzz.tokenInDenorm,
       _fuzz.totalSupply,
       _fuzz.totalWeight,
-      _fuzz.poolAmountOut,
-      _fuzz.swapFee
+      _fuzz.poolAmountOut
     );
 
     uint256 _tokenAmountIn = calcSingleInGivenPoolOut(
@@ -2870,8 +2862,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
       _fuzz.tokenInDenorm,
       _fuzz.totalSupply,
       _fuzz.totalWeight,
-      _fuzz.poolAmountOut,
-      _fuzz.swapFee
+      _fuzz.poolAmountOut
     );
     uint256 _tokenAmountIn = calcSingleInGivenPoolOut(
       _fuzz.tokenInBalance,
