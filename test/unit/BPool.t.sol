@@ -163,11 +163,7 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     vm.assume(bsub(_foo, BONE) < type(uint256).max / _tokenInBalance);
   }
 
-  function _assumeCalcOutGivenIn(
-    uint256 _tokenInBalance,
-    uint256 _tokenAmountIn,
-    uint256 _swapFee
-  ) internal pure {
+  function _assumeCalcOutGivenIn(uint256 _tokenInBalance, uint256 _tokenAmountIn, uint256 _swapFee) internal pure {
     uint256 _adjustedIn = bsub(BONE, _swapFee);
     _adjustedIn = bmul(_tokenAmountIn, _adjustedIn);
     vm.assume(_tokenInBalance < type(uint256).max / BONE);
@@ -1563,8 +1559,9 @@ contract BPool_Unit_JoinPool is BasePoolTest {
 
   function test_Emit_LogCall(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     vm.expectEmit();
-    bytes memory _data =
-      abi.encodeWithSelector(BPool.joinPool.selector, _fuzz.poolAmountOut, _staticToDynamicUintArray(_fuzz.maxAmountsIn));
+    bytes memory _data = abi.encodeWithSelector(
+      BPool.joinPool.selector, _fuzz.poolAmountOut, _staticToDynamicUintArray(_fuzz.maxAmountsIn)
+    );
     emit BPool.LOG_CALL(BPool.joinPool.selector, address(this), _data);
 
     bPool.joinPool(_fuzz.poolAmountOut, _staticToDynamicUintArray(_fuzz.maxAmountsIn));
@@ -1774,8 +1771,9 @@ contract BPool_Unit_ExitPool is BasePoolTest {
 
   function test_Emit_LogCall(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     vm.expectEmit();
-    bytes memory _data =
-      abi.encodeWithSelector(BPool.exitPool.selector, _fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bytes memory _data = abi.encodeWithSelector(
+      BPool.exitPool.selector, _fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut)
+    );
     emit BPool.LOG_CALL(BPool.exitPool.selector, address(this), _data);
 
     bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
@@ -1864,11 +1862,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
       _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
     );
 
-    _assumeCalcOutGivenIn(
-      _fuzz.tokenInBalance,
-      _fuzz.tokenAmountIn,
-      _fuzz.swapFee
-    );
+    _assumeCalcOutGivenIn(_fuzz.tokenInBalance, _fuzz.tokenAmountIn, _fuzz.swapFee);
     uint256 _tokenAmountOut = calcOutGivenIn(
       _fuzz.tokenInBalance,
       _fuzz.tokenInDenorm,
@@ -2776,11 +2770,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
 
     // internal calculation for calcSingleInGivenPoolOut
     _assumeCalcSingleInGivenPoolOut(
-      _fuzz.tokenInBalance,
-      _fuzz.tokenInDenorm,
-      _fuzz.totalSupply,
-      _fuzz.totalWeight,
-      _fuzz.poolAmountOut
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.totalSupply, _fuzz.totalWeight, _fuzz.poolAmountOut
     );
 
     uint256 _tokenAmountIn = calcSingleInGivenPoolOut(
@@ -2858,11 +2848,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
     vm.assume(_fuzz.totalSupply < type(uint256).max - _fuzz.poolAmountOut);
     _assumeCalcSingleInGivenPoolOut(
-      _fuzz.tokenInBalance,
-      _fuzz.tokenInDenorm,
-      _fuzz.totalSupply,
-      _fuzz.totalWeight,
-      _fuzz.poolAmountOut
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.totalSupply, _fuzz.totalWeight, _fuzz.poolAmountOut
     );
     uint256 _tokenAmountIn = calcSingleInGivenPoolOut(
       _fuzz.tokenInBalance,
