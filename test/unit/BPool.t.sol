@@ -1609,7 +1609,9 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     }
 
     // Set LP token balance
-    _setPoolBalance(address(this), _fuzz.initPoolSupply); // give LP tokens to fn caller, update totalSupply
+    _setPoolBalance(address(this), _fuzz.poolAmountIn); // give LP tokens to fn caller
+    // Set totalSupply
+    _setTotalSupply(_fuzz.initPoolSupply - _fuzz.poolAmountIn);
     // Set public swap
     _setPublicSwap(true);
     // Set finalize
@@ -1655,11 +1657,11 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   }
 
   function test_Pull_PoolShare(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    assertEq(bPool.balanceOf(address(this)), _fuzz.initPoolSupply);
+    assertEq(bPool.balanceOf(address(this)), _fuzz.poolAmountIn);
 
     bPool.exitPool(_fuzz.poolAmountIn, _fixedUintArrayToMemory(_fuzz.minAmountsOut));
 
-    assertEq(bPool.balanceOf(address(this)), _fuzz.initPoolSupply - _fuzz.poolAmountIn);
+    assertEq(bPool.balanceOf(address(this)), 0);
   }
 
   function test_Push_PoolShare(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
