@@ -1543,7 +1543,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
 
   function test_Mint_PoolShare(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     bPool.joinPool(_fuzz.poolAmountOut, _staticToDynamicUintArray(_fuzz.maxAmountsIn));
-    
+
     assertEq(bPool.totalSupply(), _fuzz.initPoolSupply + _fuzz.poolAmountOut);
   }
 
@@ -3529,7 +3529,7 @@ contract BPool_Unit__PushUnderlying is BasePoolTest {
 
   function test_Revert_ERC20False(address _erc20, address _to, uint256 _amount) public {
     vm.assume(_erc20 != VM_ADDRESS);
-    
+
     vm.mockCall(_erc20, abi.encodeWithSelector(IERC20.transfer.selector, _to, _amount), abi.encode(false));
 
     vm.expectRevert('ERR_ERC20_FALSE');
