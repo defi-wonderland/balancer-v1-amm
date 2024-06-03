@@ -157,8 +157,6 @@ contract BPool is BBronze, BToken, BMath {
     _pushUnderlying(token, _factory, tokenExitFee);
   }
 
-  function lala() public {}
-
   // Absorb any tokens that have been sent to this contract into the pool
   function gulp(address token) external _logs_ _lock_ {
     require(_records[token].bound, 'ERR_NOT_BOUND');
