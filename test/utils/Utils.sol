@@ -4,6 +4,28 @@ pragma solidity 0.8.23;
 import {Test} from 'forge-std/Test.sol';
 
 contract Utils is Test {
+  uint256 public constant TOKENS_AMOUNT = 3;
+
+  address[TOKENS_AMOUNT] public tokens;
+
+  function _tokensToMemory() internal view returns (address[] memory _tokens) {
+    _tokens = new address[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; i++) {
+      _tokens[i] = tokens[i];
+    }
+  }
+
+  function _staticToDynamicUintArray(uint256[TOKENS_AMOUNT] memory _fixedUintArray)
+    internal
+    pure
+    returns (uint256[] memory _memoryUintArray)
+  {
+    _memoryUintArray = new uint256[](_fixedUintArray.length);
+    for (uint256 i = 0; i < _fixedUintArray.length; i++) {
+      _memoryUintArray[i] = _fixedUintArray[i];
+    }
+  }
+
   /**
    * @dev Write a uint256 value to a storage slot.
    * @param _target The address of the contract.

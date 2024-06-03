@@ -15,10 +15,7 @@ import {Utils} from 'test/utils/Utils.sol';
 abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   using LibString for *;
 
-  uint256 public constant TOKENS_AMOUNT = 3;
-
   MockBPool public bPool;
-  address[TOKENS_AMOUNT] public tokens;
 
   // Deploy this external contract to perform a try-catch when calling bpow.
   // If the call fails, it means that the function overflowed, then we reject the fuzzed inputs
@@ -40,36 +37,6 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
       _setRecord(_tokensToAdd[i], BPool.Record({bound: true, index: i, denorm: 0, balance: 0}));
     }
     _setTokens(_tokensToAdd);
-  }
-
-  // TODO: move tokens and this method to Utils.sol
-  function _tokensToMemory() internal view returns (address[] memory _tokens) {
-    _tokens = new address[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      _tokens[i] = tokens[i];
-    }
-  }
-
-  function _staticToDynamicUintArray(uint256[TOKENS_AMOUNT] memory _fixedUintArray)
-    internal
-    pure
-    returns (uint256[] memory _memoryUintArray)
-  {
-    _memoryUintArray = new uint256[](_fixedUintArray.length);
-    for (uint256 i = 0; i < _fixedUintArray.length; i++) {
-      _memoryUintArray[i] = _fixedUintArray[i];
-    }
-  }
-
-  function _maxAmountsArray() internal pure returns (uint256[] memory _maxAmounts) {
-    _maxAmounts = new uint256[](TOKENS_AMOUNT);
-    for (uint256 i = 0; i < TOKENS_AMOUNT; i++) {
-      _maxAmounts[i] = type(uint256).max;
-    }
-  }
-
-  function _zeroAmountsArray() internal view returns (uint256[] memory _zeroAmounts) {
-    _zeroAmounts = new uint256[](tokens.length);
   }
 
   function _mockTransfer(address _token) internal {
