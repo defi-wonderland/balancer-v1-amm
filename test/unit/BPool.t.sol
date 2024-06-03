@@ -2232,7 +2232,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     );
 
     vm.assume(_tokenAmountIn > BONE);
-    vm.assume(bmul(_spotPriceBefore, _fuzz.tokenAmountOut) <= _tokenAmountIn);
+    vm.assume(_spotPriceBefore <= bdiv(_tokenAmountIn, _fuzz.tokenAmountOut));
 
     // max - calcSpotPrice (spotPriceAfter)
     vm.assume(_tokenAmountIn < type(uint256).max - _fuzz.tokenInBalance);
