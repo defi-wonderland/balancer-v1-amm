@@ -74,16 +74,16 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
   function _mockTransfer(address _token) internal {
     // TODO: add amount to transfer to check that it's called with the right amount
-    vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).transfer.selector), abi.encode(true));
+    vm.mockCall(_token, abi.encodeWithSelector(IERC20.transfer.selector), abi.encode(true));
   }
 
   function _mockTransferFrom(address _token) internal {
     // TODO: add from and amount to transfer to check that it's called with the right params
-    vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).transferFrom.selector), abi.encode(true));
+    vm.mockCall(_token, abi.encodeWithSelector(IERC20.transferFrom.selector), abi.encode(true));
   }
 
   function _mockPoolBalance(address _token, uint256 _balance) internal {
-    vm.mockCall(_token, abi.encodeWithSelector(IERC20(_token).balanceOf.selector, address(bPool)), abi.encode(_balance));
+    vm.mockCall(_token, abi.encodeWithSelector(IERC20.balanceOf.selector, address(bPool)), abi.encode(_balance));
   }
 
   function _setTokens(address[] memory _tokens) internal {
