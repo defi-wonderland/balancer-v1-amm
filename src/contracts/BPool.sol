@@ -222,13 +222,6 @@ contract BPool is BBronze, BToken, BMath {
     _pushUnderlying(token, _factory, tokenExitFee);
   }
 
-  // NOTE: deprecated method, as balances are calculated on-the-fly
-  // Absorb any tokens that have been sent to this contract into the pool
-  function gulp(address token) external _logs_ _lock_ {
-    require(_records[token].bound, 'ERR_NOT_BOUND');
-    return;
-  }
-
   function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
     require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
     require(_records[tokenOut].bound, 'ERR_NOT_BOUND');

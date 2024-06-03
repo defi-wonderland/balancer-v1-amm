@@ -1189,54 +1189,6 @@ contract BPool_Unit_Unbind is BasePoolTest {
   }
 }
 
-// NOTE: deprecated method
-abstract contract BPool_Unit_Gulp is BasePoolTest {
-  struct Gulp_FuzzScenario {
-    address token;
-    uint256 balance;
-  }
-
-  modifier happyPath(Gulp_FuzzScenario memory _fuzz) {
-    vm.assume(_fuzz.token != VM_ADDRESS);
-    vm.assume(_fuzz.token != 0x000000000000000000636F6e736F6c652e6c6f67);
-    _mockPoolBalance(_fuzz.token, _fuzz.balance);
-    _setRecord(_fuzz.token, BPool.Record({bound: true, index: 0, denorm: 0}));
-    _;
-  }
-
-  function test_Revert_NotBound(address _token, Gulp_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.assume(_token != _fuzz.token);
-
-    vm.expectRevert('ERR_NOT_BOUND');
-    bPool.gulp(_token);
-  }
-
-  function test_Revert_Reentrancy(Gulp_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
-    bPool.gulp(_fuzz.token);
-  }
-
-  function test_Set_Balance(Gulp_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    bPool.gulp(_fuzz.token);
-
-    assertEq(bPool.getBalance(_fuzz.token), _fuzz.balance);
-  }
-
-  function test_Emit_LogCall(Gulp_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.expectEmit();
-    bytes memory _data = abi.encodeWithSelector(BPool.gulp.selector, _fuzz.token);
-    emit BPool.LOG_CALL(BPool.gulp.selector, address(this), _data);
-
-    bPool.gulp(_fuzz.token);
-  }
-}
-
 contract BPool_Unit_GetSpotPrice is BasePoolTest {
   struct GetSpotPrice_FuzzScenario {
     address tokenIn;
