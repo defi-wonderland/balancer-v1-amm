@@ -731,15 +731,12 @@ contract BPool_Unit_Finalize is BasePoolTest {
 }
 
 contract BPool_Unit_Bind is BasePoolTest {
-  using LibString for *;
-
   struct Bind_FuzzScenario {
     address token;
     uint256 balance;
     uint256 denorm;
     uint256 previousTokensAmount;
     uint256 totalWeight;
-    address[] previousTokens;
   }
 
   function _setValues(Bind_FuzzScenario memory _fuzz) internal {
@@ -758,16 +755,11 @@ contract BPool_Unit_Bind is BasePoolTest {
 
   function _assumeHappyPath(Bind_FuzzScenario memory _fuzz) internal {
     assumeNotForgeAddress(_fuzz.token);
-    vm.assume(_fuzz.balance >= MIN_BALANCE);
-    vm.assume(_fuzz.totalWeight >= MIN_WEIGHT);
-    vm.assume(_fuzz.totalWeight <= MAX_TOTAL_WEIGHT - MIN_WEIGHT);
+    _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
     _fuzz.previousTokensAmount = bound(_fuzz.previousTokensAmount, 0, MAX_BOUND_TOKENS - 1);
-    _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
-    _fuzz.previousTokens = new address[](_fuzz.previousTokensAmount);
-    for (uint256 i = 0; i < _fuzz.previousTokensAmount; i++) {
-      _fuzz.previousTokens[i] = makeAddr(i.toString());
-      vm.assume(_fuzz.token != _fuzz.previousTokens[i]);
-    }
+    _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_WEIGHT);
+    vm.assume(_fuzz.denorm <= MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
   }
 
   modifier happyPath(Bind_FuzzScenario memory _fuzz) {
@@ -789,12 +781,11 @@ contract BPool_Unit_Bind is BasePoolTest {
     bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
   }
 
-  function test_Revert_IsBound(uint256 _tokenIndex, Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.assume(_fuzz.previousTokensAmount > 0);
-    _tokenIndex = bound(_tokenIndex, 0, _fuzz.previousTokens.length - 1);
+  function test_Revert_IsBound(address _token, Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    _setRecord(_token, BPool.Record({bound: true, index: 0, denorm: 0}));
 
     vm.expectRevert('ERR_IS_BOUND');
-    bPool.bind(_fuzz.previousTokens[_tokenIndex], _fuzz.balance, _fuzz.denorm);
+    bPool.bind(_token, _fuzz.balance, _fuzz.denorm);
   }
 
   function test_Revert_Finalized(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -828,117 +819,28 @@ contract BPool_Unit_Bind is BasePoolTest {
     assertEq(bPool.getCurrentTokens()[_fuzz.previousTokensAmount], _fuzz.token);
   }
 
-  function test_Emit_LogCall(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.expectEmit();
-    bytes memory _data = abi.encodeWithSelector(BPool.bind.selector, _fuzz.token, _fuzz.balance, _fuzz.denorm);
-    emit BPool.LOG_CALL(BPool.bind.selector, address(this), _data);
-
-    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-
-  function test_Call_Rebind(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // TODO: fix
-    vm.skip(true);
-    vm.expectCall(
-      address(bPool), abi.encodeWithSelector(BPool.rebind.selector, _fuzz.token, _fuzz.balance, _fuzz.denorm)
-    );
-
-    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-}
-
-contract BPool_Unit_Rebind is BasePoolTest {
-  using LibString for *;
-
-  struct Rebind_FuzzScenario {
-    address token;
-    uint256 balance;
-    uint256 previousBalance;
-    uint256 denorm;
-    uint256 previousDenorm;
-    uint256 totalWeight;
-  }
-
-  function _setValues(Rebind_FuzzScenario memory _fuzz) internal {
-    // Create mocks
-    _mockTransferFrom(_fuzz.token);
-    _mockTransfer(_fuzz.token);
-
-    // Set token
-    _setRecord(_fuzz.token, BPool.Record({bound: true, index: 0, denorm: _fuzz.previousDenorm}));
-    _mockPoolBalance(_fuzz.token, _fuzz.previousBalance);
-
-    // Set finalize
-    _setFinalize(false);
-    // Set totalWeight
-    _setTotalWeight(_fuzz.totalWeight);
-  }
-
-  function _assumeHappyPath(Rebind_FuzzScenario memory _fuzz) internal pure {
-    assumeNotForgeAddress(_fuzz.token);
-    vm.assume(_fuzz.balance >= MIN_BALANCE);
-    vm.assume(_fuzz.previousBalance >= MIN_BALANCE);
-    vm.assume(_fuzz.totalWeight >= MIN_WEIGHT);
-    vm.assume(_fuzz.totalWeight <= MAX_TOTAL_WEIGHT - MIN_WEIGHT);
-    _fuzz.previousDenorm = bound(_fuzz.previousDenorm, MIN_WEIGHT, _fuzz.totalWeight);
-    _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
-  }
-
-  modifier happyPath(Rebind_FuzzScenario memory _fuzz) {
-    _assumeHappyPath(_fuzz);
-    _setValues(_fuzz);
-    _;
-  }
-
-  function test_Revert_NotController(
-    address _controller,
-    address _caller,
-    Rebind_FuzzScenario memory _fuzz
-  ) public happyPath(_fuzz) {
-    vm.assume(_controller != _caller);
-    bPool.set__controller(_controller);
-
-    vm.prank(_caller);
-    vm.expectRevert('ERR_NOT_CONTROLLER');
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-
-  function test_Revert_NotBound(address _token, Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.assume(_token != _fuzz.token);
-
-    vm.expectRevert('ERR_NOT_BOUND');
-    bPool.rebind(_token, _fuzz.balance, _fuzz.denorm);
-  }
-
-  function test_Revert_Finalized(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    _setFinalize(true);
-
-    vm.expectRevert('ERR_IS_FINALIZED');
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-
-  function test_Revert_MinWeight(uint256 _denorm, Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_MinWeight(uint256 _denorm, Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     vm.assume(_denorm < MIN_WEIGHT);
 
     vm.expectRevert('ERR_MIN_WEIGHT');
-    bPool.rebind(_fuzz.token, _fuzz.balance, _denorm);
+    bPool.bind(_fuzz.token, _fuzz.balance, _denorm);
   }
 
-  function test_Revert_MaxWeight(uint256 _denorm, Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_MaxWeight(uint256 _denorm, Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     vm.assume(_denorm > MAX_WEIGHT);
 
     vm.expectRevert('ERR_MAX_WEIGHT');
-    bPool.rebind(_fuzz.token, _fuzz.balance, _denorm);
+    bPool.bind(_fuzz.token, _fuzz.balance, _denorm);
   }
 
-  function test_Revert_MinBalance(uint256 _balance, Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_MinBalance(uint256 _balance, Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     vm.assume(_balance < MIN_BALANCE);
 
     vm.expectRevert('ERR_MIN_BALANCE');
-    bPool.rebind(_fuzz.token, _balance, _fuzz.denorm);
+    bPool.bind(_fuzz.token, _balance, _fuzz.denorm);
   }
 
-  function test_Revert_Reentrancy(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_Reentrancy(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     // Assert that the contract is accessible
     assertEq(bPool.call__mutex(), false);
 
@@ -946,81 +848,44 @@ contract BPool_Unit_Rebind is BasePoolTest {
     bPool.set__mutex(true);
 
     vm.expectRevert('ERR_REENTRY');
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
+    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
   }
 
-  function test_Set_TotalWeightIfDenormMoreThanOldWeight(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.assume(_fuzz.denorm > _fuzz.previousDenorm);
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
+  function test_Set_TotalWeight(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
 
-    assertEq(bPool.call__totalWeight(), _fuzz.totalWeight + (_fuzz.denorm - _fuzz.previousDenorm));
+    assertEq(bPool.call__totalWeight(), _fuzz.totalWeight + _fuzz.denorm);
   }
 
-  function test_Set_TotalWeightIfDenormLessThanOldWeight(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.assume(_fuzz.denorm < _fuzz.previousDenorm);
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-
-    assertEq(bPool.call__totalWeight(), _fuzz.totalWeight - (_fuzz.previousDenorm - _fuzz.denorm));
-  }
-
-  function test_Revert_MaxTotalWeight(uint256 _denorm, Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    _denorm = bound(_denorm, _fuzz.previousDenorm + 1, MAX_WEIGHT);
+  function test_Revert_MaxTotalWeight(uint256 _denorm, Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    _denorm = bound(_denorm, MIN_WEIGHT, MAX_WEIGHT);
     _setTotalWeight(MAX_TOTAL_WEIGHT);
 
     vm.expectRevert('ERR_MAX_TOTAL_WEIGHT');
-    bPool.rebind(_fuzz.token, _fuzz.balance, _denorm);
+    bPool.bind(_fuzz.token, _fuzz.balance, _denorm);
   }
 
-  function test_Set_Denorm(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
+  function test_Set_Denorm(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
 
     assertEq(bPool.call__records(_fuzz.token).denorm, _fuzz.denorm);
   }
 
-  function test_Pull_IfBalanceMoreThanOldBalance(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.assume(_fuzz.balance > _fuzz.previousBalance);
-
+  function test_Pull_Balance(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     vm.expectCall(
       address(_fuzz.token),
-      abi.encodeWithSelector(
-        IERC20.transferFrom.selector, address(this), address(bPool), _fuzz.balance - _fuzz.previousBalance
-      )
+      abi.encodeWithSelector(IERC20.transferFrom.selector, address(this), address(bPool), _fuzz.balance)
     );
 
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
+    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
   }
 
-  function test_Push_UnderlyingIfBalanceLessThanOldBalance(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.assume(_fuzz.balance < _fuzz.previousBalance);
-
-    uint256 _tokenBalanceWithdrawn = _fuzz.previousBalance - _fuzz.balance;
-    uint256 _tokenExitFee = bmul(_tokenBalanceWithdrawn, EXIT_FEE);
-    vm.expectCall(
-      address(_fuzz.token),
-      abi.encodeWithSelector(IERC20.transfer.selector, address(this), _tokenBalanceWithdrawn - _tokenExitFee)
-    );
-
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-
-  function test_Push_FeeIfBalanceLessThanOldBalance(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.assume(_fuzz.balance < _fuzz.previousBalance);
-
-    uint256 _tokenBalanceWithdrawn = _fuzz.previousBalance - _fuzz.balance;
-    uint256 _tokenExitFee = bmul(_tokenBalanceWithdrawn, EXIT_FEE);
-    vm.expectCall(
-      address(_fuzz.token), abi.encodeWithSelector(IERC20.transfer.selector, bPool.call__factory(), _tokenExitFee)
-    );
-
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-
-  function test_Emit_LogCall(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Emit_LogCall(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     vm.expectEmit();
-    bytes memory _data = abi.encodeWithSelector(BPool.rebind.selector, _fuzz.token, _fuzz.balance, _fuzz.denorm);
-    emit BPool.LOG_CALL(BPool.rebind.selector, address(this), _data);
+    bytes memory _data = abi.encodeWithSelector(BPool.bind.selector, _fuzz.token, _fuzz.balance, _fuzz.denorm);
+    emit BPool.LOG_CALL(BPool.bind.selector, address(this), _data);
 
-    bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
+    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
   }
 }
 
@@ -1156,7 +1021,6 @@ contract BPool_Unit_Unbind is BasePoolTest {
     assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).index, 0);
     assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).bound, false);
     assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).denorm, 0);
-    // assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).balance, 0);
   }
 
   function test_Push_UnderlyingBalance(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {

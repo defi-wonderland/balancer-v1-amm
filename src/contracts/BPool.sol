@@ -80,54 +80,24 @@ contract BPool is BBronze, BToken, BMath {
     _pushPoolShare(msg.sender, INIT_POOL_SUPPLY);
   }
 
-  function bind(address token, uint256 balance, uint256 denorm) external _logs_ 
-  // _lock_  Bind does not lock because it jumps to `rebind`, which does
-  {
+  function bind(address token, uint256 balance, uint256 denorm) external _logs_ _lock_ {
     require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
     require(!_records[token].bound, 'ERR_IS_BOUND');
     require(!_finalized, 'ERR_IS_FINALIZED');
 
     require(_tokens.length < MAX_BOUND_TOKENS, 'ERR_MAX_TOKENS');
 
-    _records[token] = Record({
-      bound: true,
-      index: _tokens.length,
-      denorm: 0 // denorm will be validated
-    });
-    _tokens.push(token);
-    rebind(token, balance, denorm);
-  }
-
-  function rebind(address token, uint256 balance, uint256 denorm) public _logs_ _lock_ {
-    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
-    require(_records[token].bound, 'ERR_NOT_BOUND');
-    require(!_finalized, 'ERR_IS_FINALIZED');
-
+    require(balance >= MIN_BALANCE, 'ERR_MIN_BALANCE');
     require(denorm >= MIN_WEIGHT, 'ERR_MIN_WEIGHT');
     require(denorm <= MAX_WEIGHT, 'ERR_MAX_WEIGHT');
-    require(balance >= MIN_BALANCE, 'ERR_MIN_BALANCE');
 
-    // Adjust the denorm and totalWeight
-    uint256 oldWeight = _records[token].denorm;
-    if (denorm > oldWeight) {
-      _totalWeight = badd(_totalWeight, bsub(denorm, oldWeight));
-      require(_totalWeight <= MAX_TOTAL_WEIGHT, 'ERR_MAX_TOTAL_WEIGHT');
-    } else if (denorm < oldWeight) {
-      _totalWeight = bsub(_totalWeight, bsub(oldWeight, denorm));
-    }
-    _records[token].denorm = denorm;
+    _totalWeight = badd(_totalWeight, denorm);
+    require(_totalWeight <= MAX_TOTAL_WEIGHT, 'ERR_MAX_TOTAL_WEIGHT');
 
-    // Adjust the balance record and actual token balance
-    uint256 oldBalance = IERC20(token).balanceOf(address(this));
-    if (balance > oldBalance) {
-      _pullUnderlying(token, msg.sender, bsub(balance, oldBalance));
-    } else if (balance < oldBalance) {
-      // In this case liquidity is being withdrawn, so charge EXIT_FEE
-      uint256 tokenBalanceWithdrawn = bsub(oldBalance, balance);
-      uint256 tokenExitFee = bmul(tokenBalanceWithdrawn, EXIT_FEE);
-      _pushUnderlying(token, msg.sender, bsub(tokenBalanceWithdrawn, tokenExitFee));
-      _pushUnderlying(token, _factory, tokenExitFee);
-    }
+    _records[token] = Record({bound: true, index: _tokens.length, denorm: denorm});
+    _tokens.push(token);
+
+    _pullUnderlying(token, msg.sender, balance);
   }
 
   // solhint-disable-next-line ordering
