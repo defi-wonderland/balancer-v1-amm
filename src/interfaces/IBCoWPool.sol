@@ -21,24 +21,11 @@ interface IBCoWPool is IERC1271 {
   event TradingDisabled();
 
   /**
-   * Emitted when the manager disables the AMM to trade on CoW Protocol.
-   * @param hash The hash of the trading parameters.
-   * @param params Trading has been disabled for these parameters.
-   */
-  event TradingDisabled(bytes32 indexed hash, TradingParams params);
-
-  /**
    * Emitted when the manager enables the AMM to trade on CoW Protocol.
    * @param hash The hash of the trading parameters.
    * @param params Trading has been enabled for these parameters.
    */
   event TradingEnabled(bytes32 indexed hash, TradingParams params);
-
-  /**
-   * @notice This function is permissioned and can only be called by the
-   * contract's manager.
-   */
-  error OnlyManagerCanCall();
 
   /**
    * @notice The `commit` function can only be called inside a CoW Swap
@@ -52,14 +39,6 @@ interface IBCoWPool is IERC1271 {
    * Protocol whose hash doesn't match the one that has been committed to.
    */
   error OrderDoesNotMatchCommitmentHash();
-
-  /**
-   * @notice If an AMM order is settled and the AMM committment is set to
-   * empty, then that order must match the output of `getTradeableOrder`.
-   * This error is thrown when some of the parameters don't match the expected
-   * ones.
-   */
-  error OrderDoesNotMatchDefaultTradeableOrder();
 
   /**
    * @notice On signature verification, the hash of the order supplied as part

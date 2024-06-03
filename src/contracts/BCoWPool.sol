@@ -85,8 +85,8 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     Record memory outRecord = _records[address(order.buyToken)];
 
     require(inRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');
-    require(outRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');        
-    
+    require(outRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');
+
     require(order.validTo < block.timestamp + MAX_ORDER_DURATION, 'BCoWPool: ORDER_EXPIRED');
     require(order.feeAmount == 0, 'BCoWPool: FEE_NOT_ZERO');
     require(order.kind == GPv2Order.KIND_SELL, 'BCoWPool: INVALID_OPERATION');
@@ -104,6 +104,8 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
 
     // TODO: Add more checks depending on the order data
     require(tokenAmountOut >= order.buyAmount, 'BCoWPool: INSUFFICIENT_OUTPUT_AMOUNT');
+    // TODO: Deprecate TradingParams in favour of order.appData
+    require(tradingParams.appData == order.appData, 'BCoWPool: INVALID_TRADING_PARAMS');
   }
 
   /**
@@ -152,6 +154,7 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     (GPv2Order.Data memory order, TradingParams memory tradingParams) =
       abi.decode(signature, (GPv2Order.Data, TradingParams));
 
+    // TODO: Deprecate hash(TradingParams) in favour of hash(order.appData)
     if (tradingParamsHash != hash(tradingParams)) {
       revert TradingParamsDoNotMatchHash();
     }
