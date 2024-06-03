@@ -69,8 +69,8 @@ contract BFactory_Unit_NewBPool is Base {
    * @notice Test that event is emitted
    */
   function test_Emit_Log(address _randomCaller) public {
-    vm.assume(_randomCaller != VM_ADDRESS);
-    vm.expectEmit(true, true, true, true);
+    assumeNotForgeAddress(_randomCaller);
+    vm.expectEmit();
     address _expectedPoolAddress = vm.computeCreateAddress(address(bFactory), 1);
     emit IBFactory.LOG_NEW_POOL(_randomCaller, _expectedPoolAddress);
     vm.prank(_randomCaller);
@@ -81,7 +81,7 @@ contract BFactory_Unit_NewBPool is Base {
    * @notice Test that msg.sender is set as the controller
    */
   function test_Set_Controller(address _randomCaller) public {
-    vm.assume(_randomCaller != VM_ADDRESS);
+    assumeNotForgeAddress(_randomCaller);
     vm.prank(_randomCaller);
     BPool _pool = bFactory.newBPool();
     assertEq(_randomCaller, _pool.getController());
@@ -123,7 +123,7 @@ contract BFactory_Unit_SetBLabs is Base {
    * @notice Test that event is emitted
    */
   function test_Emit_Log(address _addressToSet) public {
-    vm.expectEmit(true, true, true, true);
+    vm.expectEmit();
     emit IBFactory.LOG_BLABS(owner, _addressToSet);
     vm.prank(owner);
     bFactory.setBLabs(_addressToSet);
@@ -154,7 +154,7 @@ contract BFactory_Unit_Collect is Base {
    * @notice Test that LP token `balanceOf` function is called
    */
   function test_Call_BalanceOf(address _lpToken, uint256 _toCollect) public {
-    vm.assume(_lpToken != address(VM_ADDRESS));
+    assumeNotForgeAddress(_lpToken);
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.balanceOf.selector, address(bFactory)), abi.encode(_toCollect));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.transfer.selector, owner, _toCollect), abi.encode(true));
 
@@ -167,7 +167,7 @@ contract BFactory_Unit_Collect is Base {
    * @notice Test that LP token `transfer` function is called
    */
   function test_Call_Transfer(address _lpToken, uint256 _toCollect) public {
-    vm.assume(_lpToken != address(VM_ADDRESS));
+    assumeNotForgeAddress(_lpToken);
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.balanceOf.selector, address(bFactory)), abi.encode(_toCollect));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.transfer.selector, owner, _toCollect), abi.encode(true));
 
@@ -180,7 +180,7 @@ contract BFactory_Unit_Collect is Base {
    * @notice Test that the function fail if the transfer failed
    */
   function test_Revert_TransferFailed(address _lpToken, uint256 _toCollect) public {
-    vm.assume(_lpToken != address(VM_ADDRESS));
+    assumeNotForgeAddress(_lpToken);
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.balanceOf.selector, address(bFactory)), abi.encode(_toCollect));
     vm.mockCall(_lpToken, abi.encodeWithSelector(IERC20.transfer.selector, owner, _toCollect), abi.encode(false));
 
