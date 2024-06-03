@@ -106,9 +106,6 @@ contract BPool is BBronze, BToken, BMath {
     require(_records[token].bound, 'ERR_NOT_BOUND');
     require(!_finalized, 'ERR_IS_FINALIZED');
 
-    uint256 tokenBalance = IERC20(token).balanceOf(address(this));
-    uint256 tokenExitFee = bmul(tokenBalance, EXIT_FEE);
-
     _totalWeight = bsub(_totalWeight, _records[token].denorm);
 
     // Swap the token-to-unbind with the last token,
@@ -120,8 +117,7 @@ contract BPool is BBronze, BToken, BMath {
     _tokens.pop();
     _records[token] = Record({bound: false, index: 0, denorm: 0});
 
-    _pushUnderlying(token, msg.sender, bsub(tokenBalance, tokenExitFee));
-    _pushUnderlying(token, _factory, tokenExitFee);
+    _pushUnderlying(token, msg.sender, IERC20(token).balanceOf(address(this)));
   }
 
   function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
