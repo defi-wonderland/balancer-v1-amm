@@ -757,8 +757,7 @@ contract BPool_Unit_Bind is BasePoolTest {
   }
 
   function _assumeHappyPath(Bind_FuzzScenario memory _fuzz) internal {
-    vm.assume(_fuzz.token != VM_ADDRESS);
-    vm.assume(_fuzz.token != 0x000000000000000000636F6e736F6c652e6c6f67);
+    assumeNotForgeAddress(_fuzz.token);
     vm.assume(_fuzz.balance >= MIN_BALANCE);
     vm.assume(_fuzz.totalWeight >= MIN_WEIGHT);
     vm.assume(_fuzz.totalWeight <= MAX_TOTAL_WEIGHT - MIN_WEIGHT);
@@ -876,8 +875,7 @@ contract BPool_Unit_Rebind is BasePoolTest {
   }
 
   function _assumeHappyPath(Rebind_FuzzScenario memory _fuzz) internal pure {
-    vm.assume(_fuzz.token != VM_ADDRESS);
-    vm.assume(_fuzz.token != 0x000000000000000000636F6e736F6c652e6c6f67);
+    assumeNotForgeAddress(_fuzz.token);
     vm.assume(_fuzz.balance >= MIN_BALANCE);
     vm.assume(_fuzz.previousBalance >= MIN_BALANCE);
     vm.assume(_fuzz.totalWeight >= MIN_WEIGHT);
@@ -1210,6 +1208,8 @@ contract BPool_Unit_GetSpotPrice is BasePoolTest {
   }
 
   function _assumeHappyPath(GetSpotPrice_FuzzScenario memory _fuzz) internal pure {
+    assumeNotForgeAddress(_fuzz.tokenIn);
+    assumeNotForgeAddress(_fuzz.tokenOut);
     vm.assume(_fuzz.tokenIn != _fuzz.tokenOut);
     _assumeCalcSpotPrice(
       _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
@@ -1283,6 +1283,8 @@ contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
   }
 
   function _assumeHappyPath(GetSpotPriceSansFee_FuzzScenario memory _fuzz) internal pure {
+    assumeNotForgeAddress(_fuzz.tokenIn);
+    assumeNotForgeAddress(_fuzz.tokenOut);
     vm.assume(_fuzz.tokenIn != _fuzz.tokenOut);
     _assumeCalcSpotPrice(_fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, 0);
   }
@@ -1476,7 +1478,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function test_Push_PoolShare(JoinPool_FuzzScenario memory _fuzz, address _caller) public happyPath(_fuzz) {
-    vm.assume(_caller != address(VM_ADDRESS));
+    assumeNotForgeAddress(_caller);
     vm.assume(_caller != address(0));
 
     vm.prank(_caller);
@@ -1816,7 +1818,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     address _tokenIn,
     SwapExactAmountIn_FuzzScenario memory _fuzz
   ) public happyPath(_fuzz) {
-    vm.assume(_tokenIn != VM_ADDRESS);
+    assumeNotForgeAddress(_tokenIn);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountIn(_tokenIn, _fuzz.tokenAmountIn, tokenOut, _fuzz.minAmountOut, _fuzz.maxPrice);
@@ -1826,7 +1828,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     address _tokenOut,
     SwapExactAmountIn_FuzzScenario memory _fuzz
   ) public happyPath(_fuzz) {
-    vm.assume(_tokenOut != VM_ADDRESS);
+    assumeNotForgeAddress(_tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, _tokenOut, _fuzz.minAmountOut, _fuzz.maxPrice);
@@ -2171,7 +2173,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     address _tokenIn,
     SwapExactAmountOut_FuzzScenario memory _fuzz
   ) public happyPath(_fuzz) {
-    vm.assume(_tokenIn != VM_ADDRESS);
+    assumeNotForgeAddress(_tokenIn);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountOut(_tokenIn, _fuzz.maxAmountIn, tokenOut, _fuzz.tokenAmountOut, _fuzz.maxPrice);
@@ -2181,7 +2183,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     address _tokenOut,
     SwapExactAmountOut_FuzzScenario memory _fuzz
   ) public happyPath(_fuzz) {
-    vm.assume(_tokenOut != VM_ADDRESS);
+    assumeNotForgeAddress(_tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountOut(tokenIn, _fuzz.maxAmountIn, _tokenOut, _fuzz.tokenAmountOut, _fuzz.maxPrice);
@@ -2497,7 +2499,7 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
     JoinswapExternAmountIn_FuzzScenario memory _fuzz,
     address _tokenIn
   ) public happyPath(_fuzz) {
-    vm.assume(_tokenIn != VM_ADDRESS);
+    assumeNotForgeAddress(_tokenIn);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.joinswapExternAmountIn(_tokenIn, _fuzz.tokenAmountIn, _fuzz.minPoolAmountOut);
@@ -2692,7 +2694,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     JoinswapPoolAmountOut_FuzzScenario memory _fuzz,
     address _tokenIn
   ) public happyPath(_fuzz) {
-    vm.assume(_tokenIn != VM_ADDRESS);
+    assumeNotForgeAddress(_tokenIn);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.joinswapPoolAmountOut(_tokenIn, _fuzz.poolAmountOut, _fuzz.maxAmountIn);
@@ -2936,7 +2938,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     ExitswapPoolAmountIn_FuzzScenario memory _fuzz,
     address _tokenIn
   ) public happyPath(_fuzz) {
-    vm.assume(_tokenIn != VM_ADDRESS);
+    assumeNotForgeAddress(_tokenIn);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.exitswapPoolAmountIn(_tokenIn, _fuzz.poolAmountIn, _fuzz.minAmountOut);
@@ -3197,7 +3199,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
     ExitswapExternAmountOut_FuzzScenario memory _fuzz,
     address _tokenOut
   ) public happyPath(_fuzz) {
-    vm.assume(_tokenOut != VM_ADDRESS);
+    assumeNotForgeAddress(_tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.exitswapExternAmountOut(_tokenOut, _fuzz.tokenAmountOut, _fuzz.maxPoolAmountIn);
@@ -3337,7 +3339,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
 
 contract BPool_Unit__PullUnderlying is BasePoolTest {
   function test_Call_TransferFrom(address _erc20, address _from, uint256 _amount) public {
-    vm.assume(_erc20 != VM_ADDRESS);
+    assumeNotForgeAddress(_erc20);
 
     vm.mockCall(
       _erc20, abi.encodeWithSelector(IERC20.transferFrom.selector, _from, address(bPool), _amount), abi.encode(true)
@@ -3348,7 +3350,7 @@ contract BPool_Unit__PullUnderlying is BasePoolTest {
   }
 
   function test_Revert_ERC20False(address _erc20, address _from, uint256 _amount) public {
-    vm.assume(_erc20 != VM_ADDRESS);
+    assumeNotForgeAddress(_erc20);
 
     vm.mockCall(
       _erc20, abi.encodeWithSelector(IERC20.transferFrom.selector, _from, address(bPool), _amount), abi.encode(false)
@@ -3361,7 +3363,7 @@ contract BPool_Unit__PullUnderlying is BasePoolTest {
 
 contract BPool_Unit__PushUnderlying is BasePoolTest {
   function test_Call_Transfer(address _erc20, address _to, uint256 _amount) public {
-    vm.assume(_erc20 != VM_ADDRESS);
+    assumeNotForgeAddress(_erc20);
 
     vm.mockCall(_erc20, abi.encodeWithSelector(IERC20.transfer.selector, _to, _amount), abi.encode(true));
 
@@ -3370,7 +3372,7 @@ contract BPool_Unit__PushUnderlying is BasePoolTest {
   }
 
   function test_Revert_ERC20False(address _erc20, address _to, uint256 _amount) public {
-    vm.assume(_erc20 != VM_ADDRESS);
+    assumeNotForgeAddress(_erc20);
 
     vm.mockCall(_erc20, abi.encodeWithSelector(IERC20.transfer.selector, _to, _amount), abi.encode(false));
 
