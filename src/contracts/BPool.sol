@@ -41,6 +41,23 @@ contract BPool is BBronze, BToken, BMath {
 
   event LOG_CALL(bytes4 indexed sig, address indexed caller, bytes data) anonymous;
 
+  modifier _logs_() {
+    emit LOG_CALL(msg.sig, msg.sender, msg.data);
+    _;
+  }
+
+  modifier _lock_() {
+    require(!_mutex, 'ERR_REENTRY');
+    _mutex = true;
+    _;
+    _mutex = false;
+  }
+
+  modifier _viewlock_() {
+    require(!_mutex, 'ERR_REENTRY');
+    _;
+  }
+
   constructor() {
     _controller = msg.sender;
     _factory = msg.sender;
@@ -100,7 +117,6 @@ contract BPool is BBronze, BToken, BMath {
     _pullUnderlying(token, msg.sender, balance);
   }
 
-  // solhint-disable-next-line ordering
   function unbind(address token) external _logs_ _lock_ {
     require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
     require(_records[token].bound, 'ERR_NOT_BOUND');
@@ -118,34 +134,6 @@ contract BPool is BBronze, BToken, BMath {
     _records[token] = Record({bound: false, index: 0, denorm: 0});
 
     _pushUnderlying(token, msg.sender, IERC20(token).balanceOf(address(this)));
-  }
-
-  function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
-    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
-    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
-    Record storage inRecord = _records[tokenIn];
-    Record storage outRecord = _records[tokenOut];
-    return calcSpotPrice(
-      IERC20(tokenIn).balanceOf(address(this)),
-      inRecord.denorm,
-      IERC20(tokenOut).balanceOf(address(this)),
-      outRecord.denorm,
-      _swapFee
-    );
-  }
-
-  function getSpotPriceSansFee(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
-    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
-    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
-    Record storage inRecord = _records[tokenIn];
-    Record storage outRecord = _records[tokenOut];
-    return calcSpotPrice(
-      IERC20(tokenIn).balanceOf(address(this)),
-      inRecord.denorm,
-      IERC20(tokenOut).balanceOf(address(this)),
-      outRecord.denorm,
-      0
-    );
   }
 
   function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn) external _logs_ _lock_ {
@@ -390,6 +378,34 @@ contract BPool is BBronze, BToken, BMath {
     return poolAmountIn;
   }
 
+  function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
+    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
+    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
+    Record storage inRecord = _records[tokenIn];
+    Record storage outRecord = _records[tokenOut];
+    return calcSpotPrice(
+      IERC20(tokenIn).balanceOf(address(this)),
+      inRecord.denorm,
+      IERC20(tokenOut).balanceOf(address(this)),
+      outRecord.denorm,
+      _swapFee
+    );
+  }
+
+  function getSpotPriceSansFee(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
+    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
+    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
+    Record storage inRecord = _records[tokenIn];
+    Record storage outRecord = _records[tokenOut];
+    return calcSpotPrice(
+      IERC20(tokenIn).balanceOf(address(this)),
+      inRecord.denorm,
+      IERC20(tokenOut).balanceOf(address(this)),
+      outRecord.denorm,
+      0
+    );
+  }
+
   function isPublicSwap() external view returns (bool) {
     return _publicSwap;
   }
@@ -471,22 +487,5 @@ contract BPool is BBronze, BToken, BMath {
 
   function _burnPoolShare(uint256 amount) internal {
     _burn(amount);
-  }
-
-  modifier _logs_() {
-    emit LOG_CALL(msg.sig, msg.sender, msg.data);
-    _;
-  }
-
-  modifier _lock_() {
-    require(!_mutex, 'ERR_REENTRY');
-    _mutex = true;
-    _;
-    _mutex = false;
-  }
-
-  modifier _viewlock_() {
-    require(!_mutex, 'ERR_REENTRY');
-    _;
   }
 }
