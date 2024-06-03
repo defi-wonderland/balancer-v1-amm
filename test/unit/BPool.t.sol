@@ -759,9 +759,8 @@ contract BPool_Unit_Bind is BasePoolTest {
   function _assumeHappyPath(Bind_FuzzScenario memory _fuzz) internal {
     vm.assume(_fuzz.token != VM_ADDRESS);
     vm.assume(_fuzz.token != 0x000000000000000000636F6e736F6c652e6c6f67);
-    vm.assume(_fuzz.balance >= MIN_BALANCE);
-    vm.assume(_fuzz.totalWeight >= MIN_WEIGHT);
-    vm.assume(_fuzz.totalWeight <= MAX_TOTAL_WEIGHT - MIN_WEIGHT);
+    _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
     _fuzz.previousTokensAmount = bound(_fuzz.previousTokensAmount, 0, MAX_BOUND_TOKENS - 1);
     _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
     _fuzz.previousTokens = new address[](_fuzz.previousTokensAmount);
@@ -879,10 +878,9 @@ contract BPool_Unit_Rebind is BasePoolTest {
   function _assumeHappyPath(Rebind_FuzzScenario memory _fuzz) internal pure {
     vm.assume(_fuzz.token != VM_ADDRESS);
     vm.assume(_fuzz.token != 0x000000000000000000636F6e736F6c652e6c6f67);
-    vm.assume(_fuzz.balance >= MIN_BALANCE);
-    vm.assume(_fuzz.previousBalance >= MIN_BALANCE);
-    vm.assume(_fuzz.totalWeight >= MIN_WEIGHT);
-    vm.assume(_fuzz.totalWeight <= MAX_TOTAL_WEIGHT - MIN_WEIGHT);
+    _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
+    _fuzz.previousBalance = bound(_fuzz.previousBalance, MIN_BALANCE, type(uint256).max);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
     _fuzz.previousDenorm = bound(_fuzz.previousDenorm, MIN_WEIGHT, _fuzz.totalWeight);
     _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
   }
@@ -1065,9 +1063,8 @@ contract BPool_Unit_Unbind is BasePoolTest {
   }
 
   function _assumeHappyPath(Unbind_FuzzScenario memory _fuzz) internal {
-    vm.assume(_fuzz.balance >= MIN_BALANCE);
-    vm.assume(_fuzz.totalWeight >= MIN_WEIGHT);
-    vm.assume(_fuzz.totalWeight <= MAX_TOTAL_WEIGHT - MIN_WEIGHT);
+    _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
     // The token to unbind will be included inside the array
     _fuzz.previousTokensAmount = bound(_fuzz.previousTokensAmount, 1, MAX_BOUND_TOKENS);
     _fuzz.tokenIndex = bound(_fuzz.tokenIndex, 0, _fuzz.previousTokensAmount - 1);
@@ -1434,9 +1431,8 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function _assumeHappyPath(JoinPool_FuzzScenario memory _fuzz) internal pure {
-    vm.assume(_fuzz.initPoolSupply >= INIT_POOL_SUPPLY);
-    vm.assume(_fuzz.poolAmountOut >= _fuzz.initPoolSupply);
-    vm.assume(_fuzz.poolAmountOut < type(uint256).max / BONE);
+    _fuzz.initPoolSupply = bound(_fuzz.initPoolSupply, INIT_POOL_SUPPLY, type(uint256).max / BONE);
+    _fuzz.poolAmountOut = bound(_fuzz.poolAmountOut, _fuzz.initPoolSupply, type(uint256).max / BONE);
     vm.assume(_fuzz.poolAmountOut * BONE < type(uint256).max - (_fuzz.initPoolSupply / 2));
 
     uint256 _ratio = bdiv(_fuzz.poolAmountOut, _fuzz.initPoolSupply);
@@ -1839,8 +1835,8 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
 
     // min
-    vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
-    vm.assume(_fuzz.tokenOutBalance >= MIN_BALANCE);
+    _fuzz.tokenInBalance = bound(_fuzz.tokenInBalance, MIN_BALANCE, type(uint256).max);
+    _fuzz.tokenOutBalance = bound(_fuzz.tokenOutBalance, MIN_BALANCE, type(uint256).max);
 
     // max - calcSpotPrice (spotPriceBefore)
     vm.assume(_fuzz.tokenInBalance < type(uint256).max / _fuzz.tokenInDenorm);
@@ -2197,9 +2193,8 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
 
-    // min
-    vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
-    vm.assume(_fuzz.tokenOutBalance >= MIN_BALANCE);
+    _fuzz.tokenInBalance = bound(_fuzz.tokenInBalance, MIN_BALANCE, type(uint256).max);
+    _fuzz.tokenOutBalance = bound(_fuzz.tokenOutBalance, MIN_BALANCE, type(uint256).max);
 
     // max - calcSpotPrice (spotPriceBefore)
     vm.assume(_fuzz.tokenInBalance < type(uint256).max / _fuzz.tokenInDenorm);
@@ -2562,10 +2557,8 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
     _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
 
-    vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
-
-    // min
-    vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
+    _fuzz.totalSupply = bound(_fuzz.totalSupply, INIT_POOL_SUPPLY, type(uint256).max);
+    _fuzz.tokenInBalance = bound(_fuzz.tokenInBalance, MIN_BALANCE, type(uint256).max);
 
     // max
     vm.assume(_fuzz.tokenInBalance < type(uint256).max - _fuzz.tokenAmountIn);
@@ -2761,7 +2754,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
 
     // min
-    vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
+    _fuzz.totalSupply = bound(_fuzz.totalSupply, INIT_POOL_SUPPLY, type(uint256).max);
 
     // max
     vm.assume(_fuzz.totalSupply < type(uint256).max - _fuzz.poolAmountOut);
@@ -3019,7 +3012,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
 
     // min
-    vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
+    _fuzz.totalSupply = bound(_fuzz.totalSupply, INIT_POOL_SUPPLY, type(uint256).max);
 
     // max
     vm.assume(_fuzz.poolAmountIn < _fuzz.totalSupply);
@@ -3293,7 +3286,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
     _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
 
     // min
-    vm.assume(_fuzz.totalSupply >= INIT_POOL_SUPPLY);
+    _fuzz.totalSupply = bound(_fuzz.totalSupply, INIT_POOL_SUPPLY, type(uint256).max);
 
     // MAX_OUT_RATIO
     vm.assume(_fuzz.tokenOutBalance < type(uint256).max / MAX_OUT_RATIO);
