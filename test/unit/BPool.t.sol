@@ -697,15 +697,17 @@ contract BPool_Unit_Bind is BasePoolTest {
   function _assumeHappyPath(Bind_FuzzScenario memory _fuzz) internal {
     vm.assume(_fuzz.token != VM_ADDRESS);
     vm.assume(_fuzz.token != 0x000000000000000000636F6e736F6c652e6c6f67);
-    _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
-    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
+
     _fuzz.previousTokensAmount = bound(_fuzz.previousTokensAmount, 0, MAX_BOUND_TOKENS - 1);
-    _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
     _fuzz.previousTokens = new address[](_fuzz.previousTokensAmount);
     for (uint256 i = 0; i < _fuzz.previousTokensAmount; i++) {
       _fuzz.previousTokens[i] = makeAddr(i.toString());
       vm.assume(_fuzz.token != _fuzz.previousTokens[i]);
     }
+
+    _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
+    _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
   }
 
   modifier happyPath(Bind_FuzzScenario memory _fuzz) {
@@ -1797,6 +1799,8 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     SwapExactAmountIn_FuzzScenario memory _fuzz
   ) public happyPath(_fuzz) {
     vm.assume(_tokenIn != VM_ADDRESS);
+    vm.assume(_tokenIn != tokenIn);
+    vm.assume(_tokenIn != tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountIn(_tokenIn, _fuzz.tokenAmountIn, tokenOut, _fuzz.minAmountOut, _fuzz.maxPrice);
@@ -1807,6 +1811,8 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     SwapExactAmountIn_FuzzScenario memory _fuzz
   ) public happyPath(_fuzz) {
     vm.assume(_tokenOut != VM_ADDRESS);
+    vm.assume(_tokenOut != tokenIn);
+    vm.assume(_tokenOut != tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, _tokenOut, _fuzz.minAmountOut, _fuzz.maxPrice);
@@ -2157,6 +2163,8 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     SwapExactAmountOut_FuzzScenario memory _fuzz
   ) public happyPath(_fuzz) {
     vm.assume(_tokenIn != VM_ADDRESS);
+    vm.assume(_tokenIn != tokenIn);
+    vm.assume(_tokenIn != tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountOut(_tokenIn, _fuzz.maxAmountIn, tokenOut, _fuzz.tokenAmountOut, _fuzz.maxPrice);
@@ -2167,6 +2175,8 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     SwapExactAmountOut_FuzzScenario memory _fuzz
   ) public happyPath(_fuzz) {
     vm.assume(_tokenOut != VM_ADDRESS);
+    vm.assume(_tokenOut != tokenIn);
+    vm.assume(_tokenOut != tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountOut(tokenIn, _fuzz.maxAmountIn, _tokenOut, _fuzz.tokenAmountOut, _fuzz.maxPrice);
