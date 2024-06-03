@@ -1615,9 +1615,10 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     vm.assume(_poolAmountInAfterFee * BONE < type(uint256).max - (_fuzz.initPoolSupply / 2));
 
     uint256 _ratio = bdiv(_poolAmountInAfterFee, _fuzz.initPoolSupply);
+    uint256 _maxBalance = type(uint256).max / (_ratio * BONE);
 
     for (uint256 i = 0; i < _fuzz.balance.length; i++) {
-      _fuzz.balance[i] = bound(_fuzz.balance[i], BONE, type(uint256).max / (_ratio * BONE));
+      _fuzz.balance[i] = bound(_fuzz.balance[i], BONE, _maxBalance);
       uint256 _tokenAmountOut = bmul(_ratio, _fuzz.balance[i]);
       _fuzz.minAmountsOut[i] = bound(_fuzz.minAmountsOut[i], 0, _tokenAmountOut);
     }
@@ -2749,11 +2750,8 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
     _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
 
-    // min
-    _fuzz.totalSupply = bound(_fuzz.totalSupply, INIT_POOL_SUPPLY, type(uint256).max);
-
-    // max
-    vm.assume(_fuzz.totalSupply < type(uint256).max - _fuzz.poolAmountOut);
+    _fuzz.poolAmountOut = bound(_fuzz.poolAmountOut, INIT_POOL_SUPPLY, type(uint256).max - INIT_POOL_SUPPLY);
+    _fuzz.totalSupply = bound(_fuzz.totalSupply, INIT_POOL_SUPPLY, type(uint256).max - _fuzz.poolAmountOut);
 
     // min
     vm.assume(_fuzz.tokenInBalance >= MIN_BALANCE);
