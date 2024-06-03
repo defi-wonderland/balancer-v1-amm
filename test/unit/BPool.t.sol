@@ -1834,13 +1834,9 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
 
-    // min
-    _fuzz.tokenInBalance = bound(_fuzz.tokenInBalance, MIN_BALANCE, type(uint256).max);
-    _fuzz.tokenOutBalance = bound(_fuzz.tokenOutBalance, MIN_BALANCE, type(uint256).max);
-
-    // max - calcSpotPrice (spotPriceBefore)
-    vm.assume(_fuzz.tokenInBalance < type(uint256).max / _fuzz.tokenInDenorm);
-    vm.assume(_fuzz.tokenOutBalance < type(uint256).max / _fuzz.tokenOutDenorm);
+    // min - max - calcSpotPrice (spotPriceBefore)
+    _fuzz.tokenInBalance = bound(_fuzz.tokenInBalance, MIN_BALANCE, type(uint256).max / _fuzz.tokenInDenorm);
+    _fuzz.tokenOutBalance = bound(_fuzz.tokenOutBalance, MIN_BALANCE, type(uint256).max / _fuzz.tokenOutDenorm);
 
     // max - calcSpotPrice (spotPriceAfter)
     vm.assume(_fuzz.tokenAmountIn < type(uint256).max - _fuzz.tokenInBalance);
