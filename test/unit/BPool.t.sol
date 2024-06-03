@@ -120,6 +120,16 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     bPool.set__totalWeight(_totalWeight);
   }
 
+  function _expectRevertByReentrancy() internal {
+    // Assert that the contract is accessible
+    assertEq(bPool.call__mutex(), false);
+
+    // Simulate ongoing call to the contract
+    bPool.set__mutex(true);
+
+    vm.expectRevert('ERR_REENTRY');
+  }
+
   function _assumeCalcSpotPrice(
     uint256 _tokenInBalance,
     uint256 _tokenInDenorm,
@@ -331,13 +341,7 @@ contract BPool_Unit_GetCurrentTokens is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getCurrentTokens();
   }
 }
@@ -353,13 +357,7 @@ contract BPool_Unit_GetFinalTokens is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getFinalTokens();
   }
 
@@ -382,13 +380,7 @@ contract BPool_Unit_GetDenormalizedWeight is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getDenormalizedWeight(address(0));
   }
 
@@ -406,13 +398,7 @@ contract BPool_Unit_GetTotalDenormalizedWeight is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getTotalDenormalizedWeight();
   }
 }
@@ -429,13 +415,7 @@ contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getNormalizedWeight(address(0));
   }
 
@@ -453,13 +433,7 @@ contract BPool_Unit_GetBalance is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getBalance(address(0));
   }
 
@@ -477,13 +451,7 @@ contract BPool_Unit_GetSwapFee is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getSwapFee();
   }
 }
@@ -496,13 +464,7 @@ contract BPool_Unit_GetController is BasePoolTest {
   }
 
   function test_Revert_Reentrancy() public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getController();
   }
 }
@@ -545,13 +507,7 @@ contract BPool_Unit_SetSwapFee is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(uint256 _fee) public happyPath(_fee) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.setSwapFee(_fee);
   }
 
@@ -584,13 +540,7 @@ contract BPool_Unit_SetController is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(address _controller) public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.setController(_controller);
   }
 
@@ -627,13 +577,7 @@ contract BPool_Unit_SetPublicSwap is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(bool _isPublicSwap) public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.setPublicSwap(_isPublicSwap);
   }
 
@@ -688,13 +632,7 @@ contract BPool_Unit_Finalize is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(uint256 _tokensLength) public happyPath(_tokensLength) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.finalize();
   }
 
@@ -940,13 +878,7 @@ contract BPool_Unit_Rebind is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(Rebind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.rebind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
   }
 
@@ -1111,13 +1043,7 @@ contract BPool_Unit_Unbind is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.unbind(_fuzz.previousTokens[_fuzz.tokenIndex]);
   }
 
@@ -1216,13 +1142,7 @@ contract BPool_Unit_Gulp is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(Gulp_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.gulp(_fuzz.token);
   }
 
@@ -1307,13 +1227,7 @@ contract BPool_Unit_GetSpotPrice is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(GetSpotPrice_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getSpotPrice(_fuzz.tokenIn, _fuzz.tokenOut);
   }
 }
@@ -1380,13 +1294,7 @@ contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(GetSpotPriceSansFee_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.getSpotPriceSansFee(_fuzz.tokenIn, _fuzz.tokenOut);
   }
 }
@@ -1487,13 +1395,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(JoinPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.joinPool(_fuzz.poolAmountOut, _staticToDynamicUintArray(_fuzz.maxAmountsIn));
   }
 
@@ -1709,13 +1611,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
   }
 
@@ -1955,13 +1851,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, _fuzz.minAmountOut, _fuzz.maxPrice);
   }
 
@@ -2321,13 +2211,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.swapExactAmountOut(tokenIn, _fuzz.maxAmountIn, tokenOut, _fuzz.tokenAmountOut, _fuzz.maxPrice);
   }
 
@@ -2631,13 +2515,7 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(JoinswapExternAmountIn_FuzzScenario memory _fuzz) public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.joinswapExternAmountIn(tokenIn, _fuzz.tokenAmountIn, _fuzz.minPoolAmountOut);
   }
 
@@ -2857,13 +2735,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.joinswapPoolAmountOut(tokenIn, _fuzz.poolAmountOut, _fuzz.maxAmountIn);
   }
 
@@ -3117,13 +2989,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, _fuzz.minAmountOut);
   }
 
@@ -3373,13 +3239,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
   }
 
   function test_Revert_Reentrancy(ExitswapExternAmountOut_FuzzScenario memory _fuzz) public {
-    // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
-
-    // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
-
-    vm.expectRevert('ERR_REENTRY');
+    _expectRevertByReentrancy();
     bPool.exitswapExternAmountOut(tokenOut, _fuzz.tokenAmountOut, _fuzz.maxPoolAmountIn);
   }
 
