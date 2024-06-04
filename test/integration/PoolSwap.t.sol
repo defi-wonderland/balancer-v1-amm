@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 import {Test} from 'forge-std/Test.sol';
@@ -55,6 +56,12 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
     BCoWPool(address(pool)).enableTrading(appData);
 
     vm.stopPrank();
+  }
+
+  function testDeployPool() public {
+    snapStart('deployPool');
+    factory.newBPool();
+    snapEnd();
   }
 
   function testSimpleSwap() public {

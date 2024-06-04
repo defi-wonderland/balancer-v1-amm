@@ -3,9 +3,13 @@ pragma solidity 0.8.25;
 
 import {BCoWPool, IBCoWPool, IERC20} from 'contracts/BCoWPool.sol';
 import {BPool} from 'contracts/BPool.sol';
+
+import {IFaucet} from 'interfaces/IFaucet.sol';
 import {ERC20ForTest} from 'test/for-test/ERC20ForTest.sol';
 
 import {Script} from 'forge-std/Script.sol';
+
+import {SEPOLIA_BAL_TOKEN, SEPOLIA_DAI_TOKEN, SEPOLIA_FAUCET, SEPOLIA_USDC_TOKEN} from 'script/Params.s.sol';
 import {TestnetDeployment} from 'script/TestnetDeployment.s.sol';
 
 contract TestnetScript is Script, TestnetDeployment {
@@ -13,23 +17,20 @@ contract TestnetScript is Script, TestnetDeployment {
     vm.startBroadcast();
     (, address caller,) = vm.readCallers();
 
-    ERC20ForTest tokenA = new ERC20ForTest('TokenA', 'TKA', 18);
-    ERC20ForTest tokenB = new ERC20ForTest('TokenB', 'TKB', 18);
-    ERC20ForTest tokenC = new ERC20ForTest('TokenC', 'TKC', 18);
-
-    tokenA.mint(caller, 1e18);
-    tokenB.mint(caller, 1e18);
-    tokenC.mint(caller, 1e18);
+    // NOTE: dripping can be called by anyone but only once a day (per address)
+    IFaucet(SEPOLIA_FAUCET).drip(SEPOLIA_BAL_TOKEN);
+    IFaucet(SEPOLIA_FAUCET).drip(SEPOLIA_DAI_TOKEN);
+    IFaucet(SEPOLIA_FAUCET).drip(SEPOLIA_USDC_TOKEN);
 
     BPool bPool = bFactory.newBPool();
 
-    tokenA.approve(address(bPool), 1e18);
-    tokenB.approve(address(bPool), 1e18);
-    tokenC.approve(address(bPool), 1e18);
+    IERC20(SEPOLIA_BAL_TOKEN).approve(address(bPool), type(uint256).max);
+    IERC20(SEPOLIA_DAI_TOKEN).approve(address(bPool), type(uint256).max);
+    IERC20(SEPOLIA_USDC_TOKEN).approve(address(bPool), type(uint256).max);
 
-    bPool.bind(address(tokenA), 1e18, 1e18);
-    bPool.bind(address(tokenB), 1e18, 1e18);
-    bPool.bind(address(tokenC), 1e18, 1e18);
+    bPool.bind(SEPOLIA_BAL_TOKEN, 4e18, 1e18);
+    bPool.bind(SEPOLIA_DAI_TOKEN, 1e18, 1e18);
+    bPool.bind(SEPOLIA_USDC_TOKEN, 1e6, 1e18);
 
     bPool.finalize();
 
