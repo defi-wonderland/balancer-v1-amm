@@ -638,6 +638,8 @@ contract BPool_Unit_Finalize is BasePoolTest {
 }
 
 contract BPool_Unit_Bind is BasePoolTest {
+  using LibString for uint256;
+
   struct Bind_FuzzScenario {
     address token;
     uint256 balance;
@@ -662,6 +664,7 @@ contract BPool_Unit_Bind is BasePoolTest {
 
   function _assumeHappyPath(Bind_FuzzScenario memory _fuzz) internal pure {
     assumeNotForgeAddress(_fuzz.token);
+    // TODO: add expectation for `_fuzz.token` not to be within the random tokens array.
 
     _fuzz.previousTokensAmount = bound(_fuzz.previousTokensAmount, 0, MAX_BOUND_TOKENS - 1);
     _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
@@ -912,10 +915,9 @@ contract BPool_Unit_Unbind is BasePoolTest {
   }
 
   function test_Push_UnderlyingBalance(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    address _token = _fuzz.token;
-    vm.expectCall(address(_token), abi.encodeWithSelector(IERC20.transfer.selector, address(this), _fuzz.balance));
+    vm.expectCall(_fuzz.token, abi.encodeWithSelector(IERC20.transfer.selector, address(this), _fuzz.balance));
 
-    bPool.unbind(_token);
+    bPool.unbind(_fuzz.token);
   }
 
   function test_Emit_LogCall(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
