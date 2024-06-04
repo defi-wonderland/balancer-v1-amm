@@ -147,14 +147,10 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   function isValidSignature(bytes32 _hash, bytes memory signature) external view returns (bytes4) {
     (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
 
-    // TODO: Deprecate hash(TradingParams) in favour of hash(order.appData)
-    if (appDataHash != hash(order.appData)) {
-      revert AppDataDoNotMatchHash();
-    }
+    // TODO: unify error log criteria with BalV1 (use require and string error message)
+    if (appDataHash != hash(order.appData)) revert AppDataDoNotMatchHash();
     bytes32 orderHash = order.hash(solutionSettlerDomainSeparator);
-    if (orderHash != _hash) {
-      revert OrderDoesNotMatchMessageHash();
-    }
+    if (orderHash != _hash) revert OrderDoesNotMatchMessageHash();
 
     requireMatchingCommitment(orderHash);
 
