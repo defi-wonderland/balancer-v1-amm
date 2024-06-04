@@ -1051,7 +1051,6 @@ contract BPool_Unit_Unbind is BasePoolTest {
     assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).index, 0);
     assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).bound, false);
     assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).denorm, 0);
-    // assertEq(bPool.call__records(_fuzz.previousTokens[_fuzz.tokenIndex]).balance, 0);
   }
 
   function test_Push_UnderlyingBalance(Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
