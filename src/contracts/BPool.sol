@@ -95,9 +95,9 @@ contract BPool is BBronze, BToken, BMath {
 
     require(_tokens.length < MAX_BOUND_TOKENS, 'ERR_MAX_TOKENS');
 
-    require(balance >= MIN_BALANCE, 'ERR_MIN_BALANCE');
     require(denorm >= MIN_WEIGHT, 'ERR_MIN_WEIGHT');
     require(denorm <= MAX_WEIGHT, 'ERR_MAX_WEIGHT');
+    require(balance >= MIN_BALANCE, 'ERR_MIN_BALANCE');
 
     _totalWeight = badd(_totalWeight, denorm);
     require(_totalWeight <= MAX_TOTAL_WEIGHT, 'ERR_MAX_TOTAL_WEIGHT');
