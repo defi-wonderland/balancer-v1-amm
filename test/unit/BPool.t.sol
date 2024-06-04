@@ -794,8 +794,6 @@ contract BPool_Unit_Bind is BasePoolTest {
 }
 
 contract BPool_Unit_Unbind is BasePoolTest {
-  using LibString for *;
-
   struct Unbind_FuzzScenario {
     address token;
     uint256 tokenIndex;
