@@ -634,7 +634,7 @@ contract BPool_Unit_Bind is BasePoolTest {
     bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
   }
 
-  function test_Revert_IsBound(address _token, Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_IsBound(Bind_FuzzScenario memory _fuzz, address _token) public happyPath(_fuzz) {
     _setRecord(_token, BPool.Record({bound: true, index: 0, denorm: 0}));
 
     vm.expectRevert('ERR_IS_BOUND');
@@ -793,7 +793,7 @@ contract BPool_Unit_Unbind is BasePoolTest {
     bPool.unbind(_fuzz.token);
   }
 
-  function test_Revert_NotBound(address _token, Unbind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_NotBound(Unbind_FuzzScenario memory _fuzz, address _token) public happyPath(_fuzz) {
     _setRecord(_token, BPool.Record({bound: false, index: _fuzz.tokenIndex, denorm: _fuzz.denorm}));
 
     vm.expectRevert('ERR_NOT_BOUND');
