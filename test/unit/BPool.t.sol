@@ -672,7 +672,7 @@ contract BPool_Unit_Bind is BasePoolTest {
     assertEq(bPool.getCurrentTokens()[_fuzz.previousTokensAmount], _fuzz.token);
   }
 
-  function test_Revert_MinWeight(uint256 _denorm, Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_MinWeight(Bind_FuzzScenario memory _fuzz, uint256 _denorm) public happyPath(_fuzz) {
     vm.assume(_denorm < MIN_WEIGHT);
 
     vm.expectRevert('ERR_MIN_WEIGHT');
