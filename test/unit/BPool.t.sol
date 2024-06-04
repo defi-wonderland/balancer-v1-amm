@@ -392,6 +392,8 @@ contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
 
 contract BPool_Unit_GetBalance is BasePoolTest {
   function test_Returns_Balance(address _token, uint256 _balance) public {
+    assumeNotForgeAddress(_token);
+
     bPool.set__records(_token, BPool.Record({bound: true, index: 0, denorm: 0}));
     _mockPoolBalance(_token, _balance);
 
