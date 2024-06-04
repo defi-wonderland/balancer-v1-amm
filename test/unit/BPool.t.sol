@@ -672,7 +672,7 @@ contract BPool_Unit_Bind is BasePoolTest {
     }
 
     _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
-    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, 0, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
     _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
   }
 
