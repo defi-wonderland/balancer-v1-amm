@@ -1348,12 +1348,15 @@ contract BPool_Unit_JoinPool is BasePoolTest {
 
   function test_Revert_TokenArrayLimitIn(
     JoinPool_FuzzScenario memory _fuzz,
+    uint256 _tokenIndex,
     uint256[TOKENS_AMOUNT] memory _maxAmountsIn
   ) public happyPath(_fuzz) {
+    _tokenIndex = bound(_tokenIndex, 0, TOKENS_AMOUNT - 1);
+
     uint256 _ratio = bdiv(_fuzz.poolAmountOut, _fuzz.initPoolSupply);
     for (uint256 i = 0; i < _fuzz.balance.length; i++) {
       uint256 _tokenAmountIn = bmul(_ratio, _fuzz.balance[i]);
-      _maxAmountsIn[i] = _tokenAmountIn - 1;
+      _maxAmountsIn[i] = _tokenIndex == i ? _tokenAmountIn - 1 : _tokenAmountIn;
     }
 
     vm.expectRevert('ERR_LIMIT_IN');
@@ -1436,7 +1439,6 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     uint256 poolAmountIn;
     uint256 initPoolSupply;
     uint256[TOKENS_AMOUNT] balance;
-    uint256[TOKENS_AMOUNT] minAmountsOut;
   }
 
   function _setValues(ExitPool_FuzzScenario memory _fuzz) internal {
@@ -1485,8 +1487,6 @@ contract BPool_Unit_ExitPool is BasePoolTest {
 
     for (uint256 i = 0; i < _fuzz.balance.length; i++) {
       _fuzz.balance[i] = bound(_fuzz.balance[i], BONE, _maxBalance);
-      uint256 _tokenAmountOut = bmul(_ratio, _fuzz.balance[i]);
-      _fuzz.minAmountsOut[i] = bound(_fuzz.minAmountsOut[i], 0, _tokenAmountOut);
     }
   }
 
@@ -1500,20 +1500,20 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     _setFinalize(false);
 
     vm.expectRevert('ERR_NOT_FINALIZED');
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
   }
 
   function test_Revert_MathApprox(ExitPool_FuzzScenario memory _fuzz, uint256 _poolAmountIn) public happyPath(_fuzz) {
     _poolAmountIn = bound(_poolAmountIn, 0, (INIT_POOL_SUPPLY / 2 / BONE) - 1); // bdiv rounds up
 
     vm.expectRevert('ERR_MATH_APPROX');
-    bPool.exitPool(_poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_poolAmountIn, _zeroArray(tokens.length));
   }
 
   function test_Pull_PoolShare(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     assertEq(bPool.balanceOf(address(this)), _fuzz.poolAmountIn);
 
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
 
     assertEq(bPool.balanceOf(address(this)), 0);
   }
@@ -1523,7 +1523,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
     uint256 _balanceBefore = bPool.balanceOf(_factoryAddress);
 
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
 
     assertEq(bPool.balanceOf(_factoryAddress), _balanceBefore - _fuzz.poolAmountIn + _exitFee);
   }
@@ -1533,7 +1533,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     uint256 _pAiAfterExitFee = bsub(_fuzz.poolAmountIn, _exitFee);
     uint256 _totalSupplyBefore = bPool.totalSupply();
 
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
 
     assertEq(bPool.totalSupply(), _totalSupplyBefore - _pAiAfterExitFee);
   }
@@ -1548,12 +1548,13 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     _setValues(_fuzz);
 
     vm.expectRevert('ERR_MATH_APPROX');
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
   }
 
   function test_Revert_TokenArrayLimitOut(
     ExitPool_FuzzScenario memory _fuzz,
-    uint256 _tokenIndex
+    uint256 _tokenIndex,
+    uint256[TOKENS_AMOUNT] memory _minAmountsOut
   ) public happyPath(_fuzz) {
     _tokenIndex = bound(_tokenIndex, 0, TOKENS_AMOUNT - 1);
 
@@ -1562,21 +1563,20 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     uint256 _pAiAfterExitFee = bsub(_fuzz.poolAmountIn, _exitFee);
     uint256 _ratio = bdiv(_pAiAfterExitFee, _poolTotal);
 
-    uint256[] memory _minAmounts = new uint256[](tokens.length);
     for (uint256 i = 0; i < tokens.length; i++) {
       uint256 _bal = _fuzz.balance[i];
       uint256 _tokenAmountOut = bmul(_ratio, _bal);
 
-      _minAmounts[i] = _tokenIndex == i ? _tokenAmountOut + 1 : _tokenAmountOut;
+      _minAmountsOut[i] = _tokenIndex == i ? _tokenAmountOut + 1 : _tokenAmountOut;
     }
 
     vm.expectRevert('ERR_LIMIT_OUT');
-    bPool.exitPool(_fuzz.poolAmountIn, _minAmounts);
+    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_minAmountsOut));
   }
 
   function test_Revert_Reentrancy(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     _expectRevertByReentrancy();
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
   }
 
   function test_Set_TokenArrayBalance(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -1585,7 +1585,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
       _balanceBefore[i] = bPool.getBalance(tokens[i]);
     }
 
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
 
     uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
     uint256 _pAiAfterExitFee = bsub(_fuzz.poolAmountIn, _exitFee);
@@ -1609,7 +1609,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
       vm.expectEmit();
       emit BPool.LOG_EXIT(address(this), tokens[i], _tokenAmountOut);
     }
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
   }
 
   function test_Push_TokenArrayTokenAmountOut(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
@@ -1624,17 +1624,15 @@ contract BPool_Unit_ExitPool is BasePoolTest {
         address(tokens[i]), abi.encodeWithSelector(IERC20.transfer.selector, address(this), _tokenAmountOut)
       );
     }
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
   }
 
   function test_Emit_LogCall(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     vm.expectEmit();
-    bytes memory _data = abi.encodeWithSelector(
-      BPool.exitPool.selector, _fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut)
-    );
+    bytes memory _data = abi.encodeWithSelector(BPool.exitPool.selector, _fuzz.poolAmountIn, _zeroArray(tokens.length));
     emit BPool.LOG_CALL(BPool.exitPool.selector, address(this), _data);
 
-    bPool.exitPool(_fuzz.poolAmountIn, _staticToDynamicUintArray(_fuzz.minAmountsOut));
+    bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
   }
 }
 

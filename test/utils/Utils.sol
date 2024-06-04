@@ -111,4 +111,12 @@ contract Utils is Test {
       _maxUintArray[i] = type(uint256).max;
     }
   }
+
+  /**
+   * @dev Load an array of 0 values into memory.
+   * @param _length The length of the array.
+   */
+  function _zeroArray(uint256 _length) internal pure returns (uint256[] memory _zeroUintArray) {
+    _zeroUintArray = new uint256[](_length);
+  }
 }
