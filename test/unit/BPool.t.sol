@@ -3114,7 +3114,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
     // safe bound assumptions
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
-    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_WEIGHT * MAX_BOUND_TOKENS);
+    _fuzz.totalWeight = bound(_fuzz.totalWeight, MIN_WEIGHT * MAX_BOUND_TOKENS, MAX_TOTAL_WEIGHT);
 
     // min
     _fuzz.totalSupply = bound(_fuzz.totalSupply, INIT_POOL_SUPPLY, type(uint256).max);
@@ -3158,9 +3158,12 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
     _fuzz.maxPoolAmountIn = bound(_fuzz.maxPoolAmountIn, _poolAmountIn, type(uint256).max);
   }
 
+  event ExitswapExternAmountOut_Fuzz(ExitswapExternAmountOut_FuzzScenario _fuzz);
+
   modifier happyPath(ExitswapExternAmountOut_FuzzScenario memory _fuzz) {
     uint256 _poolAmountIn = _assumeHappyPath(_fuzz);
     _setValues(_fuzz, _poolAmountIn);
+    emit ExitswapExternAmountOut_Fuzz(_fuzz);
     _;
   }
 
