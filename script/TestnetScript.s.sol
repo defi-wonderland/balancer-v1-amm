@@ -36,7 +36,8 @@ contract TestnetScript is Script, TestnetDeployment {
     // NOTE: using BCoWPool functions
     BCoWPool bCowPool = BCoWPool(address(bPool));
 
-    bCowPool.enableTrading(IBCoWPool.TradingParams({appData: ''}));
+    bytes32 appData = '';
+    bCowPool.enableTrading(appData);
 
     vm.stopBroadcast();
   }

@@ -6,13 +6,6 @@ import {IERC1271} from 'interfaces/IERC1271.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
 interface IBCoWPool is IERC1271 {
-  /// All data used by an order to validate the AMM conditions.
-  struct TradingParams {
-    /// The app data that must be used in the order.
-    /// See `GPv2Order.Data` for more information on the app data.
-    bytes32 appData;
-  }
-
   /**
    * Emitted when the manager disables all trades by the AMM. Existing open
    * order will not be tradeable. Note that the AMM could resume trading with
@@ -23,9 +16,9 @@ interface IBCoWPool is IERC1271 {
   /**
    * Emitted when the manager enables the AMM to trade on CoW Protocol.
    * @param hash The hash of the trading parameters.
-   * @param params Trading has been enabled for these parameters.
+   * @param appData Trading has been enabled for this appData.
    */
-  event TradingEnabled(bytes32 indexed hash, TradingParams params);
+  event TradingEnabled(bytes32 indexed hash, bytes32 appData);
 
   /**
    * @notice The `commit` function can only be called inside a CoW Swap
@@ -53,5 +46,5 @@ interface IBCoWPool is IERC1271 {
    * verification does not match the data stored in this contract _or_ the
    * AMM has not enabled trading.
    */
-  error TradingParamsDoNotMatchHash();
+  error AppDataDoNotMatchHash();
 }

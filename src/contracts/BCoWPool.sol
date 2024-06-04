@@ -65,7 +65,7 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    * If trading is enabled, then this value will be the [`hash`] of the only
    * admissible [`TradingParams`].
    */
-  bytes32 tradingParamsHash;
+  bytes32 appDataHash;
 
   constructor(address _cowSolutionSettler) BPool() {
     solutionSettler = ISettlement(_cowSolutionSettler);
@@ -76,11 +76,9 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   /**
    * @notice This function checks that the input order is admissible for the
    * constant-product curve for the given trading parameters.
-   * @param tradingParams the trading parameters of all discrete orders cut
-   * from this AMM
    * @param order `GPv2Order.Data` of a discrete order to be verified.
    */
-  function verify(TradingParams memory tradingParams, GPv2Order.Data memory order) public view {
+  function verify(GPv2Order.Data memory order) public view {
     Record memory inRecord = _records[address(order.sellToken)];
     Record memory outRecord = _records[address(order.buyToken)];
 
@@ -102,23 +100,19 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
       swapFee: 0
     });
 
-    // TODO: Add more checks depending on the order data
     require(tokenAmountOut >= order.buyAmount, 'BCoWPool: INSUFFICIENT_OUTPUT_AMOUNT');
-    // TODO: Deprecate TradingParams in favour of order.appData
-    require(tradingParams.appData == order.appData, 'BCoWPool: INVALID_TRADING_PARAMS');
   }
 
   /**
    * @notice Once this function is called, it will be possible to trade with
    * this AMM on CoW Protocol.
-   * @param tradingParams Trading is enabled with the parameters specified
-   * here.
+   * @param appData Trading is enabled with the appData specified here.
    */
   // TODO: unify onlyController with BPool
-  function enableTrading(TradingParams calldata tradingParams) external onlyController {
-    bytes32 _tradingParamsHash = hash(tradingParams);
-    tradingParamsHash = _tradingParamsHash;
-    emit TradingEnabled(_tradingParamsHash, tradingParams);
+  function enableTrading(bytes32 appData) external onlyController {
+    bytes32 _appDataHash = hash(appData);
+    appDataHash = _appDataHash;
+    emit TradingEnabled(_appDataHash, appData);
   }
 
   /**
@@ -126,7 +120,7 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    */
   // TODO: unify onlyController with BPool
   function disableTrading() external onlyController {
-    tradingParamsHash = NO_TRADING;
+    appDataHash = NO_TRADING;
     emit TradingDisabled();
   }
 
@@ -151,12 +145,11 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    * @inheritdoc IERC1271
    */
   function isValidSignature(bytes32 _hash, bytes memory signature) external view returns (bytes4) {
-    (GPv2Order.Data memory order, TradingParams memory tradingParams) =
-      abi.decode(signature, (GPv2Order.Data, TradingParams));
+    (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
 
     // TODO: Deprecate hash(TradingParams) in favour of hash(order.appData)
-    if (tradingParamsHash != hash(tradingParams)) {
-      revert TradingParamsDoNotMatchHash();
+    if (appDataHash != hash(order.appData)) {
+      revert AppDataDoNotMatchHash();
     }
     bytes32 orderHash = order.hash(solutionSettlerDomainSeparator);
     if (orderHash != _hash) {
@@ -165,7 +158,7 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
 
     requireMatchingCommitment(orderHash);
 
-    verify(tradingParams, order);
+    verify(order);
 
     // A signature is valid according to EIP-1271 if this function returns
     // its selector as the so-called "magic value".
@@ -209,12 +202,11 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   /**
    * @dev Computes an identifier that uniquely represents the parameters in
    * the function input parameters.
-   * @param tradingParams Bytestring that decodes to `TradingParams`
-   * @return The hash of the input parameter, intended to be used as a unique
-   * identifier
+   * @param appData Bytestring that decodes to `AppData`
+   * @return The hash of the input parameter, intended to be used as a unique identifier
    */
-  function hash(TradingParams memory tradingParams) public pure returns (bytes32) {
-    return keccak256(abi.encode(tradingParams));
+  function hash(bytes32 appData) public pure returns (bytes32) {
+    return keccak256(abi.encode(appData));
   }
 
   /**

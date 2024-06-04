@@ -51,7 +51,8 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     pool.finalize();
 
-    BCoWPool(address(pool)).enableTrading(IBCoWPool.TradingParams({appData: ''}));
+    bytes32 appData = '';
+    BCoWPool(address(pool)).enableTrading(appData);
 
     vm.stopPrank();
   }
@@ -105,8 +106,6 @@ contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
 
 contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
   function _makeSwap() internal override {
-    IBCoWPool.TradingParams memory tradingParams = IBCoWPool.TradingParams({appData: ''});
-
     GPv2Order.Data memory order = GPv2Order.Data({
       sellToken: tokenA,
       buyToken: tokenB,
@@ -122,7 +121,7 @@ contract SignatureSwapIntegrationTest is PoolSwapIntegrationTest {
       buyTokenBalance: GPv2Order.BALANCE_ERC20
     });
 
-    bytes memory orderData = abi.encode(order, tradingParams);
+    bytes memory orderData = abi.encode(order);
     bytes32 orderHash = GPv2Order.hash(order, bytes32(0));
 
     BCoWPool bCowPool = BCoWPool(address(pool));
