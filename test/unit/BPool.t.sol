@@ -1667,6 +1667,8 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     address _tokenIn
   ) public happyPath(_fuzz) {
     assumeNotForgeAddress(_tokenIn);
+    vm.assume(_tokenIn != tokenIn);
+    vm.assume(_tokenIn != tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountIn(_tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
@@ -1677,6 +1679,8 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     address _tokenOut
   ) public happyPath(_fuzz) {
     assumeNotForgeAddress(_tokenOut);
+    vm.assume(_tokenOut != tokenIn);
+    vm.assume(_tokenOut != tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, _tokenOut, 0, type(uint256).max);
@@ -1998,6 +2002,8 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     address _tokenIn
   ) public happyPath(_fuzz) {
     assumeNotForgeAddress(_tokenIn);
+    vm.assume(_tokenIn != tokenIn);
+    vm.assume(_tokenIn != tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountOut(_tokenIn, type(uint256).max, tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
@@ -2008,6 +2014,8 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     address _tokenOut
   ) public happyPath(_fuzz) {
     assumeNotForgeAddress(_tokenOut);
+    vm.assume(_tokenOut != tokenIn);
+    vm.assume(_tokenOut != tokenOut);
 
     vm.expectRevert('ERR_NOT_BOUND');
     bPool.swapExactAmountOut(tokenIn, type(uint256).max, _tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
