@@ -8,13 +8,10 @@ import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
 import {IERC20} from 'contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
-import {LibString} from 'solmate/utils/LibString.sol';
 import {Pow} from 'test/utils/Pow.sol';
 import {Utils} from 'test/utils/Utils.sol';
 
 abstract contract BasePoolTest is Test, BConst, Utils, BMath {
-  using LibString for uint256;
-
   MockBPool public bPool;
 
   // Deploy this external contract to perform a try-catch when calling bpow.
@@ -25,15 +22,15 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
     bPool = new MockBPool();
 
     // Create fake tokens
+    address[] memory _tokensToAdd = _getDeterministicTokenArray(TOKENS_AMOUNT);
     for (uint256 i = 0; i < tokens.length; i++) {
-      tokens[i] = makeAddr(i.toString());
+      tokens[i] = _tokensToAdd[i];
     }
   }
 
   function _setRandomTokens(uint256 _length) internal returns (address[] memory _tokensToAdd) {
-    _tokensToAdd = new address[](_length);
+    _tokensToAdd = _getDeterministicTokenArray(_length);
     for (uint256 i = 0; i < _length; i++) {
-      _tokensToAdd[i] = makeAddr(i.toString());
       _setRecord(_tokensToAdd[i], BPool.Record({bound: true, index: i, denorm: 0}));
     }
     _setTokens(_tokensToAdd);
@@ -273,8 +270,6 @@ contract BPool_Unit_IsBound is BasePoolTest {
 }
 
 contract BPool_Unit_GetNumTokens is BasePoolTest {
-  using LibString for *;
-
   function test_Returns_NumTokens(uint256 _tokensToAdd) public {
     vm.assume(_tokensToAdd > 0);
     vm.assume(_tokensToAdd <= MAX_BOUND_TOKENS);
@@ -583,8 +578,6 @@ contract BPool_Unit_Finalize is BasePoolTest {
 }
 
 contract BPool_Unit_Bind is BasePoolTest {
-  using LibString for uint256;
-
   struct Bind_FuzzScenario {
     address token;
     uint256 balance;
@@ -607,11 +600,16 @@ contract BPool_Unit_Bind is BasePoolTest {
     _setTotalWeight(_fuzz.totalWeight);
   }
 
-  function _assumeHappyPath(Bind_FuzzScenario memory _fuzz) internal pure {
+  function _assumeHappyPath(Bind_FuzzScenario memory _fuzz) internal {
     assumeNotForgeAddress(_fuzz.token);
-    // TODO: add expectation for `_fuzz.token` not to be within the random tokens array.
 
     _fuzz.previousTokensAmount = bound(_fuzz.previousTokensAmount, 0, MAX_BOUND_TOKENS - 1);
+
+    address[] memory _tokenArray = _getDeterministicTokenArray(_fuzz.previousTokensAmount);
+    for (uint256 i = 0; i < _fuzz.previousTokensAmount; i++) {
+      vm.assume(_fuzz.token != _tokenArray[i]);
+    }
+
     _fuzz.balance = bound(_fuzz.balance, MIN_BALANCE, type(uint256).max);
     _fuzz.totalWeight = bound(_fuzz.totalWeight, 0, MAX_TOTAL_WEIGHT - MIN_WEIGHT);
     _fuzz.denorm = bound(_fuzz.denorm, MIN_WEIGHT, MAX_TOTAL_WEIGHT - _fuzz.totalWeight);
