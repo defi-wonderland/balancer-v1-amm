@@ -100,4 +100,15 @@ contract Utils is Test {
     bytes32 _slot = keccak256(abi.encode(_mappingKey, _mappingSlotNumber));
     _writeUintToStorage(_target, uint256(_slot), _value);
   }
+
+  /**
+   * @dev Load an array of type(uint256).max values into memory.
+   * @param _length The length of the array.
+   */
+  function _maxArray(uint256 _length) internal pure returns (uint256[] memory _maxUintArray) {
+    _maxUintArray = new uint256[](_length);
+    for (uint256 i = 0; i < TOKENS_AMOUNT; i++) {
+      _maxUintArray[i] = type(uint256).max;
+    }
+  }
 }
