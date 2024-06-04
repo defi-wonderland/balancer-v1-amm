@@ -672,6 +672,14 @@ contract BPool_Unit_Bind is BasePoolTest {
     assertEq(bPool.getCurrentTokens()[_fuzz.previousTokensAmount], _fuzz.token);
   }
 
+  function test_Emit_LogCall(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    vm.expectEmit();
+    bytes memory _data = abi.encodeWithSelector(BPool.bind.selector, _fuzz.token, _fuzz.balance, _fuzz.denorm);
+    emit BPool.LOG_CALL(BPool.bind.selector, address(this), _data);
+
+    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
+  }
+
   function test_Revert_MinWeight(Bind_FuzzScenario memory _fuzz, uint256 _denorm) public happyPath(_fuzz) {
     vm.assume(_denorm < MIN_WEIGHT);
 
@@ -723,14 +731,6 @@ contract BPool_Unit_Bind is BasePoolTest {
       address(_fuzz.token),
       abi.encodeWithSelector(IERC20.transferFrom.selector, address(this), address(bPool), _fuzz.balance)
     );
-
-    bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
-  }
-
-  function test_Emit_LogCall(Bind_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    vm.expectEmit();
-    bytes memory _data = abi.encodeWithSelector(BPool.bind.selector, _fuzz.token, _fuzz.balance, _fuzz.denorm);
-    emit BPool.LOG_CALL(BPool.bind.selector, address(this), _data);
 
     bPool.bind(_fuzz.token, _fuzz.balance, _fuzz.denorm);
   }
