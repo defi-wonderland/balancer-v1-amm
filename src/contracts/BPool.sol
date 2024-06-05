@@ -49,6 +49,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     _finalized = false;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function setSwapFee(uint256 swapFee) external _logs_ _lock_ {
     require(!_finalized, 'ERR_IS_FINALIZED');
     require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
@@ -57,11 +60,17 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     _swapFee = swapFee;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function setController(address manager) external _logs_ _lock_ {
     require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
     _controller = manager;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function finalize() external _logs_ _lock_ {
     require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
     require(!_finalized, 'ERR_IS_FINALIZED');
@@ -73,6 +82,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     _pushPoolShare(msg.sender, INIT_POOL_SUPPLY);
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function bind(address token, uint256 balance, uint256 denorm) external _logs_ _lock_ {
     require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
     require(!_records[token].bound, 'ERR_IS_BOUND');
@@ -93,6 +105,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     _pullUnderlying(token, msg.sender, balance);
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function unbind(address token) external _logs_ _lock_ {
     require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
     require(_records[token].bound, 'ERR_NOT_BOUND');
@@ -112,6 +127,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     _pushUnderlying(token, msg.sender, IERC20(token).balanceOf(address(this)));
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn) external _logs_ _lock_ {
     require(_finalized, 'ERR_NOT_FINALIZED');
 
@@ -132,6 +150,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     _pushPoolShare(msg.sender, poolAmountOut);
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut) external _logs_ _lock_ {
     require(_finalized, 'ERR_NOT_FINALIZED');
 
@@ -156,6 +177,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     }
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function swapExactAmountIn(
     address tokenIn,
     uint256 tokenAmountIn,
@@ -199,6 +223,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     return (tokenAmountOut, spotPriceAfter);
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function swapExactAmountOut(
     address tokenIn,
     uint256 maxAmountIn,
@@ -242,6 +269,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     return (tokenAmountIn, spotPriceAfter);
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function joinswapExternAmountIn(
     address tokenIn,
     uint256 tokenAmountIn,
@@ -267,6 +297,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     return poolAmountOut;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function joinswapPoolAmountOut(
     address tokenIn,
     uint256 poolAmountOut,
@@ -294,6 +327,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     return tokenAmountIn;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function exitswapPoolAmountIn(
     address tokenOut,
     uint256 poolAmountIn,
@@ -323,6 +359,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     return tokenAmountOut;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function exitswapExternAmountOut(
     address tokenOut,
     uint256 tokenAmountOut,
@@ -352,6 +391,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     return poolAmountIn;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
     require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
     require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
@@ -366,6 +408,9 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     );
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getSpotPriceSansFee(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
     require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
     require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
@@ -380,51 +425,84 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     );
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function isFinalized() external view returns (bool) {
     return _finalized;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function isBound(address t) external view returns (bool) {
     return _records[t].bound;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getNumTokens() external view returns (uint256) {
     return _tokens.length;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getCurrentTokens() external view _viewlock_ returns (address[] memory tokens) {
     return _tokens;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getFinalTokens() external view _viewlock_ returns (address[] memory tokens) {
     require(_finalized, 'ERR_NOT_FINALIZED');
     return _tokens;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getDenormalizedWeight(address token) external view _viewlock_ returns (uint256) {
     require(_records[token].bound, 'ERR_NOT_BOUND');
     return _records[token].denorm;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getTotalDenormalizedWeight() external view _viewlock_ returns (uint256) {
     return _totalWeight;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getNormalizedWeight(address token) external view _viewlock_ returns (uint256) {
     require(_records[token].bound, 'ERR_NOT_BOUND');
     uint256 denorm = _records[token].denorm;
     return bdiv(denorm, _totalWeight);
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getBalance(address token) external view _viewlock_ returns (uint256) {
     require(_records[token].bound, 'ERR_NOT_BOUND');
     return IERC20(token).balanceOf(address(this));
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getSwapFee() external view _viewlock_ returns (uint256) {
     return _swapFee;
   }
 
+  /**
+   * @inheritdoc IBPool
+   */
   function getController() external view _viewlock_ returns (address) {
     return _controller;
   }
