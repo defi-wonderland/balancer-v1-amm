@@ -8,21 +8,24 @@ import {IBPool} from 'interfaces/IBPool.sol';
 
 /**
  * @title BPool
- * @notice Pool contract that allows for entering and exiting positions and swapping of tokens.
+ * @notice Pool contract that holds tokens, allows to swap, add and remove liquidity.
  */
 contract BPool is BBronze, BToken, BMath, IBPool {
+  /// @dev True if a call to the contract is in progress, False otherwise
   bool internal _mutex;
-
   /// @dev BFactory address to push token exitFee to
   address internal _factory;
-  /// @dev has CONTROL role
+  /// @dev Has CONTROL role
   address internal _controller;
-
+  /// @dev Fee for swapping
   uint256 internal _swapFee;
+  /// @dev Status of the pool. True if finalized, False otherwise
   bool internal _finalized;
-
+  /// @dev Array of bound tokens
   address[] internal _tokens;
+  /// @dev Metadata for each bound token
   mapping(address => Record) internal _records;
+  /// @dev Sum of all token weights
   uint256 internal _totalWeight;
 
   modifier _logs_() {
