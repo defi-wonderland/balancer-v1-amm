@@ -16,11 +16,11 @@ interface IBPool {
     uint256 tokenAmountOut
   );
 
-  event LOG_JOIN(address indexed caller, address indexed tokenIn, uint256 tokenAmountIn);
+  event LOG_JOIN(address indexed _caller, address indexed _tokenIn, uint256 _tokenAmountIn);
 
-  event LOG_EXIT(address indexed caller, address indexed tokenOut, uint256 tokenAmountOut);
+  event LOG_EXIT(address indexed _caller, address indexed _tokenOut, uint256 _tokenAmountOut);
 
-  event LOG_CALL(bytes4 indexed sig, address indexed caller, bytes data) anonymous;
+  event LOG_CALL(bytes4 indexed _sig, address indexed _caller, bytes _data) anonymous;
 
   function setSwapFee(uint256 _swapFee) external;
 
