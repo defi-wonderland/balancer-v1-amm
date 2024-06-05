@@ -18,9 +18,7 @@ contract BFactory is BBronze, IBFactory {
     _blabs = msg.sender;
   }
 
-  /**
-   * @inheritdoc IBFactory
-   */
+  /// @inheritdoc IBFactory
   function newBPool() external returns (IBPool _pool) {
     IBPool bpool = new BPool();
     _isBPool[address(bpool)] = true;
@@ -29,18 +27,14 @@ contract BFactory is BBronze, IBFactory {
     return bpool;
   }
 
-  /**
-   * @inheritdoc IBFactory
-   */
+  /// @inheritdoc IBFactory
   function setBLabs(address b) external {
     require(msg.sender == _blabs, 'ERR_NOT_BLABS');
     emit LOG_BLABS(msg.sender, b);
     _blabs = b;
   }
 
-  /**
-   * @inheritdoc IBFactory
-   */
+  /// @inheritdoc IBFactory
   function collect(IBPool pool) external {
     require(msg.sender == _blabs, 'ERR_NOT_BLABS');
     uint256 collected = pool.balanceOf(address(this));
@@ -48,16 +42,12 @@ contract BFactory is BBronze, IBFactory {
     require(xfer, 'ERR_ERC20_FAILED');
   }
 
-  /**
-   * @inheritdoc IBFactory
-   */
+  /// @inheritdoc IBFactory
   function isBPool(address b) external view returns (bool) {
     return _isBPool[b];
   }
 
-  /**
-   * @inheritdoc IBFactory
-   */
+  /// @inheritdoc IBFactory
   function getBLabs() external view returns (address) {
     return _blabs;
   }
