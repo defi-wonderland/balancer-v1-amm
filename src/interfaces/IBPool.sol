@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.23;
 
-interface IBPool {
+import {IERC20} from 'forge-std/interfaces/IERC20.sol';
+
+interface IBPool is IERC20 {
   struct Record {
     bool bound; // is token bound to pool
     uint256 index; // internal

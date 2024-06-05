@@ -50,7 +50,7 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     vm.startPrank(lp);
 
-    uint256 lpBalance = IERC20(address(pool)).balanceOf(address(lp));
+    uint256 lpBalance = pool.balanceOf(address(lp));
     pool.exitPool(lpBalance, new uint256[](2));
 
     // NOTE: no swap fees involved

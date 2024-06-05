@@ -12,7 +12,7 @@ interface IBFactory {
 
   function setBLabs(address _b) external;
 
-  function collect(address _pool) external;
+  function collect(IBPool _pool) external;
 
   function isBPool(address _b) external view returns (bool _isBPool);
 
