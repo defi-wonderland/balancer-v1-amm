@@ -4,17 +4,17 @@ pragma solidity 0.8.23;
 import {IBPool} from 'interfaces/IBPool.sol';
 
 interface IBFactory {
-  event LOG_NEW_POOL(address indexed _caller, address indexed _pool);
+  event LOG_NEW_POOL(address indexed caller, address indexed pool);
 
-  event LOG_BLABS(address indexed _caller, address indexed _bLabs);
+  event LOG_BLABS(address indexed caller, address indexed bLabs);
 
-  function newBPool() external returns (IBPool _pool);
+  function newBPool() external returns (IBPool pool);
 
-  function setBLabs(address _b) external;
+  function setBLabs(address b) external;
 
-  function collect(IBPool _pool) external;
+  function collect(IBPool pool) external;
 
-  function isBPool(address _b) external view returns (bool _isBPool);
+  function isBPool(address b) external view returns (bool isBPool);
 
-  function getBLabs() external view returns (address _bLabs);
+  function getBLabs() external view returns (address bLabs);
 }
