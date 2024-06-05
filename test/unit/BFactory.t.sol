@@ -139,7 +139,7 @@ contract BFactory_Unit_Collect is Base {
     vm.assume(_randomCaller != owner);
     vm.expectRevert('ERR_NOT_BLABS');
     vm.prank(_randomCaller);
-    bFactory.collect(address(0));
+    bFactory.collect(IBPool(address(0)));
   }
 
   /**
@@ -153,7 +153,7 @@ contract BFactory_Unit_Collect is Base {
 
     vm.expectCall(_lpToken, abi.encodeWithSelector(IERC20.balanceOf.selector, address(bFactory)));
     vm.prank(owner);
-    bFactory.collect(_lpToken);
+    bFactory.collect(IBPool(_lpToken));
   }
 
   /**
@@ -167,7 +167,7 @@ contract BFactory_Unit_Collect is Base {
 
     vm.expectCall(_lpToken, abi.encodeWithSelector(IERC20.transfer.selector, owner, _toCollect));
     vm.prank(owner);
-    bFactory.collect(_lpToken);
+    bFactory.collect(IBPool(_lpToken));
   }
 
   /**
@@ -181,6 +181,6 @@ contract BFactory_Unit_Collect is Base {
 
     vm.expectRevert('ERR_ERC20_FAILED');
     vm.prank(owner);
-    bFactory.collect(_lpToken);
+    bFactory.collect(IBPool(_lpToken));
   }
 }
