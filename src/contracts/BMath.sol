@@ -7,7 +7,7 @@ import {BNum} from './BNum.sol';
 
 contract BMath is BBronze, BConst, BNum {
   /**
-   * @notice Calculate the spot price of a swap
+   * @notice Calculate the spot price of a token in terms of another one
    * @param tokenBalanceIn The balance of the input token in the pool
    * @param tokenWeightIn The weight of the input token in the pool
    * @param tokenBalanceOut The balance of the output token in the pool
@@ -106,7 +106,8 @@ contract BMath is BBronze, BConst, BNum {
   }
 
   /**
-   * @notice Calculate the amount of pool tokens that should be minted given a single token in when joining a pool
+   * @notice Calculate the amount of pool tokens that should be minted,
+   * given a single token in when joining a pool
    * @param tokenBalanceIn The balance of the input token in the pool
    * @param tokenWeightIn The weight of the input token in the pool
    * @param poolSupply The total supply of the pool tokens
@@ -150,12 +151,12 @@ contract BMath is BBronze, BConst, BNum {
 
   /**
    * @notice Calculate the amount of token in
-   * that should be sent for a given amount of pool tokens out when joining a pool
+   * that should be sent to generate a given amount of pool tokens
    * @param tokenBalanceIn The balance of the input token in the pool
    * @param tokenWeightIn The weight of the input token in the pool
-   * @param poolSupply The total supply of the pool tokens
-   * @param totalWeight The total weight of the pool
-   * @param poolAmountOut The amount of pool tokens
+   * @param poolSupply The current total supply
+   * @param totalWeight The sum of the weight of all tokens in the pool
+   * @param poolAmountOut The expected amount of pool tokens
    * @param swapFee The swap fee of the pool
    * @dev Formula:
    * tAi = tokenAmountIn              //(pS + pAo)\     /    1    \\
@@ -192,7 +193,7 @@ contract BMath is BBronze, BConst, BNum {
   }
 
   /**
-   * @notice Calculate the amount of token out given the amount of pool tokens in when exiting a pool
+   * @notice Calculate the amount of token out given the amount of pool tokens in
    * @param tokenBalanceOut The balance of the output token in the pool
    * @param tokenWeightOut The weight of the output token in the pool
    * @param poolSupply The total supply of the pool tokens
@@ -238,7 +239,7 @@ contract BMath is BBronze, BConst, BNum {
   }
 
   /**
-   * @notice Calculate the amount of pool tokens that should be burned given a single token out when exiting a pool
+   * @notice Calculate the amount of pool tokens in given a single token out at the moment of exiting the pool
    * @param tokenBalanceOut The balance of the output token in the pool
    * @param tokenWeightOut The weight of the output token in the pool
    * @param poolSupply The total supply of the pool tokens
