@@ -136,9 +136,9 @@ contract BMath is BBronze, BConst, BNum {
    *    pS = poolSupply                 || ---------  | ^ | --------- || * bI - bI
    *    pAo = poolAmountOut              \\    pS    /     \(wI / tW)//
    *    bI = balanceIn          tAi =  --------------------------------------------
-   *    wI = weightIn                              /      wI  \
-   *    tW = totalWeight                          |  1 - ----  |  * sF
-   *    sF = swapFee                               \      tW  /
+   *    wI = weightIn                              /      wI        \
+   *    tW = totalWeight                          |  1 - ----  * sF  |
+   *    sF = swapFee                               \      tW        /
    *
    */
   function calcSingleInGivenPoolOut(
