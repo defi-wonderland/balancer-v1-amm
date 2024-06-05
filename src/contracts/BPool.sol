@@ -6,14 +6,18 @@ import {BMath} from './BMath.sol';
 import {BToken, IERC20} from './BToken.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
+/**
+ * @title BPool
+ * @notice Pool contract that allows for entering and exiting positions and swapping of tokens.
+ */
 contract BPool is BBronze, BToken, BMath, IBPool {
   bool internal _mutex;
 
-  address internal _factory; // BFactory address to push token exitFee to
-  address internal _controller; // has CONTROL role
+  /// @dev BFactory address to push token exitFee to
+  address internal _factory;
+  /// @dev has CONTROL role
+  address internal _controller;
 
-  // `setSwapFee` and `finalize` require CONTROL
-  // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
   uint256 internal _swapFee;
   bool internal _finalized;
 
