@@ -20,11 +20,6 @@ contract BPool is BToken, BMath, IBPool {
   mapping(address => Record) internal _records;
   uint256 internal _totalWeight;
 
-  modifier _logs_() {
-    emit LOG_CALL(msg.sig, msg.sender, msg.data);
-    _;
-  }
-
   modifier _lock_() {
     require(!_mutex, 'ERR_REENTRY');
     _mutex = true;
@@ -91,7 +86,7 @@ contract BPool is BToken, BMath, IBPool {
     _pushPoolShare(msg.sender, INIT_POOL_SUPPLY);
   }
 
-  function bind(address token, uint256 balance, uint256 denorm) external _logs_ _lock_ {
+  function bind(address token, uint256 balance, uint256 denorm) external _lock_ {
     if (!(msg.sender == _controller)) revert ERR_NOT_CONTROLLER();
     if (_records[token].bound) revert ERR_IS_BOUND();
     if (_finalized) revert ERR_IS_FINALIZED();
@@ -111,7 +106,7 @@ contract BPool is BToken, BMath, IBPool {
     _pullUnderlying(token, msg.sender, balance);
   }
 
-  function unbind(address token) external _logs_ _lock_ {
+  function unbind(address token) external _lock_ {
     if (!(msg.sender == _controller)) revert ERR_NOT_CONTROLLER();
     if (!_records[token].bound) revert ERR_NOT_BOUND();
     if (_finalized) revert ERR_IS_FINALIZED();
