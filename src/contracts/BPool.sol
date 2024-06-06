@@ -408,59 +408,6 @@ contract BPool is BToken, BMath {
     return poolAmountIn;
   }
 
-  function isPublicSwap() external view returns (bool) {
-    return _publicSwap;
-  }
-
-  function isFinalized() external view returns (bool) {
-    return _finalized;
-  }
-
-  function isBound(address t) external view returns (bool) {
-    return _records[t].bound;
-  }
-
-  function getNumTokens() external view returns (uint256) {
-    return _tokens.length;
-  }
-
-  function getCurrentTokens() external view _viewlock_ returns (address[] memory tokens) {
-    return _tokens;
-  }
-
-  function getFinalTokens() external view _viewlock_ returns (address[] memory tokens) {
-    require(_finalized, 'ERR_NOT_FINALIZED');
-    return _tokens;
-  }
-
-  function getDenormalizedWeight(address token) external view _viewlock_ returns (uint256) {
-    require(_records[token].bound, 'ERR_NOT_BOUND');
-    return _records[token].denorm;
-  }
-
-  function getTotalDenormalizedWeight() external view _viewlock_ returns (uint256) {
-    return _totalWeight;
-  }
-
-  function getNormalizedWeight(address token) external view _viewlock_ returns (uint256) {
-    require(_records[token].bound, 'ERR_NOT_BOUND');
-    uint256 denorm = _records[token].denorm;
-    return bdiv(denorm, _totalWeight);
-  }
-
-  function getBalance(address token) external view _viewlock_ returns (uint256) {
-    require(_records[token].bound, 'ERR_NOT_BOUND');
-    return IERC20(token).balanceOf(address(this));
-  }
-
-  function getSwapFee() external view _viewlock_ returns (uint256) {
-    return _swapFee;
-  }
-
-  function getController() external view _viewlock_ returns (address) {
-    return _controller;
-  }
-
   // ==
   // 'Underlying' token-manipulation functions make external calls but are NOT locked
   // You must `_lock_` or otherwise ensure reentry-safety
