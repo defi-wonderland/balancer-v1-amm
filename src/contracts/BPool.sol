@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.23;
 
-import {BBronze} from './BColor.sol';
 import {BMath} from './BMath.sol';
 import {BToken, IERC20} from './BToken.sol';
 
-contract BPool is BBronze, BToken, BMath {
+contract BPool is BToken, BMath {
   struct Record {
     bool bound; // is token bound to pool
     uint256 index; // internal
@@ -122,11 +121,7 @@ contract BPool is BBronze, BToken, BMath {
     if (balance > oldBalance) {
       _pullUnderlying(token, msg.sender, bsub(balance, oldBalance));
     } else if (balance < oldBalance) {
-      // In this case liquidity is being withdrawn, so charge EXIT_FEE
-      uint256 tokenBalanceWithdrawn = bsub(oldBalance, balance);
-      uint256 tokenExitFee = bmul(tokenBalanceWithdrawn, EXIT_FEE);
-      _pushUnderlying(token, msg.sender, bsub(tokenBalanceWithdrawn, tokenExitFee));
-      _pushUnderlying(token, _factory, tokenExitFee);
+      _pushUnderlying(token, msg.sender, bsub(oldBalance, balance));
     }
   }
 
@@ -137,7 +132,6 @@ contract BPool is BBronze, BToken, BMath {
     require(!_finalized, 'ERR_IS_FINALIZED');
 
     uint256 tokenBalance = IERC20(token).balanceOf(address(this));
-    uint256 tokenExitFee = bmul(tokenBalance, EXIT_FEE);
 
     _totalWeight = bsub(_totalWeight, _records[token].denorm);
 
@@ -150,8 +144,7 @@ contract BPool is BBronze, BToken, BMath {
     _tokens.pop();
     _records[token] = Record({bound: false, index: 0, denorm: 0});
 
-    _pushUnderlying(token, msg.sender, bsub(tokenBalance, tokenExitFee));
-    _pushUnderlying(token, _factory, tokenExitFee);
+    _pushUnderlying(token, msg.sender, tokenBalance);
   }
 
   function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
@@ -206,14 +199,11 @@ contract BPool is BBronze, BToken, BMath {
     require(_finalized, 'ERR_NOT_FINALIZED');
 
     uint256 poolTotal = totalSupply();
-    uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-    uint256 pAiAfterExitFee = bsub(poolAmountIn, exitFee);
-    uint256 ratio = bdiv(pAiAfterExitFee, poolTotal);
+    uint256 ratio = bdiv(poolAmountIn, poolTotal);
     require(ratio != 0, 'ERR_MATH_APPROX');
 
     _pullPoolShare(msg.sender, poolAmountIn);
-    _pushPoolShare(_factory, exitFee);
-    _burnPoolShare(pAiAfterExitFee);
+    _burnPoolShare(poolAmountIn);
 
     for (uint256 i = 0; i < _tokens.length; i++) {
       address t = _tokens[i];
@@ -382,13 +372,10 @@ contract BPool is BBronze, BToken, BMath {
     require(tokenAmountOut >= minAmountOut, 'ERR_LIMIT_OUT');
     require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
 
-    uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-
     emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut);
 
     _pullPoolShare(msg.sender, poolAmountIn);
-    _burnPoolShare(bsub(poolAmountIn, exitFee));
-    _pushPoolShare(_factory, exitFee);
+    _burnPoolShare(poolAmountIn);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
     return tokenAmountOut;
@@ -412,13 +399,10 @@ contract BPool is BBronze, BToken, BMath {
     require(poolAmountIn <= maxPoolAmountIn, 'ERR_LIMIT_IN');
     require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
 
-    uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-
     emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut);
 
     _pullPoolShare(msg.sender, poolAmountIn);
-    _burnPoolShare(bsub(poolAmountIn, exitFee));
-    _pushPoolShare(_factory, exitFee);
+    _burnPoolShare(poolAmountIn);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
     return poolAmountIn;

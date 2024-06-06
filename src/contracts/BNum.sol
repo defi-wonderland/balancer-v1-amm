@@ -19,19 +19,11 @@ contract BNum is BConst {
   }
 
   function badd(uint256 a, uint256 b) internal pure returns (uint256) {
-    unchecked {
-      uint256 c = a + b;
-      require(c >= a, 'ERR_ADD_OVERFLOW');
-      return c;
-    }
+    return a + b;
   }
 
   function bsub(uint256 a, uint256 b) internal pure returns (uint256) {
-    unchecked {
-      (uint256 c, bool flag) = bsubSign(a, b);
-      require(!flag, 'ERR_SUB_UNDERFLOW');
-      return c;
-    }
+    return a - b;
   }
 
   function bsubSign(uint256 a, uint256 b) internal pure returns (uint256, bool) {
@@ -45,26 +37,11 @@ contract BNum is BConst {
   }
 
   function bmul(uint256 a, uint256 b) internal pure returns (uint256) {
-    unchecked {
-      uint256 c0 = a * b;
-      require(a == 0 || c0 / a == b, 'ERR_MUL_OVERFLOW');
-      uint256 c1 = c0 + (BONE / 2);
-      require(c1 >= c0, 'ERR_MUL_OVERFLOW');
-      uint256 c2 = c1 / BONE;
-      return c2;
-    }
+    return (a * b) / BONE;
   }
 
   function bdiv(uint256 a, uint256 b) internal pure returns (uint256) {
-    unchecked {
-      require(b != 0, 'ERR_DIV_ZERO');
-      uint256 c0 = a * BONE;
-      require(a == 0 || c0 / a == BONE, 'ERR_DIV_INTERNAL'); // bmul overflow
-      uint256 c1 = c0 + (b / 2);
-      require(c1 >= c0, 'ERR_DIV_INTERNAL'); //  badd require
-      uint256 c2 = c1 / b;
-      return c2;
-    }
+    return (a * BONE) / b;
   }
 
   // DSMath.wpow
