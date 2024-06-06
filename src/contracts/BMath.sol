@@ -150,8 +150,7 @@ contract BMath is BBronze, BConst, BNum {
   }
 
   /**
-   * @notice Calculate the amount of token in
-   * that should be sent to generate a given amount of pool tokens
+   * @notice Given amount of pool tokens out, calculate the amount of tokens in that should be sent
    * @param tokenBalanceIn The balance of the input token in the pool
    * @param tokenWeightIn The weight of the input token in the pool
    * @param poolSupply The current total supply
@@ -239,7 +238,7 @@ contract BMath is BBronze, BConst, BNum {
   }
 
   /**
-   * @notice Calculate the amount of pool tokens in given a single token out at the moment of exiting the pool
+   * @notice Calculate the amount of pool tokens in given a single token out to exit the pool
    * @param tokenBalanceOut The balance of the output token in the pool
    * @param tokenWeightOut The weight of the output token in the pool
    * @param poolSupply The total supply of the pool tokens

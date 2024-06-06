@@ -9,15 +9,15 @@ interface IBPool is IERC20 {
     uint256 index; // internal
     uint256 denorm; // denormalized weight
   }
+
   /**
-   * @notice Emitted when a swap is performed
+   * @notice Emitted when a swap is executed
    * @param caller The caller of the swap function
    * @param tokenIn The address of the token being swapped in
    * @param tokenOut The address of the token being swapped out
    * @param tokenAmountIn The amount of tokenIn being swapped in
    * @param tokenAmountOut The amount of tokenOut being swapped out
    */
-
   event LOG_SWAP(
     address indexed caller,
     address indexed tokenIn,
@@ -27,7 +27,7 @@ interface IBPool is IERC20 {
   );
 
   /**
-   * @notice Emitted when a join operation is performed
+   * @notice Emitted when a join operation is executed
    * @param caller The caller of the function
    * @param tokenIn The address of the token being sent to the pool
    * @param tokenAmountIn The balance of the token being sent to the pool
@@ -43,7 +43,7 @@ interface IBPool is IERC20 {
   event LOG_EXIT(address indexed caller, address indexed tokenOut, uint256 tokenAmountOut);
 
   /**
-   * @notice Emitted when a call is performed to the pool
+   * @notice Emitted when a call is executed on the pool
    * @param sig The signature of the function selector being called
    * @param caller The caller of the function
    * @param data The complete data of the call
@@ -96,7 +96,7 @@ interface IBPool is IERC20 {
   function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut) external;
 
   /**
-   * @notice Swaps an exact amount of tokens in for as many tokens out as possible
+   * @notice Swaps an exact amount of tokens in for an amount of tokens out
    * @param tokenIn The address of the token to swap in
    * @param tokenAmountIn The amount of token to swap in
    * @param tokenOut The address of the token to swap out
