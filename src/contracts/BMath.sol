@@ -8,6 +8,9 @@ import {BNum} from './BNum.sol';
 contract BMath is BBronze, BConst, BNum {
   /**
    * @notice Calculate the spot price of a token in terms of another one
+   * @dev The price denomination depends on the decimals of the tokens.
+   * @dev To obtain the price with 18 decimals the next formula should be applied to the result
+   * @dev spotPrice = spotPrice ÷ (10^tokenInDecimals) × (10^tokenOutDecimals)
    * @param tokenBalanceIn The balance of the input token in the pool
    * @param tokenWeightIn The weight of the input token in the pool
    * @param tokenBalanceOut The balance of the output token in the pool
