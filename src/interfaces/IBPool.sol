@@ -27,7 +27,7 @@ interface IBPool is IERC20 {
   );
 
   /**
-   * @notice Emitted when a token amount is introduced to the pool
+   * @notice Emitted when a join operation is performed
    * @param caller The caller of the function
    * @param tokenIn The address of the token being sent to the pool
    * @param tokenAmountIn The balance of the token being sent to the pool
@@ -38,7 +38,7 @@ interface IBPool is IERC20 {
    * @notice Emitted when a token amount is removed from the pool
    * @param caller The caller of the function
    * @param tokenOut The address of the token being removed from the pool
-   * @param tokenAmountOut The balance of the token being removed from the pool
+   * @param tokenAmountOut The amount of the token being removed from the pool
    */
   event LOG_EXIT(address indexed caller, address indexed tokenOut, uint256 tokenAmountOut);
 
@@ -132,7 +132,7 @@ interface IBPool is IERC20 {
   ) external returns (uint256 tokenAmountIn, uint256 spotPriceAfter);
 
   /**
-   * @notice Joins a pool providing only a single token, and a specific amount of tokenIn
+   * @notice Joins a pool providing a single token in, specifying the exact amount of token given
    * @param tokenIn The address of the token to swap in and join
    * @param tokenAmountIn The amount of token to join
    * @param minPoolAmountOut The minimum amount of pool token to receive
@@ -145,7 +145,7 @@ interface IBPool is IERC20 {
   ) external returns (uint256 poolAmountOut);
 
   /**
-   * @notice Joins a pool expecting a specific amount of pool token, and providing only a single token
+   * @notice Joins a pool providing a single token in, specifying the exact amount of pool tokens received
    * @param tokenIn The address of the token to swap in and join
    * @param poolAmountOut The amount of pool token to receive
    * @param maxAmountIn The maximum amount of token to introduce to the pool
@@ -158,7 +158,7 @@ interface IBPool is IERC20 {
   ) external returns (uint256 tokenAmountIn);
 
   /**
-   * @notice Exits a pool providing a specific amount of pool in, and receiving only a single token
+   * @notice Exits a pool providing a specific amount of pool tokens in, and receiving only a single token
    * @param tokenOut The address of the token to swap out and exit
    * @param poolAmountIn The amount of pool token to burn
    * @param minAmountOut The minimum amount of token to receive
@@ -184,7 +184,7 @@ interface IBPool is IERC20 {
   ) external returns (uint256 poolAmountIn);
 
   /**
-   * @notice Gets the spot price of a hypothetical swap
+   * @notice Gets the spot price of tokenIn in terms of tokenOut
    * @param tokenIn The address of the token to swap in
    * @param tokenOut The address of the token to swap out
    * @return spotPrice The spot price of the swap
@@ -192,7 +192,7 @@ interface IBPool is IERC20 {
   function getSpotPrice(address tokenIn, address tokenOut) external view returns (uint256 spotPrice);
 
   /**
-   * @notice Gets the spot price of a hypothetical swap without the fee
+   * @notice Gets the spot price of tokenIn in terms of tokenOut without the fee
    * @param tokenIn The address of the token to swap in
    * @param tokenOut The address of the token to swap out
    * @return spotPrice The spot price of the swap without the fee
@@ -251,9 +251,9 @@ interface IBPool is IERC20 {
   function getNormalizedWeight(address token) external view returns (uint256 normWeight);
 
   /**
-   * @notice Gets the balance of a token in the pool
+   * @notice Gets the Pool's ERC20 balance of a token
    * @param token The address of the token to check
-   * @return balance The balance of the token in the pool
+   * @return balance The Pool's ERC20 balance of the token
    */
   function getBalance(address token) external view returns (uint256 balance);
 
