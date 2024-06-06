@@ -238,7 +238,7 @@ contract BMath is BBronze, BConst, BNum {
   }
 
   /**
-   * @notice Calculate the amount of pool tokens in given a single token out to exit the pool
+   * @notice Calculate the amount of pool tokens in given an amount of single token out
    * @param tokenBalanceOut The balance of the output token in the pool
    * @param tokenWeightOut The weight of the output token in the pool
    * @param poolSupply The total supply of the pool tokens
