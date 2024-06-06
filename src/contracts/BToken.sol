@@ -23,11 +23,11 @@ contract BToken is BNum, ERC20 {
     return true;
   }
 
-  function _push(address to, uint256 amt) internal {
+  function _push(address to, uint256 amt) internal virtual {
     _transfer(address(this), to, amt);
   }
 
-  function _pull(address from, uint256 amt) internal {
+  function _pull(address from, uint256 amt) internal virtual {
     _transfer(from, address(this), amt);
   }
 }
