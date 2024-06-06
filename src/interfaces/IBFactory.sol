@@ -6,7 +6,7 @@ import {IBPool} from 'interfaces/IBPool.sol';
 interface IBFactory {
   /**
    * @notice Emitted when creating a new pool
-   * @param caller The caller of the new pool function
+   * @param caller The caller of the function that will be set as the controller
    * @param pool The address of the new pool
    */
   event LOG_NEW_POOL(address indexed caller, address indexed pool);
@@ -19,7 +19,7 @@ interface IBFactory {
   event LOG_BLABS(address indexed caller, address indexed bLabs);
 
   /**
-   * @notice Creates a new BPool, assigning msg.sender as the controller
+   * @notice Creates a new BPool, assigning the caller as the pool controller
    * @return pool The new BPool
    */
   function newBPool() external returns (IBPool pool);
@@ -31,13 +31,13 @@ interface IBFactory {
   function setBLabs(address b) external;
 
   /**
-   * @notice Collects the balance of a pool and transfers it to BLabs address
+   * @notice Collects the fees of a pool and transfers it to BLabs address
    * @param pool The address of the pool to collect fees from
    */
   function collect(IBPool pool) external;
 
   /**
-   * @notice Checks if an address is a BPool
+   * @notice Checks if an address is a BPool created from this factory
    * @param b The address to check
    * @return isBPool True if the address is a BPool, False otherwise
    */
