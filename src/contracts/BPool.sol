@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.23;
+pragma solidity 0.8.26;
 
 import {BMath} from './BMath.sol';
 import {BToken, IERC20} from './BToken.sol';
+import {ReentrancyGuardTransient} from './ReentrancyGuardTransient.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
-contract BPool is BToken, BMath, IBPool {
-  bool internal _mutex;
-
+contract BPool is BToken, BMath, ReentrancyGuardTransient, IBPool {
   address internal _factory; // BFactory address to push token exitFee to
   address internal _controller; // has CONTROL role
 
@@ -19,18 +18,6 @@ contract BPool is BToken, BMath, IBPool {
   address[] internal _tokens;
   mapping(address => Record) internal _records;
   uint256 internal _totalWeight;
-
-  modifier _lock_() {
-    require(!_mutex, 'ERR_REENTRY');
-    _mutex = true;
-    _;
-    _mutex = false;
-  }
-
-  modifier _viewlock_() {
-    require(!_mutex, 'ERR_REENTRY');
-    _;
-  }
 
   error ERR_IS_FINALIZED();
   error ERR_NOT_CONTROLLER();
@@ -62,7 +49,7 @@ contract BPool is BToken, BMath, IBPool {
     _finalized = false;
   }
 
-  function setSwapFee(uint256 swapFee) external _lock_ {
+  function setSwapFee(uint256 swapFee) external nonReentrant {
     if (_finalized) revert ERR_IS_FINALIZED();
     if (!(msg.sender == _controller)) revert ERR_NOT_CONTROLLER();
     if (!(swapFee >= MIN_FEE)) revert ERR_MIN_FEE();
@@ -70,12 +57,12 @@ contract BPool is BToken, BMath, IBPool {
     _swapFee = swapFee;
   }
 
-  function setController(address manager) external _lock_ {
+  function setController(address manager) external nonReentrant {
     if (!(msg.sender == _controller)) revert ERR_NOT_CONTROLLER();
     _controller = manager;
   }
 
-  function finalize() external _lock_ {
+  function finalize() external nonReentrant {
     if (!(msg.sender == _controller)) revert ERR_NOT_CONTROLLER();
     if (_finalized) revert ERR_IS_FINALIZED();
     if (!(_tokens.length >= MIN_BOUND_TOKENS)) revert ERR_MIN_TOKENS();
@@ -86,7 +73,7 @@ contract BPool is BToken, BMath, IBPool {
     _pushPoolShare(msg.sender, INIT_POOL_SUPPLY);
   }
 
-  function bind(address token, uint256 balance, uint256 denorm) external _lock_ {
+  function bind(address token, uint256 balance, uint256 denorm) external nonReentrant {
     if (!(msg.sender == _controller)) revert ERR_NOT_CONTROLLER();
     if (_records[token].bound) revert ERR_IS_BOUND();
     if (_finalized) revert ERR_IS_FINALIZED();
@@ -106,7 +93,7 @@ contract BPool is BToken, BMath, IBPool {
     _pullUnderlying(token, msg.sender, balance);
   }
 
-  function unbind(address token) external _lock_ {
+  function unbind(address token) external nonReentrant {
     if (!(msg.sender == _controller)) revert ERR_NOT_CONTROLLER();
     if (!_records[token].bound) revert ERR_NOT_BOUND();
     if (_finalized) revert ERR_IS_FINALIZED();
@@ -125,7 +112,7 @@ contract BPool is BToken, BMath, IBPool {
     _pushUnderlying(token, msg.sender, IERC20(token).balanceOf(address(this)));
   }
 
-  function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn) external _lock_ {
+  function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn) external nonReentrant {
     if (!_finalized) revert ERR_NOT_FINALIZED();
 
     uint256 poolTotal = totalSupply();
@@ -145,7 +132,7 @@ contract BPool is BToken, BMath, IBPool {
     _pushPoolShare(msg.sender, poolAmountOut);
   }
 
-  function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut) external _lock_ {
+  function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut) external nonReentrant {
     if (!_finalized) revert ERR_NOT_FINALIZED();
 
     uint256 poolTotal = totalSupply();
@@ -172,7 +159,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenOut,
     uint256 minAmountOut,
     uint256 maxPrice
-  ) external _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
+  ) external nonReentrant returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
     if (!_records[tokenIn].bound) revert ERR_NOT_BOUND();
     if (!_records[tokenOut].bound) revert ERR_NOT_BOUND();
     if (!_finalized) revert ERR_NOT_FINALIZED();
@@ -215,7 +202,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenOut,
     uint256 tokenAmountOut,
     uint256 maxPrice
-  ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
+  ) external nonReentrant returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
     if (!_records[tokenIn].bound) revert ERR_NOT_BOUND();
     if (!_records[tokenOut].bound) revert ERR_NOT_BOUND();
     if (!_finalized) revert ERR_NOT_FINALIZED();
@@ -256,7 +243,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenIn,
     uint256 tokenAmountIn,
     uint256 minPoolAmountOut
-  ) external _lock_ returns (uint256 poolAmountOut) {
+  ) external nonReentrant returns (uint256 poolAmountOut) {
     if (!_finalized) revert ERR_NOT_FINALIZED();
     if (!_records[tokenIn].bound) revert ERR_NOT_BOUND();
 
@@ -282,7 +269,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenIn,
     uint256 poolAmountOut,
     uint256 maxAmountIn
-  ) external _lock_ returns (uint256 tokenAmountIn) {
+  ) external nonReentrant returns (uint256 tokenAmountIn) {
     if (!_finalized) revert ERR_NOT_FINALIZED();
     if (!_records[tokenIn].bound) revert ERR_NOT_BOUND();
 
@@ -309,7 +296,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenOut,
     uint256 poolAmountIn,
     uint256 minAmountOut
-  ) external _lock_ returns (uint256 tokenAmountOut) {
+  ) external nonReentrant returns (uint256 tokenAmountOut) {
     if (!_finalized) revert ERR_NOT_FINALIZED();
     if (!_records[tokenOut].bound) revert ERR_NOT_BOUND();
 
@@ -335,7 +322,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenOut,
     uint256 tokenAmountOut,
     uint256 maxPoolAmountIn
-  ) external _lock_ returns (uint256 poolAmountIn) {
+  ) external nonReentrant returns (uint256 poolAmountIn) {
     if (!_finalized) revert ERR_NOT_FINALIZED();
     if (!_records[tokenOut].bound) revert ERR_NOT_BOUND();
 
@@ -361,7 +348,7 @@ contract BPool is BToken, BMath, IBPool {
 
   // ==
   // 'Underlying' token-manipulation functions make external calls but are NOT locked
-  // You must `_lock_` or otherwise ensure reentry-safety
+  // You must `nonReentrant` or otherwise ensure reentry-safety
 
   function _pullUnderlying(address erc20, address from, uint256 amount) internal virtual {
     bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);

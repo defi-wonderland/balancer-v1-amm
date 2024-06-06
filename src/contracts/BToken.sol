@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.23;
+pragma solidity 0.8.26;
 
 import {BNum} from './BNum.sol';
 import {IERC20} from 'forge-std/interfaces/IERC20.sol';
