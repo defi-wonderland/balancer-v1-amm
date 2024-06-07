@@ -88,7 +88,7 @@ contract BPool is BToken, BMath, IBPool {
     if (_records[token].bound) revert TokenAlreadyBound();
     if (_finalized) revert PoolIsFinalized();
 
-    if (_tokens.length > MAX_BOUND_TOKENS) revert TokensAboveMaximum();
+    if (_tokens.length >= MAX_BOUND_TOKENS) revert TokensAboveMaximum();
 
     if (denorm < MIN_WEIGHT) revert WeightBelowMinimum();
     if (denorm > MAX_WEIGHT) revert WeightAboveMaximum();
