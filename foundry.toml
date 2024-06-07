@@ -24,7 +24,7 @@ via_ir = true
 out = 'out-via-ir'
 
 [profile.docs]
-src = 'src/interfaces/'
+src = 'contracts/interfaces/'
 
 [fuzz]
 runs = 1000
