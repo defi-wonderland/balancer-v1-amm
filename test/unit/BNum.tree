@@ -1,0 +1,89 @@
+BNum::btoi
+# when passing 0
+## it should return 0
+# when passing BONE
+## it should return 1
+# when passing a value less than BONE
+## it should return 0
+# when using known values // generic for some given values
+## it should return correct value
+
+BNum::bfloor
+# when passing 0
+## it should return 0
+# when passing a value less than BONE
+## it should return 0
+# when using known values // generic for some given values
+## it should return correct value
+
+BNum::badd
+# when passing 0 and 0
+## it should return 0
+# when passing a as uint256 max and b non-zero
+## it should revert
+# when passing b as uint256 max and a non-zero
+## it should revert
+# when passing known values // generic for some given values
+## it should return correct value
+
+BNum::bsub
+# when passing 0 and 0
+## it should return 0
+# when passing a less than b
+## it should revert
+# when passing known values // generic for some given values
+## it should return correct value
+
+BNum::bsubSign
+# when passing 0 and 0
+## it should return 0 and false
+# when passing a less than b
+## it should return correct value and true
+# when passing known values // generic for some given values
+## it should return correct value
+
+BNum::bmul
+# when passing 0 and 0
+## it should return 0
+# when passing a as uint256 max and b non-zero
+## it should revert
+# when passing b as uint256 max and a non-zero
+## it should revert
+# when passing a * b + BONE / 2 > uint256 max
+## it should revert
+# when passing known values // generic for some given values
+## it should return correct value
+
+BNum::bdiv
+# when passing b as 0
+## it should revert
+# when passing a as uint256 max
+## it should revert
+# when passing a*BONE/b + b/2 > uint256 max
+## it should revert
+# when passing known values // generic for some given values
+## it should return correct value
+
+BNum::bpowi
+# when passing a as 0
+## it should return 0
+# when passing b as 0
+## it should return BONE
+# when passing a as 1
+## it should return BONE
+# when passing known values // generic for some given values
+## it should return correct value
+
+BNum::bpow
+# when passing base as 0
+## it should return 0
+# when passing exponent as 0
+## it should return BONE
+# when passing base lte than MIN_BPOW_BASE
+## it should revert
+# when passing base gte MAX_BPOW_BASE
+## it should revert
+# when passing known values // generic for some given values
+## it should return correct value
+
+BNum::bpowApprox
