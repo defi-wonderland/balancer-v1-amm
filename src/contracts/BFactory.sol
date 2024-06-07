@@ -10,7 +10,9 @@ import {IBPool} from 'interfaces/IBPool.sol';
  * @notice Creates new BPools, logging their addresses and acting as a registry of pools.
  */
 contract BFactory is IBFactory {
+  /// @dev Mapping indicating whether the address is a BPool.
   mapping(address => bool) internal _isBPool;
+  /// @dev bLabs address.
   address internal _blabs;
 
   constructor() {

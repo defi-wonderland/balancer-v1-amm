@@ -4,10 +4,16 @@ pragma solidity 0.8.23;
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 interface IBPool is IERC20 {
+  /**
+   * @dev Struct for token records.
+   * @param bound If token is bound to pool.
+   * @param index Internal index of token array.
+   * @param denorm Denormalized weight of token.
+   */
   struct Record {
-    bool bound; // is token bound to pool
-    uint256 index; // internal
-    uint256 denorm; // denormalized weight
+    bool bound;
+    uint256 index;
+    uint256 denorm;
   }
 
   /**

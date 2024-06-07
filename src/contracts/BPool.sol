@@ -28,11 +28,13 @@ contract BPool is BToken, BMath, IBPool {
   /// @dev Sum of all token weights
   uint256 internal _totalWeight;
 
+  /// @dev Logs the call data
   modifier _logs_() {
     emit LOG_CALL(msg.sig, msg.sender, msg.data);
     _;
   }
 
+  /// @dev Prevents reentrancy in non-view functions
   modifier _lock_() {
     require(!_mutex, 'ERR_REENTRY');
     _mutex = true;
@@ -40,6 +42,7 @@ contract BPool is BToken, BMath, IBPool {
     _mutex = false;
   }
 
+  /// @dev Prevents reentrancy in view functions
   modifier _viewlock_() {
     require(!_mutex, 'ERR_REENTRY');
     _;
@@ -458,32 +461,58 @@ contract BPool is BToken, BMath, IBPool {
     return _controller;
   }
 
-  // ==
-  // 'Underlying' token-manipulation functions make external calls but are NOT locked
-  // You must `_lock_` or otherwise ensure reentry-safety
-
+  /**
+   * @dev Pulls tokens from the sender. Tokens needs to be approved first. Calls are not locked.
+   * @param erc20 address of the token to pull
+   * @param from address to pull the tokens from
+   * @param amount amount of tokens to pull
+   */
   function _pullUnderlying(address erc20, address from, uint256 amount) internal virtual {
     bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
     require(xfer, 'ERR_ERC20_FALSE');
   }
 
+  /**
+   * @dev Pushes tokens to the receiver. Calls are not locked.
+   * @param erc20 address of the token to push
+   * @param to address to push the tokens to
+   * @param amount amount of tokens to push
+   */
   function _pushUnderlying(address erc20, address to, uint256 amount) internal virtual {
     bool xfer = IERC20(erc20).transfer(to, amount);
     require(xfer, 'ERR_ERC20_FALSE');
   }
 
+  /**
+   * @dev Pulls pool tokens from the sender.
+   * @param from address to pull the pool tokens from
+   * @param amount amount of pool tokens to pull
+   */
   function _pullPoolShare(address from, uint256 amount) internal {
     _pull(from, amount);
   }
 
+  /**
+   * @dev Pushes pool tokens to the receiver.
+   * @param to address to push the pool tokens to
+   * @param amount amount of pool tokens to push
+   */
   function _pushPoolShare(address to, uint256 amount) internal {
     _push(to, amount);
   }
 
+  /**
+   * @dev Mints an amount of pool tokens.
+   * @param amount amount of pool tokens to mint
+   */
   function _mintPoolShare(uint256 amount) internal {
     _mint(address(this), amount);
   }
 
+  /**
+   * @dev Burns an amount of pool tokens.
+   * @param amount amount of pool tokens to burn
+   */
   function _burnPoolShare(uint256 amount) internal {
     _burn(address(this), amount);
   }
