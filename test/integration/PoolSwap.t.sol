@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {Test} from 'forge-std/Test.sol';
 
 import {BCoWPool, IBCoWPool} from 'contracts/BCoWPool.sol';
 import {BFactory} from 'contracts/BFactory.sol';
-import {BPool} from 'contracts/BPool.sol';
-import {IERC20} from 'contracts/BToken.sol';
+
 import {GPv2Order} from 'cow-swap/GPv2Order.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
 
 import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
 
 abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
   BFactory public factory;
-  BPool public pool;
+  IBPool public pool;
 
   IERC20 public tokenA;
   IERC20 public tokenB;

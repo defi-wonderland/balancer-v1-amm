@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity ^0.8.14;
 
-import 'forge-std/interfaces/IERC20.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 /// @title Gnosis Protocol v2 Order Library
 /// @author Gnosis Developers

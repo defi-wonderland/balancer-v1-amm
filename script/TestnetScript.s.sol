@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 import {BCoWPool, IBCoWPool, IERC20} from 'contracts/BCoWPool.sol';
-import {BPool} from 'contracts/BPool.sol';
+import {BPool, IBPool} from 'contracts/BPool.sol';
 
 import {IFaucet} from 'interfaces/IFaucet.sol';
 import {ERC20ForTest} from 'test/for-test/ERC20ForTest.sol';
@@ -22,7 +22,7 @@ contract TestnetScript is Script, TestnetDeployment {
     IFaucet(SEPOLIA_FAUCET).drip(SEPOLIA_DAI_TOKEN);
     IFaucet(SEPOLIA_FAUCET).drip(SEPOLIA_USDC_TOKEN);
 
-    BPool bPool = bFactory.newBPool();
+    IBPool bPool = bFactory.newBPool();
 
     IERC20(SEPOLIA_BAL_TOKEN).approve(address(bPool), type(uint256).max);
     IERC20(SEPOLIA_DAI_TOKEN).approve(address(bPool), type(uint256).max);
