@@ -44,3 +44,12 @@ $\text{tokenAmountOut} = \left( \text{tokenBalanceOut} - \left( \frac{\text{pool
 
 Pool in given single out
 $\text{poolAmountIn} = \frac{\text{poolSupply} - \left( \frac{\text{tokenBalanceOut} - \frac{\text{tokenAmountOut}}{1 - \left(1 - \frac{\text{tokenWeightOut}}{\text{totalWeight}}\right) \cdot \text{swapFee}}}{\text{tokenBalanceOut}} \right)^{\frac{\text{tokenWeightOut}}{\text{totalWeight}}} \cdot \text{poolSupply}}{1 - \text{exitFee}}$
+
+BNum bpow is based on exponentiation by squaring and hold true because (see dapphub dsmath): https://github.com/dapphub/ds-math/blob/e70a364787804c1ded9801ed6c27b440a86ebd32/src/math.sol#L62
+    //  If n is even, then x^n = (x^2)^(n/2).
+    //  If n is odd,  then x^n = x * x^(n-1),
+    //   and applying the equation for even x gives
+    //    x^n = x * (x^2)^((n-1) / 2).
+    //
+    //  Also, EVM division is flooring and
+    //    floor[(n-1) / 2] = floor[n / 2].

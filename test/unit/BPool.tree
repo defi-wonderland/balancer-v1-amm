@@ -1,0 +1,105 @@
+BPool::setSwapFee
+# when pool is the caller (reentrant)
+## it should revert
+# when pool isn't finalized
+## it should revert
+# when called by a non-controller
+## it should revert
+# when called by the controller
+## when the fee is set lte MIN_FEE
+### it should revert
+## when the fee is set gte MAX_FEE
+### it should revert
+## when the fee is set between MIN_FEE and MAX_FEE
+### it should set the fee
+### it should emit LOG_CALL
+
+BPool::setController
+# when pool is the caller (reentrant)
+## it should revert
+# when called by a non-controller
+## it should revert
+# when called by the controller
+## it should set the controller
+## it should emit LOG_CALL
+
+BPool::finalize
+# when pool is the caller (reentrant)
+## it should revert
+# when called by a non-controller
+## it should revert
+# when pool is finalized
+## it should revert
+# when there are less tokens than MIN_BOUND_TOKENS
+## it should revert
+# when called by the controller
+## it should mint the initial BToken supply
+## it should send the initial BToken supply to the caller
+## it should set the pool as finalized
+## it should emit LOG_CALL
+
+BPool::bind
+# when pool is the caller (reentrant)
+## it should revert
+# when called by a non-controller
+## it should revert
+# when the token to bind is already bound
+## it should revert
+# when the pool is finalized
+## it should revert
+# when there are already MAX_BOUND tokens
+## it should revert
+# when the denorm is lte MIN_WEIGHT
+## it should revert
+# when the denorm is gte MAX_WEIGHT
+## it should revert
+# when the balance to send is less than MIN_BALANCE
+## it should revert
+# when the new total weight is gt MAX_TOTAL_WEIGHT
+## it should revert
+# when the function requirements are met
+## it should set the token as bound,
+## it should set the token's index
+## it should set the token's denorm,
+## it should add the token to the tokens array
+## it should transfer the amount from the caller to the pool
+## it should emit LOG_CALL
+### when the token transfer fails
+#### it should revert
+
+BPool::unbind
+# when pool is the caller (reentrant)
+## it should revert
+# when called by a non-controller
+## it should revert
+# when the token to unbind is not bound
+## it should revert
+# when the pool is finalized
+## it should revert
+# when the function requirements are met
+## it should update the total weight
+## it should remove the token from the token array
+## it should update the token record to unbound
+## it should transfer the token balance to the caller
+## it should emit LOG_CALL
+### when the token transfer fails
+#### it should revert
+
+BPool::joinPool
+# when pool is the caller (reentrant)
+## it should revert
+# when the pool is not finalized
+## it should revert
+# when the ratio poolAmountOut to poolTotal is zero
+## it should revert
+# when one of the token amount in is zero
+## it should revert
+# when the token amount in of one of the pool token exceeds the corresponding maxAmountsIn
+## it should revert
+# when the function requirements are met
+### it should emit LOG_JOIN for each token
+### it should transfer the token amount in from the caller to the pool, for each token
+## it should mint pool shares for the caller
+## it should emit LOG_CALL
+### when one of the underlying token transfers fails
+#### it should revert
