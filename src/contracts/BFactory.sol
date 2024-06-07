@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.23;
 
-import {BBronze} from './BColor.sol';
 import {BPool} from './BPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
@@ -10,7 +9,7 @@ import {IBPool} from 'interfaces/IBPool.sol';
  * @title BFactory
  * @notice Creates new BPools, logging their addresses and acting as a registry of pools.
  */
-contract BFactory is BBronze, IBFactory {
+contract BFactory is IBFactory {
   mapping(address => bool) internal _isBPool;
   address internal _blabs;
 

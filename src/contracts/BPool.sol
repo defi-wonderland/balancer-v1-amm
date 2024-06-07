@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.23;
 
-import {BBronze} from './BColor.sol';
 import {BMath} from './BMath.sol';
-import {BToken, IERC20} from './BToken.sol';
+import {BToken} from './BToken.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
 /**
  * @title BPool
  * @notice Pool contract that holds tokens, allows to swap, add and remove liquidity.
  */
-contract BPool is BBronze, BToken, BMath, IBPool {
+contract BPool is BToken, BMath, IBPool {
   /// @dev True if a call to the contract is in progress, False otherwise
   bool internal _mutex;
   /// @dev BFactory address to push token exitFee to
@@ -268,7 +268,7 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     require(tokenAmountIn <= bmul(tokenInBalance, MAX_IN_RATIO), 'ERR_MAX_IN_RATIO');
 
     poolAmountOut =
-      calcPoolOutGivenSingleIn(tokenInBalance, inRecord.denorm, _totalSupply, _totalWeight, tokenAmountIn, _swapFee);
+      calcPoolOutGivenSingleIn(tokenInBalance, inRecord.denorm, totalSupply(), _totalWeight, tokenAmountIn, _swapFee);
     require(poolAmountOut >= minPoolAmountOut, 'ERR_LIMIT_OUT');
 
     emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn);
@@ -293,7 +293,7 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
 
     tokenAmountIn =
-      calcSingleInGivenPoolOut(tokenInBalance, inRecord.denorm, _totalSupply, _totalWeight, poolAmountOut, _swapFee);
+      calcSingleInGivenPoolOut(tokenInBalance, inRecord.denorm, totalSupply(), _totalWeight, poolAmountOut, _swapFee);
 
     require(tokenAmountIn != 0, 'ERR_MATH_APPROX');
     require(tokenAmountIn <= maxAmountIn, 'ERR_LIMIT_IN');
@@ -321,7 +321,7 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
 
     tokenAmountOut =
-      calcSingleOutGivenPoolIn(tokenOutBalance, outRecord.denorm, _totalSupply, _totalWeight, poolAmountIn, _swapFee);
+      calcSingleOutGivenPoolIn(tokenOutBalance, outRecord.denorm, totalSupply(), _totalWeight, poolAmountIn, _swapFee);
 
     require(tokenAmountOut >= minAmountOut, 'ERR_LIMIT_OUT');
     require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
@@ -352,7 +352,7 @@ contract BPool is BBronze, BToken, BMath, IBPool {
     require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
 
     poolAmountIn =
-      calcPoolInGivenSingleOut(tokenOutBalance, outRecord.denorm, _totalSupply, _totalWeight, tokenAmountOut, _swapFee);
+      calcPoolInGivenSingleOut(tokenOutBalance, outRecord.denorm, totalSupply(), _totalWeight, tokenAmountOut, _swapFee);
     require(poolAmountIn != 0, 'ERR_MATH_APPROX');
     require(poolAmountIn <= maxPoolAmountIn, 'ERR_LIMIT_IN');
 
@@ -481,10 +481,10 @@ contract BPool is BBronze, BToken, BMath, IBPool {
   }
 
   function _mintPoolShare(uint256 amount) internal {
-    _mint(amount);
+    _mint(address(this), amount);
   }
 
   function _burnPoolShare(uint256 amount) internal {
-    _burn(amount);
+    _burn(address(this), amount);
   }
 }
