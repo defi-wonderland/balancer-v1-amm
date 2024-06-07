@@ -1,0 +1,22 @@
+BFactory::newBPool
+# when called
+## it should deploy a new newBPool
+## it should add the newBPool to the list of pools
+## it should emit a PoolCreated event
+## it should call set the controller of the newBPool to the caller
+
+BFactory::setBLabs
+# when the sender is not the current setBLabs
+## it should revert
+# when the sender is the current setBLabs
+## it should set the new setBLabs address
+## it should emit a BLabsSet event
+
+BFactory::collect
+# when the sender is not the current setBLabs
+## it should revert
+# when the sender is the current setBLabs
+## it should get the pool's btoken balance of the factory
+## it should transfer the btoken balance of the factory to BLabs
+## when the btoken transfer fails
+### it should revert
