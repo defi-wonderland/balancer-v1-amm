@@ -36,7 +36,7 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @dev Prevents reentrancy in non-view functions
   modifier _lock_() {
-    require(!_mutex, 'ERR_REENTRY');
+    if (_mutex) revert Reentrancy();
     _mutex = true;
     _;
     _mutex = false;
@@ -44,7 +44,7 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @dev Prevents reentrancy in view functions
   modifier _viewlock_() {
-    require(!_mutex, 'ERR_REENTRY');
+    if (_mutex) revert Reentrancy();
     _;
   }
 
@@ -57,24 +57,24 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function setSwapFee(uint256 swapFee) external _logs_ _lock_ {
-    require(!_finalized, 'ERR_IS_FINALIZED');
-    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
-    require(swapFee >= MIN_FEE, 'ERR_MIN_FEE');
-    require(swapFee <= MAX_FEE, 'ERR_MAX_FEE');
+    if (_finalized) revert PoolIsFinalized();
+    if (msg.sender != _controller) revert CallerIsNotController();
+    if (swapFee < MIN_FEE) revert FeeBelowMinimum();
+    if (swapFee > MAX_FEE) revert FeeAboveMaximum();
     _swapFee = swapFee;
   }
 
   /// @inheritdoc IBPool
   function setController(address manager) external _logs_ _lock_ {
-    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
+    if (msg.sender != _controller) revert CallerIsNotController();
     _controller = manager;
   }
 
   /// @inheritdoc IBPool
   function finalize() external _logs_ _lock_ {
-    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
-    require(!_finalized, 'ERR_IS_FINALIZED');
-    require(_tokens.length >= MIN_BOUND_TOKENS, 'ERR_MIN_TOKENS');
+    if (msg.sender != _controller) revert CallerIsNotController();
+    if (_finalized) revert PoolIsFinalized();
+    if (_tokens.length < MIN_BOUND_TOKENS) revert TokensBelowMinimum();
 
     _finalized = true;
 
@@ -84,18 +84,18 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function bind(address token, uint256 balance, uint256 denorm) external _logs_ _lock_ {
-    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
-    require(!_records[token].bound, 'ERR_IS_BOUND');
-    require(!_finalized, 'ERR_IS_FINALIZED');
+    if (msg.sender != _controller) revert CallerIsNotController();
+    if (_records[token].bound) revert TokenAlreadyBound();
+    if (_finalized) revert PoolIsFinalized();
 
-    require(_tokens.length < MAX_BOUND_TOKENS, 'ERR_MAX_TOKENS');
+    if (_tokens.length > MAX_BOUND_TOKENS) revert TokensAboveMaximum();
 
-    require(denorm >= MIN_WEIGHT, 'ERR_MIN_WEIGHT');
-    require(denorm <= MAX_WEIGHT, 'ERR_MAX_WEIGHT');
-    require(balance >= MIN_BALANCE, 'ERR_MIN_BALANCE');
+    if (denorm < MIN_WEIGHT) revert WeightBelowMinimum();
+    if (denorm > MAX_WEIGHT) revert WeightAboveMaximum();
+    if (balance < MIN_BALANCE) revert BalanceBelowMinimum();
 
     _totalWeight = badd(_totalWeight, denorm);
-    require(_totalWeight <= MAX_TOTAL_WEIGHT, 'ERR_MAX_TOTAL_WEIGHT');
+    if (_totalWeight > MAX_TOTAL_WEIGHT) revert TotalWeightAboveMaximum();
 
     _records[token] = Record({bound: true, index: _tokens.length, denorm: denorm});
     _tokens.push(token);
@@ -105,9 +105,9 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function unbind(address token) external _logs_ _lock_ {
-    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
-    require(_records[token].bound, 'ERR_NOT_BOUND');
-    require(!_finalized, 'ERR_IS_FINALIZED');
+    if (msg.sender != _controller) revert CallerIsNotController();
+    if (!_records[token].bound) revert TokenNotBound();
+    if (_finalized) revert PoolIsFinalized();
 
     _totalWeight = bsub(_totalWeight, _records[token].denorm);
 
@@ -125,18 +125,18 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn) external _logs_ _lock_ {
-    require(_finalized, 'ERR_NOT_FINALIZED');
+    if (!_finalized) revert PoolNotFinalized();
 
     uint256 poolTotal = totalSupply();
     uint256 ratio = bdiv(poolAmountOut, poolTotal);
-    require(ratio != 0, 'ERR_MATH_APPROX');
+    if (ratio == 0) revert InvalidPoolRatio();
 
     for (uint256 i = 0; i < _tokens.length; i++) {
       address t = _tokens[i];
       uint256 bal = IERC20(t).balanceOf(address(this));
       uint256 tokenAmountIn = bmul(ratio, bal);
-      require(tokenAmountIn != 0, 'ERR_MATH_APPROX');
-      require(tokenAmountIn <= maxAmountsIn[i], 'ERR_LIMIT_IN');
+      if (tokenAmountIn == 0) revert InvalidTokenAmountIn();
+      if (tokenAmountIn > maxAmountsIn[i]) revert TokenAmountInAboveMaxAmountIn();
       emit LOG_JOIN(msg.sender, t, tokenAmountIn);
       _pullUnderlying(t, msg.sender, tokenAmountIn);
     }
@@ -146,13 +146,13 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut) external _logs_ _lock_ {
-    require(_finalized, 'ERR_NOT_FINALIZED');
+    if (!_finalized) revert PoolNotFinalized();
 
     uint256 poolTotal = totalSupply();
     uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
     uint256 pAiAfterExitFee = bsub(poolAmountIn, exitFee);
     uint256 ratio = bdiv(pAiAfterExitFee, poolTotal);
-    require(ratio != 0, 'ERR_MATH_APPROX');
+    if (ratio == 0) revert InvalidPoolRatio();
 
     _pullPoolShare(msg.sender, poolAmountIn);
     _pushPoolShare(_factory, exitFee);
@@ -162,8 +162,8 @@ contract BPool is BToken, BMath, IBPool {
       address t = _tokens[i];
       uint256 bal = IERC20(t).balanceOf(address(this));
       uint256 tokenAmountOut = bmul(ratio, bal);
-      require(tokenAmountOut != 0, 'ERR_MATH_APPROX');
-      require(tokenAmountOut >= minAmountsOut[i], 'ERR_LIMIT_OUT');
+      if (tokenAmountOut == 0) revert InvalidTokenAmountOut();
+      if (tokenAmountOut < minAmountsOut[i]) revert TokenAmountOutBelowMinAmountOut();
       emit LOG_EXIT(msg.sender, t, tokenAmountOut);
       _pushUnderlying(t, msg.sender, tokenAmountOut);
     }
@@ -177,9 +177,9 @@ contract BPool is BToken, BMath, IBPool {
     uint256 minAmountOut,
     uint256 maxPrice
   ) external _logs_ _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
-    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
-    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
-    require(_finalized, 'ERR_NOT_FINALIZED');
+    if (!_records[tokenIn].bound) revert TokenNotBound();
+    if (!_records[tokenOut].bound) revert TokenNotBound();
+    if (!_finalized) revert PoolNotFinalized();
 
     Record storage inRecord = _records[address(tokenIn)];
     Record storage outRecord = _records[address(tokenOut)];
@@ -187,23 +187,23 @@ contract BPool is BToken, BMath, IBPool {
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
 
-    require(tokenAmountIn <= bmul(tokenInBalance, MAX_IN_RATIO), 'ERR_MAX_IN_RATIO');
+    if (tokenAmountIn > bmul(tokenInBalance, MAX_IN_RATIO)) revert TokenAmountInAboveMaxIn();
 
     uint256 spotPriceBefore =
       calcSpotPrice(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
-    require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
+    if (spotPriceBefore > maxPrice) revert SpotPriceAboveMaxPrice();
 
     tokenAmountOut =
       calcOutGivenIn(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, tokenAmountIn, _swapFee);
-    require(tokenAmountOut >= minAmountOut, 'ERR_LIMIT_OUT');
+    if (tokenAmountOut < minAmountOut) revert TokenAmountOutBelowMinOut();
 
     tokenInBalance = badd(tokenInBalance, tokenAmountIn);
     tokenOutBalance = bsub(tokenOutBalance, tokenAmountOut);
 
     spotPriceAfter = calcSpotPrice(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
-    require(spotPriceAfter >= spotPriceBefore, 'ERR_MATH_APPROX');
-    require(spotPriceAfter <= maxPrice, 'ERR_LIMIT_PRICE');
-    require(spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut), 'ERR_MATH_APPROX');
+    if (spotPriceAfter < spotPriceBefore) revert SpotPriceAfterBelowSpotPriceBefore();
+    if (spotPriceAfter > maxPrice) revert SpotPriceAfterBelowMaxPrice();
+    if (spotPriceBefore > bdiv(tokenAmountIn, tokenAmountOut)) revert SpotPriceBeforeAboveTokenRatio();
 
     emit LOG_SWAP(msg.sender, tokenIn, tokenOut, tokenAmountIn, tokenAmountOut);
 
@@ -221,9 +221,9 @@ contract BPool is BToken, BMath, IBPool {
     uint256 tokenAmountOut,
     uint256 maxPrice
   ) external _logs_ _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
-    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
-    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
-    require(_finalized, 'ERR_NOT_FINALIZED');
+    if (!_records[tokenIn].bound) revert TokenNotBound();
+    if (!_records[tokenOut].bound) revert TokenNotBound();
+    if (!_finalized) revert PoolNotFinalized();
 
     Record storage inRecord = _records[address(tokenIn)];
     Record storage outRecord = _records[address(tokenOut)];
@@ -231,23 +231,23 @@ contract BPool is BToken, BMath, IBPool {
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
 
-    require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
+    if (tokenAmountOut > bmul(tokenOutBalance, MAX_OUT_RATIO)) revert TokenAmountOutAboveMaxOut();
 
     uint256 spotPriceBefore =
       calcSpotPrice(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
-    require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
+    if (spotPriceBefore > maxPrice) revert SpotPriceAboveMaxPrice();
 
     tokenAmountIn =
       calcInGivenOut(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, tokenAmountOut, _swapFee);
-    require(tokenAmountIn <= maxAmountIn, 'ERR_LIMIT_IN');
+    if (tokenAmountIn > maxAmountIn) revert TokenAmountInAboveMaxAmountIn();
 
     tokenInBalance = badd(tokenInBalance, tokenAmountIn);
     tokenOutBalance = bsub(tokenOutBalance, tokenAmountOut);
 
     spotPriceAfter = calcSpotPrice(tokenInBalance, inRecord.denorm, tokenOutBalance, outRecord.denorm, _swapFee);
-    require(spotPriceAfter >= spotPriceBefore, 'ERR_MATH_APPROX');
-    require(spotPriceAfter <= maxPrice, 'ERR_LIMIT_PRICE');
-    require(spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut), 'ERR_MATH_APPROX');
+    if (spotPriceAfter < spotPriceBefore) revert SpotPriceAfterBelowSpotPriceBefore();
+    if (spotPriceAfter > maxPrice) revert SpotPriceAfterBelowMaxPrice();
+    if (spotPriceBefore > bdiv(tokenAmountIn, tokenAmountOut)) revert SpotPriceBeforeAboveTokenRatio();
 
     emit LOG_SWAP(msg.sender, tokenIn, tokenOut, tokenAmountIn, tokenAmountOut);
 
@@ -263,16 +263,16 @@ contract BPool is BToken, BMath, IBPool {
     uint256 tokenAmountIn,
     uint256 minPoolAmountOut
   ) external _logs_ _lock_ returns (uint256 poolAmountOut) {
-    require(_finalized, 'ERR_NOT_FINALIZED');
-    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
+    if (!_finalized) revert PoolNotFinalized();
+    if (!_records[tokenIn].bound) revert TokenNotBound();
 
     Record storage inRecord = _records[tokenIn];
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
-    require(tokenAmountIn <= bmul(tokenInBalance, MAX_IN_RATIO), 'ERR_MAX_IN_RATIO');
+    if (tokenAmountIn > bmul(tokenInBalance, MAX_IN_RATIO)) revert TokenAmountInAboveMaxIn();
 
     poolAmountOut =
       calcPoolOutGivenSingleIn(tokenInBalance, inRecord.denorm, totalSupply(), _totalWeight, tokenAmountIn, _swapFee);
-    require(poolAmountOut >= minPoolAmountOut, 'ERR_LIMIT_OUT');
+    if (poolAmountOut < minPoolAmountOut) revert PoolAmountOutBelowMinPoolAmountOut();
 
     emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn);
 
@@ -289,8 +289,8 @@ contract BPool is BToken, BMath, IBPool {
     uint256 poolAmountOut,
     uint256 maxAmountIn
   ) external _logs_ _lock_ returns (uint256 tokenAmountIn) {
-    require(_finalized, 'ERR_NOT_FINALIZED');
-    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
+    if (!_finalized) revert PoolNotFinalized();
+    if (!_records[tokenIn].bound) revert TokenNotBound();
 
     Record storage inRecord = _records[tokenIn];
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
@@ -298,9 +298,9 @@ contract BPool is BToken, BMath, IBPool {
     tokenAmountIn =
       calcSingleInGivenPoolOut(tokenInBalance, inRecord.denorm, totalSupply(), _totalWeight, poolAmountOut, _swapFee);
 
-    require(tokenAmountIn != 0, 'ERR_MATH_APPROX');
-    require(tokenAmountIn <= maxAmountIn, 'ERR_LIMIT_IN');
-    require(tokenAmountIn <= bmul(tokenInBalance, MAX_IN_RATIO), 'ERR_MAX_IN_RATIO');
+    if (tokenAmountIn == 0) revert InvalidTokenAmountIn();
+    if (tokenAmountIn > maxAmountIn) revert TokenAmountInAboveMaxAmountIn();
+    if (tokenAmountIn > bmul(tokenInBalance, MAX_IN_RATIO)) revert TokenAmountInAboveMaxIn();
 
     emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn);
 
@@ -317,8 +317,8 @@ contract BPool is BToken, BMath, IBPool {
     uint256 poolAmountIn,
     uint256 minAmountOut
   ) external _logs_ _lock_ returns (uint256 tokenAmountOut) {
-    require(_finalized, 'ERR_NOT_FINALIZED');
-    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
+    if (!_finalized) revert PoolNotFinalized();
+    if (!_records[tokenOut].bound) revert TokenNotBound();
 
     Record storage outRecord = _records[tokenOut];
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
@@ -326,8 +326,8 @@ contract BPool is BToken, BMath, IBPool {
     tokenAmountOut =
       calcSingleOutGivenPoolIn(tokenOutBalance, outRecord.denorm, totalSupply(), _totalWeight, poolAmountIn, _swapFee);
 
-    require(tokenAmountOut >= minAmountOut, 'ERR_LIMIT_OUT');
-    require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
+    if (tokenAmountOut < minAmountOut) revert TokenAmountOutBelowMinAmountOut();
+    if (tokenAmountOut > bmul(tokenOutBalance, MAX_OUT_RATIO)) revert TokenAmountOutAboveMaxOut();
 
     uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
 
@@ -347,17 +347,17 @@ contract BPool is BToken, BMath, IBPool {
     uint256 tokenAmountOut,
     uint256 maxPoolAmountIn
   ) external _logs_ _lock_ returns (uint256 poolAmountIn) {
-    require(_finalized, 'ERR_NOT_FINALIZED');
-    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
+    if (!_finalized) revert PoolNotFinalized();
+    if (!_records[tokenOut].bound) revert TokenNotBound();
 
     Record storage outRecord = _records[tokenOut];
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
-    require(tokenAmountOut <= bmul(tokenOutBalance, MAX_OUT_RATIO), 'ERR_MAX_OUT_RATIO');
+    if (tokenAmountOut > bmul(tokenOutBalance, MAX_OUT_RATIO)) revert TokenAmountOutAboveMaxOut();
 
     poolAmountIn =
       calcPoolInGivenSingleOut(tokenOutBalance, outRecord.denorm, totalSupply(), _totalWeight, tokenAmountOut, _swapFee);
-    require(poolAmountIn != 0, 'ERR_MATH_APPROX');
-    require(poolAmountIn <= maxPoolAmountIn, 'ERR_LIMIT_IN');
+    if (poolAmountIn == 0) revert InvalidPoolAmountIn();
+    if (poolAmountIn > maxPoolAmountIn) revert PoolAmountInAboveMaxPoolAmountIn();
 
     uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
 
@@ -373,8 +373,8 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
-    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
-    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
+    if (!_records[tokenIn].bound) revert TokenNotBound();
+    if (!_records[tokenOut].bound) revert TokenNotBound();
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
     return calcSpotPrice(
@@ -388,8 +388,8 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function getSpotPriceSansFee(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
-    require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
-    require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
+    if (!_records[tokenIn].bound) revert TokenNotBound();
+    if (!_records[tokenOut].bound) revert TokenNotBound();
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
     return calcSpotPrice(
@@ -423,13 +423,13 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function getFinalTokens() external view _viewlock_ returns (address[] memory tokens) {
-    require(_finalized, 'ERR_NOT_FINALIZED');
+    if (!_finalized) revert PoolNotFinalized();
     return _tokens;
   }
 
   /// @inheritdoc IBPool
   function getDenormalizedWeight(address token) external view _viewlock_ returns (uint256) {
-    require(_records[token].bound, 'ERR_NOT_BOUND');
+    if (!_records[token].bound) revert TokenNotBound();
     return _records[token].denorm;
   }
 
@@ -440,14 +440,14 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function getNormalizedWeight(address token) external view _viewlock_ returns (uint256) {
-    require(_records[token].bound, 'ERR_NOT_BOUND');
+    if (!_records[token].bound) revert TokenNotBound();
     uint256 denorm = _records[token].denorm;
     return bdiv(denorm, _totalWeight);
   }
 
   /// @inheritdoc IBPool
   function getBalance(address token) external view _viewlock_ returns (uint256) {
-    require(_records[token].bound, 'ERR_NOT_BOUND');
+    if (!_records[token].bound) revert TokenNotBound();
     return IERC20(token).balanceOf(address(this));
   }
 
@@ -469,7 +469,7 @@ contract BPool is BToken, BMath, IBPool {
    */
   function _pullUnderlying(address erc20, address from, uint256 amount) internal virtual {
     bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
-    require(xfer, 'ERR_ERC20_FALSE');
+    if (!xfer) revert ERC20TransferFailed();
   }
 
   /**
@@ -480,7 +480,7 @@ contract BPool is BToken, BMath, IBPool {
    */
   function _pushUnderlying(address erc20, address to, uint256 amount) internal virtual {
     bool xfer = IERC20(erc20).transfer(to, amount);
-    require(xfer, 'ERR_ERC20_FALSE');
+    if (!xfer) revert ERC20TransferFailed();
   }
 
   /**

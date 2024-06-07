@@ -56,6 +56,66 @@ interface IBPool is IERC20 {
    */
   event LOG_CALL(bytes4 indexed sig, address indexed caller, bytes data) anonymous;
 
+  error Reentrancy();
+
+  error PoolIsFinalized();
+
+  error CallerIsNotController();
+
+  error FeeBelowMinimum();
+
+  error FeeAboveMaximum();
+
+  error TokensBelowMinimum();
+
+  error TokenAlreadyBound();
+
+  error TokensAboveMaximum();
+
+  error WeightBelowMinimum();
+
+  error WeightAboveMaximum();
+
+  error BalanceBelowMinimum();
+
+  error TotalWeightAboveMaximum();
+
+  error InvalidPoolRatio();
+
+  error InvalidTokenAmountIn();
+
+  error TokenAmountInAboveMaxAmountIn();
+
+  error InvalidTokenAmountOut();
+
+  error TokenAmountOutBelowMinAmountOut();
+
+  error TokenNotBound();
+
+  error PoolNotFinalized();
+
+  error TokenAmountInAboveMaxIn();
+
+  error SpotPriceAboveMaxPrice();
+
+  error TokenAmountOutBelowMinOut();
+
+  error SpotPriceAfterBelowSpotPriceBefore();
+
+  error SpotPriceAfterBelowMaxPrice();
+
+  error SpotPriceBeforeAboveTokenRatio();
+
+  error TokenAmountOutAboveMaxOut();
+
+  error PoolAmountOutBelowMinPoolAmountOut();
+
+  error InvalidPoolAmountIn();
+
+  error PoolAmountInAboveMaxPoolAmountIn();
+
+  error ERC20TransferFailed();
+
   /**
    * @notice Sets the new swap fee
    * @param swapFee The new swap fee
