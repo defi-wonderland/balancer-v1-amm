@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.25;
 
+import {IERC1271} from '@openzeppelin/contracts/interfaces/IERC1271.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {GPv2Order} from '../cow-swap/GPv2Order.sol';
@@ -8,7 +9,6 @@ import {GPv2Order} from '../cow-swap/GPv2Order.sol';
 import {BPool} from './BPool.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 
-import {IERC1271} from 'interfaces/IERC1271.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
 contract BCoWPool is BPool, IERC1271, IBCoWPool {
