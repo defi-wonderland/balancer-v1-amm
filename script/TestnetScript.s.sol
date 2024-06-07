@@ -5,7 +5,6 @@ import {BCoWPool, IBCoWPool, IERC20} from 'contracts/BCoWPool.sol';
 import {BPool, IBPool} from 'contracts/BPool.sol';
 
 import {IFaucet} from 'interfaces/IFaucet.sol';
-import {ERC20ForTest} from 'test/for-test/ERC20ForTest.sol';
 
 import {Script} from 'forge-std/Script.sol';
 
