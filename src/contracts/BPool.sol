@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.23;
 
-import {BBronze} from './BColor.sol';
 import {BMath} from './BMath.sol';
 import {BToken, IERC20} from './BToken.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
-contract BPool is BBronze, BToken, BMath, IBPool {
+contract BPool is BToken, BMath, IBPool {
   bool internal _mutex;
 
   address internal _factory; // BFactory address to push token exitFee to
