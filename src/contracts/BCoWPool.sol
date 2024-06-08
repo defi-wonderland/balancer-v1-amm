@@ -15,16 +15,6 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   using GPv2Order for GPv2Order.Data;
 
   /**
-   * @notice The address that can pull funds from the AMM vault to execute an order
-   */
-  address public immutable vaultRelayer;
-
-  /**
-   * @notice The domain separator used for hashing CoW Protocol orders.
-   */
-  bytes32 public immutable solutionSettlerDomainSeparator;
-
-  /**
    * @notice The value representing the absence of a commitment.
    */
   bytes32 public constant EMPTY_COMMITMENT = bytes32(0);
@@ -53,10 +43,20 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   uint256 public constant COMMITMENT_SLOT = 0x6c3c90245457060f6517787b2c4b8cf500ca889d2304af02043bd5b513e3b593;
 
   /**
+   * @notice The address that can pull funds from the AMM vault to execute an order
+   */
+  address public immutable VAULT_RELAYER;
+
+  /**
+   * @notice The domain separator used for hashing CoW Protocol orders.
+   */
+  bytes32 public immutable SOLUTION_SETTLER_DOMAIN_SEPARATOR;
+
+  /**
    * @notice The address of the CoW Protocol settlement contract. It is the
    * only address that can set commitments.
    */
-  ISettlement public immutable solutionSettler;
+  ISettlement public immutable SOLUTION_SETTLER;
 
   /**
    * The hash of the data describing which `TradingParams` currently apply
@@ -65,12 +65,86 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    * If trading is enabled, then this value will be the [`hash`] of the only
    * admissible [`TradingParams`].
    */
-  bytes32 appDataHash;
+  bytes32 public appDataHash;
 
+  // TODO: unify with BPool
+  modifier onlyController() {
+    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
+    _;
+  }
+
+  /// @dev we should document somewhere the domain separator is hardcoded at
+  /// deploy time so signatures could be replayed in subsequent forks, but that's
+  /// also the case with GPV2Settlement (_cowSolutionSettler implementation) so
+  /// we can't fix it here
   constructor(address _cowSolutionSettler) BPool() {
-    solutionSettler = ISettlement(_cowSolutionSettler);
-    solutionSettlerDomainSeparator = ISettlement(_cowSolutionSettler).domainSeparator();
-    vaultRelayer = ISettlement(_cowSolutionSettler).vaultRelayer();
+    SOLUTION_SETTLER = ISettlement(_cowSolutionSettler);
+    SOLUTION_SETTLER_DOMAIN_SEPARATOR = ISettlement(_cowSolutionSettler).domainSeparator();
+    VAULT_RELAYER = ISettlement(_cowSolutionSettler).vaultRelayer();
+  }
+
+  /**
+   * @notice Once this function is called, it will be possible to trade with
+   * this AMM on CoW Protocol.
+   * @param appData Trading is enabled with the appData specified here.
+   */
+  // TODO: unify onlyController with BPool
+  function enableTrading(bytes32 appData) external onlyController {
+    bytes32 _appDataHash = hash(appData);
+    appDataHash = _appDataHash;
+    emit TradingEnabled(_appDataHash, appData);
+  }
+
+  /**
+   * @notice Disable any form of trading on CoW Protocol by this AMM.
+   */
+  // TODO: unify onlyController with BPool
+  function disableTrading() external onlyController {
+    appDataHash = NO_TRADING;
+    emit TradingDisabled();
+  }
+
+  /**
+   * @notice Restricts a specific AMM to being able to trade only the order
+   * with the specified hash.
+   * @dev The commitment is used to enforce that exactly one AMM order is
+   * valid when a CoW Protocol batch is settled.
+   * @param orderHash the order hash that will be enforced by the order
+   * verification function.
+   */
+  function commit(bytes32 orderHash) external {
+    if (msg.sender != address(SOLUTION_SETTLER)) {
+      revert CommitOutsideOfSettlement();
+    }
+    assembly ("memory-safe") {
+      tstore(COMMITMENT_SLOT, orderHash)
+    }
+  }
+
+  /**
+   * @inheritdoc IERC1271
+   */
+  function isValidSignature(bytes32 _hash, bytes memory signature) external view returns (bytes4) {
+    (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
+
+    // TODO: unify error log criteria with BalV1 (use require and string error message)
+    if (appDataHash != hash(order.appData)) revert AppDataDoNotMatchHash();
+    bytes32 orderHash = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);
+    if (orderHash != _hash) revert OrderDoesNotMatchMessageHash();
+
+    _requireMatchingCommitment(orderHash);
+
+    verify(order);
+
+    // A signature is valid according to EIP-1271 if this function returns
+    // its selector as the so-called "magic value".
+    return this.isValidSignature.selector;
+  }
+
+  function commitment() public view returns (bytes32 value) {
+    assembly ("memory-safe") {
+      value := tload(COMMITMENT_SLOT)
+    }
   }
 
   /**
@@ -104,98 +178,6 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   }
 
   /**
-   * @notice Once this function is called, it will be possible to trade with
-   * this AMM on CoW Protocol.
-   * @param appData Trading is enabled with the appData specified here.
-   */
-  // TODO: unify onlyController with BPool
-  function enableTrading(bytes32 appData) external onlyController {
-    bytes32 _appDataHash = hash(appData);
-    appDataHash = _appDataHash;
-    emit TradingEnabled(_appDataHash, appData);
-  }
-
-  /**
-   * @notice Disable any form of trading on CoW Protocol by this AMM.
-   */
-  // TODO: unify onlyController with BPool
-  function disableTrading() external onlyController {
-    appDataHash = NO_TRADING;
-    emit TradingDisabled();
-  }
-
-  /**
-   * @notice Restricts a specific AMM to being able to trade only the order
-   * with the specified hash.
-   * @dev The commitment is used to enforce that exactly one AMM order is
-   * valid when a CoW Protocol batch is settled.
-   * @param orderHash the order hash that will be enforced by the order
-   * verification function.
-   */
-  function commit(bytes32 orderHash) external {
-    if (msg.sender != address(solutionSettler)) {
-      revert CommitOutsideOfSettlement();
-    }
-    assembly ("memory-safe") {
-      tstore(COMMITMENT_SLOT, orderHash)
-    }
-  }
-
-  /**
-   * @inheritdoc IERC1271
-   */
-  function isValidSignature(bytes32 _hash, bytes memory signature) external view returns (bytes4) {
-    (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
-
-    // TODO: unify error log criteria with BalV1 (use require and string error message)
-    if (appDataHash != hash(order.appData)) revert AppDataDoNotMatchHash();
-    bytes32 orderHash = order.hash(solutionSettlerDomainSeparator);
-    if (orderHash != _hash) revert OrderDoesNotMatchMessageHash();
-
-    requireMatchingCommitment(orderHash);
-
-    verify(order);
-
-    // A signature is valid according to EIP-1271 if this function returns
-    // its selector as the so-called "magic value".
-    return this.isValidSignature.selector;
-  }
-
-  function commitment() public view returns (bytes32 value) {
-    assembly ("memory-safe") {
-      value := tload(COMMITMENT_SLOT)
-    }
-  }
-
-  /**
-   * @notice Approves the spender to transfer an unlimited amount of tokens
-   * and reverts if the approval was unsuccessful.
-   * @param token The ERC-20 token to approve.
-   * @param spender The address that can transfer on behalf of this contract.
-   */
-  function approveUnlimited(IERC20 token, address spender) internal {
-    token.approve(spender, type(uint256).max);
-  }
-
-  /**
-   * @notice This function triggers a revert if either (1) the order hash does
-   * not match the current commitment, or (2) in the case of a commitment to
-   * `EMPTY_COMMITMENT`, the non-constant parameters of the order from
-   * `getTradeableOrder` don't match those of the input order.
-   * @param orderHash the hash of the current order as defined by the
-   * `GPv2Order` library.
-   */
-  function requireMatchingCommitment(bytes32 orderHash) internal view {
-    bytes32 committedOrderHash = commitment();
-
-    if (orderHash != committedOrderHash) {
-      if (committedOrderHash != EMPTY_COMMITMENT) {
-        revert OrderDoesNotMatchCommitmentHash();
-      }
-    }
-  }
-
-  /**
    * @dev Computes an identifier that uniquely represents the parameters in
    * the function input parameters.
    * @param appData Bytestring that decodes to `AppData`
@@ -206,19 +188,41 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   }
 
   /**
+   * @notice Approves the spender to transfer an unlimited amount of tokens
+   * and reverts if the approval was unsuccessful.
+   * @param token The ERC-20 token to approve.
+   * @param spender The address that can transfer on behalf of this contract.
+   */
+  function _approveUnlimited(IERC20 token, address spender) internal {
+    token.approve(spender, type(uint256).max);
+  }
+
+  /**
    * @dev Grants infinite approval to the vault relayer for all tokens in the
    * pool after the finalization of the setup.
    * @dev TODO: check this is called now that pools state machine changed
    */
   function _afterFinalize() internal {
     for (uint256 i; i < _tokens.length; i++) {
-      approveUnlimited(IERC20(_tokens[i]), vaultRelayer);
+      _approveUnlimited(IERC20(_tokens[i]), VAULT_RELAYER);
     }
   }
 
-  // TODO: unify with BPool
-  modifier onlyController() {
-    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
-    _;
+  /**
+   * @notice This function triggers a revert if either (1) the order hash does
+   * not match the current commitment, or (2) in the case of a commitment to
+   * `EMPTY_COMMITMENT`, the non-constant parameters of the order from
+   * `getTradeableOrder` don't match those of the input order.
+   * @param orderHash the hash of the current order as defined by the
+   * `GPv2Order` library.
+   */
+  function _requireMatchingCommitment(bytes32 orderHash) internal view {
+    bytes32 committedOrderHash = commitment();
+
+    if (orderHash != committedOrderHash) {
+      if (committedOrderHash != EMPTY_COMMITMENT) {
+        revert OrderDoesNotMatchCommitmentHash();
+      }
+    }
   }
 }
