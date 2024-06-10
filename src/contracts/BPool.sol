@@ -85,7 +85,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function finalize() external _logs_ _lock_ {
+  function finalize() public virtual _logs_ _lock_ {
     if (msg.sender != _controller) {
       revert BPool_CallerIsNotController();
     }
