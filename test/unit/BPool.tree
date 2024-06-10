@@ -103,3 +103,35 @@ BPool::joinPool
 ## it should emit LOG_CALL
 ### when one of the underlying token transfers fails
 #### it should revert
+
+BPoo::exitPool
+# when pool is the caller (reentrant)
+## it should revert
+# when the pool is not finalized
+## it should revert
+# when poolAmountIn - poolAmountIn * exit fee / pooltotal is zero
+## it should revert
+# when the function requirements are met
+## it should transfer the btoken from the caller to the pool
+## it should transfer the exit fee (poolAmountIn*exit fee) to the factory
+## it should burn the rest of the btoken
+## it should transfer the pool tokens to the caller
+## it should emit LOG_CALL
+## it should emit LOG_EXIT for each token
+### when one of the underlying token transfer is a zero amount
+#### it should revert
+### when one of the underlying token transfer amount is less than the minAmountsOut
+#### it should revert
+### when one of the underlying token transfer fails
+#### it should revert
+
+
+BPool::swapExactAmountIn // No in != out check? 
+# when pool is the caller (reentrant)
+## it should revert
+# when the pool is not finalized
+## it should revert
+# when the tokenIn is not bound
+## it should revert
+# when the tokenOut is not bound
+## it should revert
