@@ -11,36 +11,36 @@ import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
+/**
+ * @dev The value representing the absence of a commitment.
+ */
+bytes32 constant EMPTY_COMMITMENT = bytes32(0);
+
+/**
+ * @dev The value representing that no trading parameters are currently
+ * accepted as valid by this contract, meaning that no trading can occur.
+ */
+bytes32 constant NO_TRADING = bytes32(0);
+
+/**
+ * @dev The largest possible duration of any AMM order, starting from the
+ * current block timestamp.
+ */
+uint32 constant MAX_ORDER_DURATION = 5 * 60;
+
+/**
+ * @dev The transient storage slot specified in this variable stores the
+ * value of the order commitment, that is, the only order hash that can be
+ * validated by calling `isValidSignature`.
+ * The hash corresponding to the constant `EMPTY_COMMITMENT` has special
+ * semantics, discussed in the related documentation.
+ * @dev This value is:
+ * uint256(keccak256("CoWAMM.ConstantProduct.commitment")) - 1
+ */
+uint256 constant COMMITMENT_SLOT = 0x6c3c90245457060f6517787b2c4b8cf500ca889d2304af02043bd5b513e3b593;
+
 contract BCoWPool is BPool, IERC1271, IBCoWPool {
   using GPv2Order for GPv2Order.Data;
-
-  /**
-   * @notice The value representing the absence of a commitment.
-   */
-  bytes32 public constant EMPTY_COMMITMENT = bytes32(0);
-
-  /**
-   * @notice The value representing that no trading parameters are currently
-   * accepted as valid by this contract, meaning that no trading can occur.
-   */
-  bytes32 public constant NO_TRADING = bytes32(0);
-
-  /**
-   * @notice The largest possible duration of any AMM order, starting from the
-   * current block timestamp.
-   */
-  uint32 public constant MAX_ORDER_DURATION = 5 * 60;
-
-  /**
-   * @notice The transient storage slot specified in this variable stores the
-   * value of the order commitment, that is, the only order hash that can be
-   * validated by calling `isValidSignature`.
-   * The hash corresponding to the constant `EMPTY_COMMITMENT` has special
-   * semantics, discussed in the related documentation.
-   * @dev This value is:
-   * uint256(keccak256("CoWAMM.ConstantProduct.commitment")) - 1
-   */
-  uint256 public constant COMMITMENT_SLOT = 0x6c3c90245457060f6517787b2c4b8cf500ca889d2304af02043bd5b513e3b593;
 
   /**
    * @notice The address that can pull funds from the AMM vault to execute an order
