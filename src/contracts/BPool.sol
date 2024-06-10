@@ -71,7 +71,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function finalize() external _logs_ _lock_ {
+  function finalize() public virtual _logs_ _lock_ {
     require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
     require(!_finalized, 'ERR_IS_FINALIZED');
     require(_tokens.length >= MIN_BOUND_TOKENS, 'ERR_MIN_TOKENS');

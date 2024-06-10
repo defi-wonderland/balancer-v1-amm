@@ -197,12 +197,11 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     token.approve(spender, type(uint256).max);
   }
 
-  /**
-   * @dev Grants infinite approval to the vault relayer for all tokens in the
-   * pool after the finalization of the setup.
-   * @dev TODO: check this is called now that pools state machine changed
-   */
-  function _afterFinalize() internal {
+  /// @inheritdoc BPool
+  /// @dev Grants infinite approval to the vault relayer for all tokens in the
+  /// pool after the finalization of the setup.
+  function finalize() public override {
+    super.finalize();
     for (uint256 i; i < _tokens.length; i++) {
       _approveUnlimited(IERC20(_tokens[i]), VAULT_RELAYER);
     }

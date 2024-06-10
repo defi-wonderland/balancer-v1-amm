@@ -20,7 +20,7 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   // If the call fails, it means that the function overflowed, then we reject the fuzzed inputs
   Pow public pow = new Pow();
 
-  function setUp() public {
+  function setUp() public virtual {
     bPool = new MockBPool();
 
     // Create fake tokens
