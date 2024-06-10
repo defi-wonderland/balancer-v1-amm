@@ -1070,14 +1070,17 @@ contract BPool_Unit_JoinPool is BasePoolTest {
     bPool.joinPool(_fuzz.poolAmountOut, _maxArray(tokens.length));
   }
 
-  function test_Revert_MathApprox(JoinPool_FuzzScenario memory _fuzz, uint256 _poolAmountOut) public happyPath(_fuzz) {
+  function test_Revert_InvalidPoolRatio(
+    JoinPool_FuzzScenario memory _fuzz,
+    uint256 _poolAmountOut
+  ) public happyPath(_fuzz) {
     _poolAmountOut = bound(_poolAmountOut, 0, (INIT_POOL_SUPPLY / 2 / BONE) - 1); // bdiv rounds up
 
     vm.expectRevert(IBPool.InvalidPoolRatio.selector);
     bPool.joinPool(_poolAmountOut, _maxArray(tokens.length));
   }
 
-  function test_Revert_TokenArrayMathApprox(JoinPool_FuzzScenario memory _fuzz, uint256 _tokenIndex) public {
+  function test_Revert_InvalidTokenAmountIn(JoinPool_FuzzScenario memory _fuzz, uint256 _tokenIndex) public {
     _assumeHappyPath(_fuzz);
     _tokenIndex = bound(_tokenIndex, 0, TOKENS_AMOUNT - 1);
     _fuzz.balance[_tokenIndex] = 0;
@@ -1087,7 +1090,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
     bPool.joinPool(_fuzz.poolAmountOut, _maxArray(tokens.length));
   }
 
-  function test_Revert_TokenArrayLimitIn(
+  function test_Revert_TokenAmountInAboveMaxAmountIn(
     JoinPool_FuzzScenario memory _fuzz,
     uint256 _tokenIndex,
     uint256[TOKENS_AMOUNT] memory _maxAmountsIn
@@ -1229,7 +1232,10 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
   }
 
-  function test_Revert_MathApprox(ExitPool_FuzzScenario memory _fuzz, uint256 _poolAmountIn) public happyPath(_fuzz) {
+  function test_Revert_InvalidPoolRatio(
+    ExitPool_FuzzScenario memory _fuzz,
+    uint256 _poolAmountIn
+  ) public happyPath(_fuzz) {
     _poolAmountIn = bound(_poolAmountIn, 0, (INIT_POOL_SUPPLY / 2 / BONE) - 1); // bdiv rounds up
 
     vm.expectRevert(IBPool.InvalidPoolRatio.selector);
@@ -1264,7 +1270,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     assertEq(bPool.totalSupply(), _totalSupplyBefore - _pAiAfterExitFee);
   }
 
-  function test_Revert_TokenArrayMathApprox(
+  function test_Revert_InvalidTokenAmountOut(
     ExitPool_FuzzScenario memory _fuzz,
     uint256 _tokenIndex
   ) public happyPath(_fuzz) {
@@ -1277,7 +1283,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
     bPool.exitPool(_fuzz.poolAmountIn, _zeroArray(tokens.length));
   }
 
-  function test_Revert_TokenArrayLimitOut(
+  function test_Revert_TokenAmountOutBelowMinAmountOut(
     ExitPool_FuzzScenario memory _fuzz,
     uint256 _tokenIndex,
     uint256[TOKENS_AMOUNT] memory _minAmountsOut
@@ -1478,14 +1484,14 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
   }
 
-  function test_Revert_MaxInRatio(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_TokenAmountInAboveMaxIn(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     uint256 _tokenAmountIn = bmul(_fuzz.tokenInBalance, MAX_IN_RATIO) + 1;
 
     vm.expectRevert(IBPool.TokenAmountInAboveMaxIn.selector);
     bPool.swapExactAmountIn(tokenIn, _tokenAmountIn, tokenOut, 0, type(uint256).max);
   }
 
-  function test_Revert_BadLimitPrice(
+  function test_Revert_SpotPriceAboveMaxPrice(
     SwapExactAmountIn_FuzzScenario memory _fuzz,
     uint256 _maxPrice
   ) public happyPath(_fuzz) {
@@ -1499,7 +1505,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, _maxPrice);
   }
 
-  function test_Revert_LimitOut(
+  function test_Revert_TokenAmountOutBelowMinOut(
     SwapExactAmountIn_FuzzScenario memory _fuzz,
     uint256 _minAmountOut
   ) public happyPath(_fuzz) {
@@ -1522,12 +1528,12 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
   }
 
-  function test_Revert_MathApprox() public {
+  function test_Revert_SpotPriceAfterBelowSpotPriceBefore() public {
     vm.skip(true);
     // TODO: this revert might be unreachable. Find a way to test it or remove the revert in the code.
   }
 
-  function test_Revert_LimitPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_SpotPriceAfterBelowMaxPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     uint256 _tokenAmountOut = calcOutGivenIn(
       _fuzz.tokenInBalance,
       _fuzz.tokenInDenorm,
@@ -1552,7 +1558,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, _spotPriceBefore);
   }
 
-  function test_Revert_MathApprox2(SwapExactAmountIn_FuzzScenario memory _fuzz) public {
+  function test_Revert_SpotPriceBeforeAboveTokenRatio(SwapExactAmountIn_FuzzScenario memory _fuzz) public {
     // Replicating _assumeHappyPath, but removing irrelevant assumptions and conditioning the revert
     _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
@@ -1812,14 +1818,14 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     bPool.swapExactAmountOut(tokenIn, type(uint256).max, tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
-  function test_Revert_MaxOutRatio(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_TokenAmountOutAboveMaxOut(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     uint256 _tokenAmountOut = bmul(_fuzz.tokenOutBalance, MAX_OUT_RATIO) + 1;
 
     vm.expectRevert(IBPool.TokenAmountOutAboveMaxOut.selector);
     bPool.swapExactAmountOut(tokenIn, type(uint256).max, tokenOut, _tokenAmountOut, type(uint256).max);
   }
 
-  function test_Revert_BadLimitPrice(
+  function test_Revert_SpotPriceAboveMaxPrice(
     SwapExactAmountOut_FuzzScenario memory _fuzz,
     uint256 _maxPrice
   ) public happyPath(_fuzz) {
@@ -1833,7 +1839,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     bPool.swapExactAmountOut(tokenIn, type(uint256).max, tokenOut, _fuzz.tokenAmountOut, _maxPrice);
   }
 
-  function test_Revert_LimitIn(
+  function test_Revert_TokenAmountInAboveMaxAmountIn(
     SwapExactAmountOut_FuzzScenario memory _fuzz,
     uint256 _maxAmountIn
   ) public happyPath(_fuzz) {
@@ -1861,7 +1867,10 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     // TODO: this revert might be unreachable. Find a way to test it or remove the revert in the code.
   }
 
-  function test_Revert_LimitPrice(SwapExactAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_SpotPriceAfterBelowMaxPrice(SwapExactAmountOut_FuzzScenario memory _fuzz)
+    public
+    happyPath(_fuzz)
+  {
     uint256 _tokenAmountIn = calcInGivenOut(
       _fuzz.tokenInBalance,
       _fuzz.tokenInDenorm,
@@ -1886,7 +1895,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     bPool.swapExactAmountOut(tokenIn, type(uint256).max, tokenOut, _fuzz.tokenAmountOut, _spotPriceBefore);
   }
 
-  function test_Revert_MathApprox2(SwapExactAmountOut_FuzzScenario memory _fuzz) public {
+  function test_Revert_SpotPriceBeforeAboveTokenRatio(SwapExactAmountOut_FuzzScenario memory _fuzz) public {
     // Replicating _assumeHappyPath, but removing irrelevant assumptions and conditioning the revert
     _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
@@ -2096,14 +2105,17 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
     bPool.joinswapExternAmountIn(_tokenIn, _fuzz.tokenAmountIn, 0);
   }
 
-  function test_Revert_MaxInRatio(JoinswapExternAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_TokenAmountInAboveMaxIn(JoinswapExternAmountIn_FuzzScenario memory _fuzz)
+    public
+    happyPath(_fuzz)
+  {
     uint256 _tokenAmountIn = bmul(_fuzz.tokenInBalance, MAX_IN_RATIO);
 
     vm.expectRevert(IBPool.TokenAmountInAboveMaxIn.selector);
     bPool.joinswapExternAmountIn(tokenIn, _tokenAmountIn + 1, 0);
   }
 
-  function test_Revert_LimitOut(
+  function test_Revert_PoolAmountOutBelowMinPoolAmountOut(
     JoinswapExternAmountIn_FuzzScenario memory _fuzz,
     uint256 _minPoolAmountOut
   ) public happyPath(_fuzz) {
@@ -2278,14 +2290,14 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     bPool.joinswapPoolAmountOut(_tokenIn, _fuzz.poolAmountOut, type(uint256).max);
   }
 
-  function test_Revert_MathApprox(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_InvalidTokenAmountIn(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     _fuzz.poolAmountOut = 0;
 
     vm.expectRevert(IBPool.InvalidTokenAmountIn.selector);
     bPool.joinswapPoolAmountOut(tokenIn, _fuzz.poolAmountOut, type(uint256).max);
   }
 
-  function test_Revert_LimitIn(
+  function test_Revert_TokenAmountInAboveMaxAmountIn(
     JoinswapPoolAmountOut_FuzzScenario memory _fuzz,
     uint256 _maxAmountIn
   ) public happyPath(_fuzz) {
@@ -2303,7 +2315,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     bPool.joinswapPoolAmountOut(tokenIn, _fuzz.poolAmountOut, _maxAmountIn);
   }
 
-  function test_Revert_MaxInRatio(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public {
+  function test_Revert_TokenAmountInAboveMaxIn(JoinswapPoolAmountOut_FuzzScenario memory _fuzz) public {
     // Replicating _assumeHappyPath, but removing irrelevant assumptions and conditioning the revert
     _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
@@ -2511,7 +2523,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     bPool.exitswapPoolAmountIn(_tokenIn, _fuzz.poolAmountIn, 0);
   }
 
-  function test_Revert_LimitOut(
+  function test_Revert_TokenAmountOutBelowMinAmountOut(
     ExitswapPoolAmountIn_FuzzScenario memory _fuzz,
     uint256 _minAmountOut
   ) public happyPath(_fuzz) {
@@ -2529,7 +2541,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     bPool.exitswapPoolAmountIn(tokenOut, _fuzz.poolAmountIn, _minAmountOut);
   }
 
-  function test_Revert_MaxOutRatio(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public {
+  function test_Revert_TokenAmountOutAboveMaxOut(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public {
     // Replicating _assumeHappyPath, but removing irrelevant assumptions and conditioning the revert
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.swapFee = bound(_fuzz.swapFee, MIN_FEE, MAX_FEE);
@@ -2762,21 +2774,24 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
     bPool.exitswapExternAmountOut(_tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
-  function test_Revert_MaxOutRatio(ExitswapExternAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_TokenAmountOutAboveMaxOut(ExitswapExternAmountOut_FuzzScenario memory _fuzz)
+    public
+    happyPath(_fuzz)
+  {
     uint256 _maxTokenAmountOut = bmul(_fuzz.tokenOutBalance, MAX_OUT_RATIO);
 
     vm.expectRevert(IBPool.TokenAmountOutAboveMaxOut.selector);
     bPool.exitswapExternAmountOut(tokenOut, _maxTokenAmountOut + 1, type(uint256).max);
   }
 
-  function test_Revert_MathApprox(ExitswapExternAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_InvalidPoolAmountIn(ExitswapExternAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     _fuzz.tokenAmountOut = 0;
 
     vm.expectRevert(IBPool.InvalidPoolAmountIn.selector);
     bPool.exitswapExternAmountOut(tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
-  function test_Revert_LimitIn(
+  function test_Revert_PoolAmountInAboveMaxPoolAmountIn(
     ExitswapExternAmountOut_FuzzScenario memory _fuzz,
     uint256 _maxPoolAmountIn
   ) public happyPath(_fuzz) {
