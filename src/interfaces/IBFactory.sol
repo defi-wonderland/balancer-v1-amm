@@ -18,8 +18,14 @@ interface IBFactory {
    */
   event LOG_BLABS(address indexed caller, address indexed bLabs);
 
+  /**
+   * @notice Thrown when caller is not BLabs address
+   */
   error NotBLabs();
 
+  /**
+   * @notice Thrown when the ERC20 transfer fails
+   */
   error ERC20TransferFailed();
 
   /**

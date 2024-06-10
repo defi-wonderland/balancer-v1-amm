@@ -56,64 +56,154 @@ interface IBPool is IERC20 {
    */
   event LOG_CALL(bytes4 indexed sig, address indexed caller, bytes data) anonymous;
 
+  /**
+   * @notice Thrown when a reentrant call is made
+   */
   error Reentrancy();
 
+  /**
+   * @notice Thrown when the pool is finalized
+   */
   error PoolIsFinalized();
 
+  /**
+   * @notice Thrown when the caller is not the controller
+   */
   error CallerIsNotController();
 
+  /**
+   * @notice Thrown when the pool is not finalized
+   */
   error FeeBelowMinimum();
 
+  /**
+   * @notice Thrown when the fee to set is above the maximum
+   */
   error FeeAboveMaximum();
 
+  /**
+   * @notice Thrown when the tokens array is below the minimum
+   */
   error TokensBelowMinimum();
 
+  /**
+   * @notice Thrown when the token is already bound in the pool
+   */
   error TokenAlreadyBound();
 
+  /**
+   * @notice Thrown when the tokens array is above the maximum
+   */
   error TokensAboveMaximum();
 
+  /**
+   * @notice Thrown when the weight to set is below the minimum
+   */
   error WeightBelowMinimum();
 
+  /**
+   * @notice Thrown when the weight to set is above the maximum
+   */
   error WeightAboveMaximum();
 
+  /**
+   * @notice Thrown when the balance to add is below the minimum
+   */
   error BalanceBelowMinimum();
 
+  /**
+   * @notice Thrown when the total weight is above the maximum
+   */
   error TotalWeightAboveMaximum();
 
+  /**
+   * @notice Thrown when the ratio between the pool token amount and the total supply is zero
+   */
   error InvalidPoolRatio();
 
+  /**
+   * @notice Thrown when the calculated token amount in is zero
+   */
   error InvalidTokenAmountIn();
 
+  /**
+   * @notice Thrown when the token amount in is above maximum amount in allowed by the caller
+   */
   error TokenAmountInAboveMaxAmountIn();
 
+  /**
+   * @notice Thrown when the calculated token amount out is zero
+   */
   error InvalidTokenAmountOut();
 
+  /**
+   * @notice Thrown when the token amount out is below minimum amount out allowed by the caller
+   */
   error TokenAmountOutBelowMinAmountOut();
 
+  /**
+   * @notice Thrown when the token is not bound in the pool
+   */
   error TokenNotBound();
 
+  /**
+   * @notice Thrown when the pool is not finalized
+   */
   error PoolNotFinalized();
 
+  /**
+   * @notice Thrown when the token amount in surpasses the maximum in allowed by the pool
+   */
   error TokenAmountInAboveMaxIn();
 
+  /**
+   * @notice Thrown when the spot price before the swap is above the max allowed by the caller
+   */
   error SpotPriceAboveMaxPrice();
 
+  /**
+   * @notice Thrown when the token amount out is below the minimum out allowed by the caller
+   */
   error TokenAmountOutBelowMinOut();
 
+  /**
+   * @notice Thrown when the spot price after the swap is below the spot price before the swap
+   */
   error SpotPriceAfterBelowSpotPriceBefore();
 
+  /**
+   * @notice Thrown when the spot price after the swap is above the max allowed by the caller
+   */
   error SpotPriceAfterBelowMaxPrice();
 
+  /**
+   * @notice Thrown when the spot price before the swap is above the ratio between the two tokens in the pool
+   */
   error SpotPriceBeforeAboveTokenRatio();
 
+  /**
+   * @notice Thrown when the token amount out surpasses the maximum out allowed by the pool
+   */
   error TokenAmountOutAboveMaxOut();
 
+  /**
+   * @notice Thrown when the pool token amount out is below the minimum pool token amount out allowed by the caller
+   */
   error PoolAmountOutBelowMinPoolAmountOut();
 
+  /**
+   * @notice Thrown when the calculated pool token amount in is zero
+   */
   error InvalidPoolAmountIn();
 
+  /**
+   * @notice Thrown when the pool token amount in is above the maximum amount in allowed by the caller
+   */
   error PoolAmountInAboveMaxPoolAmountIn();
 
+  /**
+   * @notice Thrown when the ERC20 transfer fails
+   */
   error ERC20TransferFailed();
 
   /**
