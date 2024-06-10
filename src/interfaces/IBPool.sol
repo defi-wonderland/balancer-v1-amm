@@ -59,152 +59,152 @@ interface IBPool is IERC20 {
   /**
    * @notice Thrown when a reentrant call is made
    */
-  error Reentrancy();
+  error BPool_Reentrancy();
 
   /**
    * @notice Thrown when the pool is finalized
    */
-  error PoolIsFinalized();
+  error BPool_PoolIsFinalized();
 
   /**
    * @notice Thrown when the caller is not the controller
    */
-  error CallerIsNotController();
+  error BPool_CallerIsNotController();
 
   /**
    * @notice Thrown when the pool is not finalized
    */
-  error FeeBelowMinimum();
+  error BPool_FeeBelowMinimum();
 
   /**
    * @notice Thrown when the fee to set is above the maximum
    */
-  error FeeAboveMaximum();
+  error BPool_FeeAboveMaximum();
 
   /**
    * @notice Thrown when the tokens array is below the minimum
    */
-  error TokensBelowMinimum();
+  error BPool_TokensBelowMinimum();
 
   /**
    * @notice Thrown when the token is already bound in the pool
    */
-  error TokenAlreadyBound();
+  error BPool_TokenAlreadyBound();
 
   /**
    * @notice Thrown when the tokens array is above the maximum
    */
-  error TokensAboveMaximum();
+  error BPool_TokensAboveMaximum();
 
   /**
    * @notice Thrown when the weight to set is below the minimum
    */
-  error WeightBelowMinimum();
+  error BPool_WeightBelowMinimum();
 
   /**
    * @notice Thrown when the weight to set is above the maximum
    */
-  error WeightAboveMaximum();
+  error BPool_WeightAboveMaximum();
 
   /**
    * @notice Thrown when the balance to add is below the minimum
    */
-  error BalanceBelowMinimum();
+  error BPool_BalanceBelowMinimum();
 
   /**
    * @notice Thrown when the total weight is above the maximum
    */
-  error TotalWeightAboveMaximum();
+  error BPool_TotalWeightAboveMaximum();
 
   /**
    * @notice Thrown when the ratio between the pool token amount and the total supply is zero
    */
-  error InvalidPoolRatio();
+  error BPool_InvalidPoolRatio();
 
   /**
    * @notice Thrown when the calculated token amount in is zero
    */
-  error InvalidTokenAmountIn();
+  error BPool_InvalidTokenAmountIn();
 
   /**
    * @notice Thrown when the token amount in is above maximum amount in allowed by the caller
    */
-  error TokenAmountInAboveMaxAmountIn();
+  error BPool_TokenAmountInAboveMaxAmountIn();
 
   /**
    * @notice Thrown when the calculated token amount out is zero
    */
-  error InvalidTokenAmountOut();
+  error BPool_InvalidTokenAmountOut();
 
   /**
    * @notice Thrown when the token amount out is below minimum amount out allowed by the caller
    */
-  error TokenAmountOutBelowMinAmountOut();
+  error BPool_TokenAmountOutBelowMinAmountOut();
 
   /**
    * @notice Thrown when the token is not bound in the pool
    */
-  error TokenNotBound();
+  error BPool_TokenNotBound();
 
   /**
    * @notice Thrown when the pool is not finalized
    */
-  error PoolNotFinalized();
+  error BPool_PoolNotFinalized();
 
   /**
    * @notice Thrown when the token amount in surpasses the maximum in allowed by the pool
    */
-  error TokenAmountInAboveMaxIn();
+  error BPool_TokenAmountInAboveMaxIn();
 
   /**
    * @notice Thrown when the spot price before the swap is above the max allowed by the caller
    */
-  error SpotPriceAboveMaxPrice();
+  error BPool_SpotPriceAboveMaxPrice();
 
   /**
    * @notice Thrown when the token amount out is below the minimum out allowed by the caller
    */
-  error TokenAmountOutBelowMinOut();
+  error BPool_TokenAmountOutBelowMinOut();
 
   /**
    * @notice Thrown when the spot price after the swap is below the spot price before the swap
    */
-  error SpotPriceAfterBelowSpotPriceBefore();
+  error BPool_SpotPriceAfterBelowSpotPriceBefore();
 
   /**
    * @notice Thrown when the spot price after the swap is above the max allowed by the caller
    */
-  error SpotPriceAfterBelowMaxPrice();
+  error BPool_SpotPriceAfterBelowMaxPrice();
 
   /**
    * @notice Thrown when the spot price before the swap is above the ratio between the two tokens in the pool
    */
-  error SpotPriceBeforeAboveTokenRatio();
+  error BPool_SpotPriceBeforeAboveTokenRatio();
 
   /**
    * @notice Thrown when the token amount out surpasses the maximum out allowed by the pool
    */
-  error TokenAmountOutAboveMaxOut();
+  error BPool_TokenAmountOutAboveMaxOut();
 
   /**
    * @notice Thrown when the pool token amount out is below the minimum pool token amount out allowed by the caller
    */
-  error PoolAmountOutBelowMinPoolAmountOut();
+  error BPool_PoolAmountOutBelowMinPoolAmountOut();
 
   /**
    * @notice Thrown when the calculated pool token amount in is zero
    */
-  error InvalidPoolAmountIn();
+  error BPool_InvalidPoolAmountIn();
 
   /**
    * @notice Thrown when the pool token amount in is above the maximum amount in allowed by the caller
    */
-  error PoolAmountInAboveMaxPoolAmountIn();
+  error BPool_PoolAmountInAboveMaxPoolAmountIn();
 
   /**
    * @notice Thrown when the ERC20 transfer fails
    */
-  error ERC20TransferFailed();
+  error BPool_ERC20TransferFailed();
 
   /**
    * @notice Sets the new swap fee
