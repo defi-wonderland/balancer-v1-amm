@@ -21,12 +21,12 @@ interface IBFactory {
   /**
    * @notice Thrown when caller is not BLabs address
    */
-  error NotBLabs();
+  error BFactory_NotBLabs();
 
   /**
    * @notice Thrown when the ERC20 transfer fails
    */
-  error ERC20TransferFailed();
+  error BFactory_ERC20TransferFailed();
 
   /**
    * @notice Creates a new BPool, assigning the caller as the pool controller
