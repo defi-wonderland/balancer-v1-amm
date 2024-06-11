@@ -67,12 +67,6 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    */
   bytes32 public appDataHash;
 
-  // TODO: unify with BPool
-  modifier onlyController() {
-    require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
-    _;
-  }
-
   /// @dev we should document somewhere the domain separator is hardcoded at
   /// deploy time so signatures could be replayed in subsequent forks, but that's
   /// also the case with GPV2Settlement (_cowSolutionSettler implementation) so
@@ -88,7 +82,6 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    * this AMM on CoW Protocol.
    * @param appData Trading is enabled with the appData specified here.
    */
-  // TODO: unify onlyController with BPool
   function enableTrading(bytes32 appData) external onlyController {
     bytes32 _appDataHash = hash(appData);
     appDataHash = _appDataHash;
@@ -98,7 +91,6 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   /**
    * @notice Disable any form of trading on CoW Protocol by this AMM.
    */
-  // TODO: unify onlyController with BPool
   function disableTrading() external onlyController {
     appDataHash = NO_TRADING;
     emit TradingDisabled();

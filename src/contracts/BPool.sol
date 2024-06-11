@@ -52,6 +52,16 @@ contract BPool is BToken, BMath, IBPool {
     _;
   }
 
+  /**
+   * @notice Throws an error if caller is not controller
+   */
+  modifier onlyController() {
+    if (msg.sender != _controller) {
+      revert BPool_CallerIsNotController();
+    }
+    _;
+  }
+
   constructor() {
     _controller = msg.sender;
     _factory = msg.sender;
@@ -60,12 +70,9 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function setSwapFee(uint256 swapFee) external _logs_ _lock_ {
+  function setSwapFee(uint256 swapFee) external _logs_ _lock_ onlyController {
     if (_finalized) {
       revert BPool_PoolIsFinalized();
-    }
-    if (msg.sender != _controller) {
-      revert BPool_CallerIsNotController();
     }
     if (swapFee < MIN_FEE) {
       revert BPool_FeeBelowMinimum();
@@ -77,18 +84,12 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function setController(address manager) external _logs_ _lock_ {
-    if (msg.sender != _controller) {
-      revert BPool_CallerIsNotController();
-    }
+  function setController(address manager) external _logs_ _lock_ onlyController {
     _controller = manager;
   }
 
   /// @inheritdoc IBPool
-  function finalize() public virtual _logs_ _lock_ {
-    if (msg.sender != _controller) {
-      revert BPool_CallerIsNotController();
-    }
+  function finalize() public virtual _logs_ _lock_ onlyController {
     if (_finalized) {
       revert BPool_PoolIsFinalized();
     }
@@ -103,10 +104,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function bind(address token, uint256 balance, uint256 denorm) external _logs_ _lock_ {
-    if (msg.sender != _controller) {
-      revert BPool_CallerIsNotController();
-    }
+  function bind(address token, uint256 balance, uint256 denorm) external _logs_ _lock_ onlyController {
     if (_records[token].bound) {
       revert BPool_TokenAlreadyBound();
     }
@@ -140,10 +138,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function unbind(address token) external _logs_ _lock_ {
-    if (msg.sender != _controller) {
-      revert BPool_CallerIsNotController();
-    }
+  function unbind(address token) external _logs_ _lock_ onlyController {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
     }
