@@ -1,137 +1,289 @@
 BPool::setSwapFee
-# when pool is the caller (reentrant)
-## it should revert
-# when pool isn't finalized
-## it should revert
-# when called by a non-controller
-## it should revert
-# when called by the controller
-## when the fee is set lte MIN_FEE
-### it should revert
-## when the fee is set gte MAX_FEE
-### it should revert
-## when the fee is set between MIN_FEE and MAX_FEE
-### it should set the fee
-### it should emit LOG_CALL
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when pool isn't finalized
+│   └── it should revert
+├── when called by a non-controller
+│   └── it should revert
+└── when called by the controller
+    ├── when the fee is set lte MIN_FEE
+    │   └── it should revert
+    ├── when the fee is set gte MAX_FEE
+    │   └── it should revert
+    └── when the fee is set between MIN_FEE and MAX_FEE
+        ├── it should set the fee
+        └── it should emit LOG_CALL
+
 
 BPool::setController
-# when pool is the caller (reentrant)
-## it should revert
-# when called by a non-controller
-## it should revert
-# when called by the controller
-## it should set the controller
-## it should emit LOG_CALL
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when called by a non-controller
+│   └── it should revert
+└── when called by the controller
+    ├── it should set the controller
+    └── it should emit LOG_CALL
+
 
 BPool::finalize
-# when pool is the caller (reentrant)
-## it should revert
-# when called by a non-controller
-## it should revert
-# when pool is finalized
-## it should revert
-# when there are less tokens than MIN_BOUND_TOKENS
-## it should revert
-# when called by the controller
-## it should mint the initial BToken supply
-## it should send the initial BToken supply to the caller
-## it should set the pool as finalized
-## it should emit LOG_CALL
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when called by a non-controller
+│   └── it should revert
+├── when pool is finalized
+│   └── it should revert
+├── when there are less tokens than MIN_BOUND_TOKENS
+│   └── it should revert
+└── when called by the controller
+    ├── it should mint the initial BToken supply
+    ├── it should send the initial BToken supply to the caller
+    ├── it should set the pool as finalized
+    └── it should emit LOG_CALL
+
 
 BPool::bind
-# when pool is the caller (reentrant)
-## it should revert
-# when called by a non-controller
-## it should revert
-# when the token to bind is already bound
-## it should revert
-# when the pool is finalized
-## it should revert
-# when there are already MAX_BOUND tokens
-## it should revert
-# when the denorm is lte MIN_WEIGHT
-## it should revert
-# when the denorm is gte MAX_WEIGHT
-## it should revert
-# when the balance to send is less than MIN_BALANCE
-## it should revert
-# when the new total weight is gt MAX_TOTAL_WEIGHT
-## it should revert
-# when the function requirements are met
-## it should set the token as bound,
-## it should set the token's index
-## it should set the token's denorm,
-## it should add the token to the tokens array
-## it should transfer the amount from the caller to the pool
-## it should emit LOG_CALL
-### when the token transfer fails
-#### it should revert
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when called by a non-controller
+│   └── it should revert
+├── when the token to bind is already bound
+│   └── it should revert
+├── when the pool is finalized
+│   └── it should revert
+├── when there are already MAX_BOUND tokens
+│   └── it should revert
+├── when the denorm is lte MIN_WEIGHT
+│   └── it should revert
+├── when the denorm is gte MAX_WEIGHT
+│   └── it should revert
+├── when the balance to send is less than MIN_BALANCE
+│   └── it should revert
+├── when the new total weight is gt MAX_TOTAL_WEIGHT
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should set the token as bound,
+    ├── it should set the token's index
+    ├── it should set the token's denorm,
+    ├── it should add the token to the tokens array
+    ├── it should transfer the amount from the caller to the pool
+    ├── it should emit LOG_CALL
+    └── when the token transfer fails
+        └── it should revert
+
 
 BPool::unbind
-# when pool is the caller (reentrant)
-## it should revert
-# when called by a non-controller
-## it should revert
-# when the token to unbind is not bound
-## it should revert
-# when the pool is finalized
-## it should revert
-# when the function requirements are met
-## it should update the total weight
-## it should remove the token from the token array
-## it should update the token record to unbound
-## it should transfer the token balance to the caller
-## it should emit LOG_CALL
-### when the token transfer fails
-#### it should revert
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when called by a non-controller
+│   └── it should revert
+├── when the token to unbind is not bound
+│   └── it should revert
+├── when the pool is finalized
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should update the total weight
+    ├── it should remove the token from the token array
+    ├── it should update the token record to unbound
+    ├── it should transfer the token balance to the caller
+    ├── it should emit LOG_CALL
+    └── when the token transfer fails
+        └── it should revert
+
 
 BPool::joinPool
-# when pool is the caller (reentrant)
-## it should revert
-# when the pool is not finalized
-## it should revert
-# when the ratio poolAmountOut to poolTotal is zero
-## it should revert
-# when one of the token amount in is zero
-## it should revert
-# when the token amount in of one of the pool token exceeds the corresponding maxAmountsIn
-## it should revert
-# when the function requirements are met
-### it should emit LOG_JOIN for each token
-### it should transfer the token amount in from the caller to the pool, for each token
-## it should mint pool shares for the caller
-## it should emit LOG_CALL
-### when one of the underlying token transfers fails
-#### it should revert
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when the pool is not finalized
+│   └── it should revert
+├── when the ratio poolAmountOut to poolTotal is zero
+│   └── it should revert
+├── when one of the token amount in is zero
+│   └── it should revert
+├── when the token amount in of one of the pool token exceeds the corresponding maxAmountsIn
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should emit LOG_JOIN for each token
+    ├── it should transfer the token amount in from the caller to the pool, for each token
+    ├── it should mint pool shares for the caller
+    ├── it should emit LOG_CALL
+    └── when one of the underlying token transfers fails
+        └── it should revert
+
 
 BPoo::exitPool
-# when pool is the caller (reentrant)
-## it should revert
-# when the pool is not finalized
-## it should revert
-# when poolAmountIn - poolAmountIn * exit fee / pooltotal is zero
-## it should revert
-# when the function requirements are met
-## it should transfer the btoken from the caller to the pool
-## it should transfer the exit fee (poolAmountIn*exit fee) to the factory
-## it should burn the rest of the btoken
-## it should transfer the pool tokens to the caller
-## it should emit LOG_CALL
-## it should emit LOG_EXIT for each token
-### when one of the underlying token transfer is a zero amount
-#### it should revert
-### when one of the underlying token transfer amount is less than the minAmountsOut
-#### it should revert
-### when one of the underlying token transfer fails
-#### it should revert
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when the pool is not finalized
+│   └── it should revert
+├── when poolAmountIn - poolAmountIn * exit fee / pooltotal is zero
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should transfer the btoken from the caller to the pool
+    ├── it should transfer the exit fee (poolAmountIn*exit fee) to the factory
+    ├── it should burn the rest of the btoken
+    ├── it should transfer the pool tokens to the caller
+    ├── it should emit LOG_CALL
+    ├── it should emit LOG_EXIT for each token
+    ├── when one of the underlying token transfer is a zero amount
+    │   └── it should revert
+    ├── when one of the underlying token transfer amount is less than the minAmountsOut
+    │   └── it should revert
+    └── when one of the underlying token transfer fails
+        └── it should revert
 
 
 BPool::swapExactAmountIn // No in != out check? 
-# when pool is the caller (reentrant)
-## it should revert
-# when the pool is not finalized
-## it should revert
-# when the tokenIn is not bound
-## it should revert
-# when the tokenOut is not bound
-## it should revert
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when the tokenIn is not bound
+│   └── it should revert
+├── when the tokenOut is not bound
+│   └── it should revert
+├── when the pool is not finalized
+│   └── it should revert
+├── when the tokenAmountIn is lte tokenInBalance * MAX_IN_RATIO
+│   └── it should revert
+├── when the spot price before the swap is gt maxPrice
+│   └── it should revert
+├── when the token amount out is less than minAmountOut
+│   └── it should revert
+├── when the spot price decreases after the swap
+│   └── it should revert
+├── when the spot price after the swap is gt maxPrice
+│   └── it should revert
+├── when the spot price after the swap is gt tokenAmountIn/tokenAmountOut
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should transfer tokenAmountIn tokenIn from the caller to the pool
+    ├── it should transfer tokenAmountOut tokenOut from the pool to the caller
+    ├── it should emit LOG_CALL
+    └── when one of the underlying token transfer fails
+        └── it should revert
+
+
+BPool::swapExactAmountOut
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when the tokenIn is not bound
+│   └── it should revert
+├── when the tokenOut is not bound
+│   └── it should revert
+├── when the pool is not finalized
+│   └── it should revert
+├── when the tokenAmountOut is lte tokenInBalance * MAX_OUT_RATIO
+│   └── it should revert
+├── when the spot price before the swap is gt maxPrice
+│   └── it should revert
+├── when the token amount in is gt maxAmountIn
+│   └── it should revert
+├── when the spot price decreases after the swap
+│   └── it should revert
+├── when the spot price after the swap is gt maxPrice
+│   └── it should revert
+├── when the spot price after the swap is gt tokenAmountIn/tokenAmountOut
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should transfer the tokenIn from the caller to the pool
+    ├── it should transfer the tokenOut from the pool to the caller
+    ├── it should emit LOG_CALL
+    └── when one of the underlying token transfer fails
+        └── it should revert
+
+
+BPool::joinswapExternAmountIn
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when the token is not bound
+│   └── it should revert
+├── when the pool is not finalized
+│   └── it should revert
+├── when the tokenAmountIn is lte tokenInBalance * MAX_IN_RATIO
+│   └── it should revert
+├── when the pool amount out is lt min pool amount out
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should mint pool amount out
+    ├── it should transfer the pool amount out to the caller
+    ├── it should transfer the token amount in from the caller to the pool
+    └── it should emit LOG_CALL
+
+
+BPool::joinswapPoolAmountOut
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when the token is not bound
+│   └── it should revert
+├── when the pool is not finalized
+│   └── it should revert
+├── when the calculated token amount in is == 0
+│   └── it should revert
+├── when the calculated token amount in is gt max amount in
+│   └── it should revert
+├── when the calculated token amount in is gt tokenInBalance*MAX_IN_RATIO
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should mint pool amount out
+    ├── it should transfer the pool amount out to the caller
+    ├── it should transfer the token amount in from the caller to the pool
+    ├── it should emit LOG_JOIN
+    └── it should emit LOG_CALL
+
+
+BPool::exitswapPoolAmountIn
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when the token is not bound
+│   └── it should revert
+├── when the pool is not finalized
+│   └── it should revert
+├── when the calculated token amount out is lt min amount out
+│   └── it should revert
+├── when the calculated token amount out is gt tokenOutBalance*MAX_OUT_RATIO
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should pull the pool amount in
+    ├── it should burn the pool amount in minus fee
+    ├── it should transfer the fee to the factory
+    ├── it should transfer the token amount out to the caller
+    ├── it should emit LOG_EXIT
+    └── it should emit LOG_CALL
+
+
+BPool::exitswapExternAmountOut
+├── when pool is the caller (reentrant)
+│   └── it should revert
+├── when the token is not bound
+│   └── it should revert
+├── when the pool is not finalized
+│   └── it should revert
+├── when the pool amount out is gt tokenOutBalance*MAX_OUT_RATIO
+│   └── it should revert
+├── when the calculated pool amount in is zero
+│   └── it should revert
+├── when the calculated pool amount in is gt max pool amount in
+│   └── it should revert
+└── when the function requirements are met
+    ├── it should pull the pool amount in
+    ├── it should burn the pool amount in minus fee
+    ├── it should transfer the fee to the factory
+    ├── it should transfer the token amount out to the caller
+    ├── it should emit LOG_EXIT
+    └── it should emit LOG_CALL
+
+
+BPool::getSpotPrice
+├── when the tokenIn is not bound
+│   └── it should revert
+├── when the tokenOut is not bound
+│   └── it should revert
+└── when both token are not bound
+    └── it should return the spot price
+
+
+BPool::getSpotPriceSansFee
+├── when the tokenIn is not bound
+│   └── it should revert
+├── when the tokenOut is not bound
+│   └── it should revert
+└── when both token are not bound
+    └── it should return the spot price without fees

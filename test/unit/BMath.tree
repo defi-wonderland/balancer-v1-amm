@@ -1,79 +1,85 @@
 BMath::calcSpotPrice
-# when swapFee is BONE
-## it will revert (div by zero)
-# when token balance in > uint max/BONE
-## it will revert (overflow)
-# when token balance out > uint max/BONE
-## it will revert (overflow)
-# when token balance in * BONE + (token weight in/2) > uint max
-## it will revert (overflow)
-# when token balance out * BONE + (token weight out/2) > uint max
-## it will revert (overflow)
-# when using a swap fee of 0
-## it should return bi/wi * wo/bo
-# when using known values // generic for some given values
-## it should return correct value
+├── when swapFee is BONE
+│   └── it will revert (div by zero)
+├── when token balance in > uint max/BONE
+│   └── it will revert (overflow)
+├── when token balance out > uint max/BONE
+│   └── it will revert (overflow)
+├── when token balance in * BONE + (token weight in/2) > uint max
+│   └── it will revert (overflow)
+├── when token balance out * BONE + (token weight out/2) > uint max
+│   └── it will revert (overflow)
+├── when using a swap fee of 0
+│   └── it should return bi/wi * wo/bo
+└── when using known values // generic for some given values
+    └── it should return correct value
+
 
 BMath::calcOutGivenIn
-# when token weight out is 0
-## it revert (div by zero)
-# when  token amount in is 0
-## it revert (div by zero)
-# when token balance In + (BONE - swapFee) is 0
-## it revert (div by zero)
-# when token weight in is 0
-## it should return 0
-# when token weight in equals token weight out
-## it should return bo * 1 - (bi/ bi+(ai*(1-sf))))
-# when using known values // generic for some given values
-## it should return correct value
+.
+├── when token weight out is 0
+│   └── it revert (div by zero)
+├── when  token amount in is 0
+│   └── it revert (div by zero)
+├── when token balance In + (BONE - swapFee) is 0
+│   └── it revert (div by zero)
+├── when token weight in is 0
+│   └── it should return 0
+├── when token weight in equals token weight out
+│   └── it should return bo * 1 - (bi/ bi+(ai*(1-sf))))
+└── when using known values // generic for some given values
+    └── it should return correct value
+
 
 BMath::calcInGivenOut
-# when token weight in is 0
-## it revert (div by zero)
-# when  token amount out equals token balance out
-## it revert (div by zero)
-# when token weight out is 0
-## it should return 0
-# when token weight in equals token weight out
-## it should return bi * (1 - (bo/(bo-ao) - 1)))
-# when using known values // generic for some given values
-## it should return correct value
+├── when token weight in is 0
+│   └── it revert (div by zero)
+├── when  token amount out equals token balance out
+│   └── it revert (div by zero)
+├── when token weight out is 0
+│   └── it should return 0
+├── when token weight in equals token weight out
+│   └── it should return bi * (1 - (bo/(bo-ao) - 1)))
+└── when using known values // generic for some given values
+    └── it should return correct value
+
 
 BMath::calcPoolOutGivenSingleIn
-# when token balance in is 0
-## it revert (div by zero)
-# when token weight in is 0
-## it should return 0
-# when using known values // generic for some given values
-## it should return correct value
+├── when token balance in is 0
+│   └── it revert (div by zero)
+├── when token weight in is 0
+│   └── it should return 0
+└── when using known values // generic for some given values
+    └── it should return correct value
+
 
 BMath::calcSingleInGivenPoolOut
-# when total weight is 0
-## it revert (div by zero)
-# when swap fee is 0
-## it revert (div by zero)
-# when using known values // generic for some given values
-## it should return correct value
+├── when total weight is 0
+│   └── it revert (div by zero)
+├── when swap fee is 0
+│   └── it revert (div by zero)
+└── when using known values // generic for some given values
+    └── it should return correct value
 
 BMath::calcPoolSingleOutGivenPoolIn
-# when pool supply is 0
-## it revert (div by zero)
-# when total weight is 0
-## it revert (div by zero)
-# when token balance out is 0
-## it should return 0
-# when using known values // generic for some given values
-## it should return correct value
+├── when pool supply is 0
+│   └── it revert (div by zero)
+├── when total weight is 0
+│   └── it revert (div by zero)
+├── when token balance out is 0
+│   └── it should return 0
+└── when using known values // generic for some given values
+    └── it should return correct value
+
 
 BMath::calcPoolInGivenSingleOut
-# when exit fee is 1
-## it should revert
-# when tokenBalanceOut is 0
-## it should revert
-# when swap fee is 1 and token weight out is 0
-## it should revert
-# when pool supply is 0
-## it should return 0
-# when using known values // generic for some given values
-## it should return correct value
+├── when exit fee is 1
+│   └── it should revert
+├── when tokenBalanceOut is 0
+│   └── it should revert
+├── when swap fee is 1 and token weight out is 0
+│   └── it should revert
+├── when pool supply is 0
+│   └── it should return 0
+└── when using known values // generic for some given values
+    └── it should return correct value
