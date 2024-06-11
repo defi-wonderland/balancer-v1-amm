@@ -83,7 +83,7 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    * @param appData Trading is enabled with the appData specified here.
    */
   function enableTrading(bytes32 appData) external onlyController {
-    bytes32 _appDataHash = hash(appData);
+    bytes32 _appDataHash = keccak256(abi.encode(appData));
     appDataHash = _appDataHash;
     emit TradingEnabled(_appDataHash, appData);
   }
@@ -115,16 +115,18 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
 
   /**
    * @inheritdoc IERC1271
+   * @dev this function reverts if the order hash does not match the current commitment
    */
   function isValidSignature(bytes32 _hash, bytes memory signature) external view returns (bytes4) {
     (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
 
-    // TODO: unify error log criteria with BalV1 (use require and string error message)
-    if (appDataHash != hash(order.appData)) revert AppDataDoNotMatchHash();
+    if (appDataHash != keccak256(abi.encode(order.appData))) revert AppDataDoNotMatchHash();
     bytes32 orderHash = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);
     if (orderHash != _hash) revert OrderDoesNotMatchMessageHash();
 
-    _requireMatchingCommitment(orderHash);
+    if (orderHash != commitment()) {
+      revert OrderDoesNotMatchCommitmentHash();
+    }
 
     verify(order);
 
@@ -179,16 +181,6 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   }
 
   /**
-   * @dev Computes an identifier that uniquely represents the parameters in
-   * the function input parameters.
-   * @param appData Bytestring that decodes to `AppData`
-   * @return The hash of the input parameter, intended to be used as a unique identifier
-   */
-  function hash(bytes32 appData) public pure returns (bytes32) {
-    return keccak256(abi.encode(appData));
-  }
-
-  /**
    * @notice Approves the spender to transfer an unlimited amount of tokens
    * and reverts if the approval was unsuccessful.
    * @param token The ERC-20 token to approve.
@@ -204,24 +196,6 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
   function _afterFinalize() internal override {
     for (uint256 i; i < _tokens.length; i++) {
       _approveUnlimited(IERC20(_tokens[i]), VAULT_RELAYER);
-    }
-  }
-
-  /**
-   * @notice This function triggers a revert if either (1) the order hash does
-   * not match the current commitment, or (2) in the case of a commitment to
-   * `EMPTY_COMMITMENT`, the non-constant parameters of the order from
-   * `getTradeableOrder` don't match those of the input order.
-   * @param orderHash the hash of the current order as defined by the
-   * `GPv2Order` library.
-   */
-  function _requireMatchingCommitment(bytes32 orderHash) internal view {
-    bytes32 committedOrderHash = commitment();
-
-    if (orderHash != committedOrderHash) {
-      if (committedOrderHash != EMPTY_COMMITMENT) {
-        revert OrderDoesNotMatchCommitmentHash();
-      }
     }
   }
 }
