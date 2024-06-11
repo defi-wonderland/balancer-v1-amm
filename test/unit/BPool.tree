@@ -1,5 +1,5 @@
 BPool::setSwapFee
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when pool isn't finalized
 │   └── it should revert
@@ -16,7 +16,7 @@ BPool::setSwapFee
 
 
 BPool::setController
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when called by a non-controller
 │   └── it should revert
@@ -26,7 +26,7 @@ BPool::setController
 
 
 BPool::finalize
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when called by a non-controller
 │   └── it should revert
@@ -42,7 +42,7 @@ BPool::finalize
 
 
 BPool::bind
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when called by a non-controller
 │   └── it should revert
@@ -72,7 +72,7 @@ BPool::bind
 
 
 BPool::unbind
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when called by a non-controller
 │   └── it should revert
@@ -91,7 +91,7 @@ BPool::unbind
 
 
 BPool::joinPool
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when the pool is not finalized
 │   └── it should revert
@@ -110,13 +110,14 @@ BPool::joinPool
         └── it should revert
 
 
-BPoo::exitPool
-├── when pool is the caller (reentrant)
+BPool::exitPool
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when the pool is not finalized
 │   └── it should revert
-├── when poolAmountIn - poolAmountIn * exit fee / pooltotal is zero
+├── when net pool share is zero
 │   └── it should revert
+│       └── poolAmountIn - poolAmountIn * exit fee / pooltotal is zero
 └── when the function requirements are met
     ├── it should transfer the btoken from the caller to the pool
     ├── it should transfer the exit fee (poolAmountIn*exit fee) to the factory
@@ -133,7 +134,7 @@ BPoo::exitPool
 
 
 BPool::swapExactAmountIn // No in != out check? 
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when the tokenIn is not bound
 │   └── it should revert
@@ -141,8 +142,9 @@ BPool::swapExactAmountIn // No in != out check?
 │   └── it should revert
 ├── when the pool is not finalized
 │   └── it should revert
-├── when the tokenAmountIn is lte tokenInBalance * MAX_IN_RATIO
+├── when the tokenAmountIn is too small
 │   └── it should revert
+│       └── tokenAmountIn is lte tokenInBalance * MAX_IN_RATIO
 ├── when the spot price before the swap is gt maxPrice
 │   └── it should revert
 ├── when the token amount out is less than minAmountOut
@@ -151,7 +153,7 @@ BPool::swapExactAmountIn // No in != out check?
 │   └── it should revert
 ├── when the spot price after the swap is gt maxPrice
 │   └── it should revert
-├── when the spot price after the swap is gt tokenAmountIn/tokenAmountOut
+├── when the spot price after the swap is gt tokenAmountIn div by tokenAmountOut
 │   └── it should revert
 └── when the function requirements are met
     ├── it should transfer tokenAmountIn tokenIn from the caller to the pool
@@ -162,7 +164,7 @@ BPool::swapExactAmountIn // No in != out check?
 
 
 BPool::swapExactAmountOut
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when the tokenIn is not bound
 │   └── it should revert
@@ -170,7 +172,7 @@ BPool::swapExactAmountOut
 │   └── it should revert
 ├── when the pool is not finalized
 │   └── it should revert
-├── when the tokenAmountOut is lte tokenInBalance * MAX_OUT_RATIO
+├── when the tokenAmountOut is lte tokenInBalance mul by MAX_OUT_RATIO
 │   └── it should revert
 ├── when the spot price before the swap is gt maxPrice
 │   └── it should revert
@@ -180,7 +182,7 @@ BPool::swapExactAmountOut
 │   └── it should revert
 ├── when the spot price after the swap is gt maxPrice
 │   └── it should revert
-├── when the spot price after the swap is gt tokenAmountIn/tokenAmountOut
+├── when the spot price after the swap is gt tokenAmountIn div by tokenAmountOut
 │   └── it should revert
 └── when the function requirements are met
     ├── it should transfer the tokenIn from the caller to the pool
@@ -189,15 +191,14 @@ BPool::swapExactAmountOut
     └── when one of the underlying token transfer fails
         └── it should revert
 
-
 BPool::joinswapExternAmountIn
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when the token is not bound
 │   └── it should revert
 ├── when the pool is not finalized
 │   └── it should revert
-├── when the tokenAmountIn is lte tokenInBalance * MAX_IN_RATIO
+├── when the tokenAmountIn is lte tokenInBalance mul by MAX_IN_RATIO
 │   └── it should revert
 ├── when the pool amount out is lt min pool amount out
 │   └── it should revert
@@ -209,17 +210,17 @@ BPool::joinswapExternAmountIn
 
 
 BPool::joinswapPoolAmountOut
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when the token is not bound
 │   └── it should revert
 ├── when the pool is not finalized
 │   └── it should revert
-├── when the calculated token amount in is == 0
+├── when the calculated token amount in equals 0
 │   └── it should revert
 ├── when the calculated token amount in is gt max amount in
 │   └── it should revert
-├── when the calculated token amount in is gt tokenInBalance*MAX_IN_RATIO
+├── when the calculated token amount in is gt tokenInBalance mul by MAX_IN_RATIO
 │   └── it should revert
 └── when the function requirements are met
     ├── it should mint pool amount out
@@ -230,7 +231,7 @@ BPool::joinswapPoolAmountOut
 
 
 BPool::exitswapPoolAmountIn
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when the token is not bound
 │   └── it should revert
@@ -238,7 +239,7 @@ BPool::exitswapPoolAmountIn
 │   └── it should revert
 ├── when the calculated token amount out is lt min amount out
 │   └── it should revert
-├── when the calculated token amount out is gt tokenOutBalance*MAX_OUT_RATIO
+├── when the calculated token amount out is gt tokenOutBalance mul by MAX_OUT_RATIO
 │   └── it should revert
 └── when the function requirements are met
     ├── it should pull the pool amount in
@@ -250,13 +251,13 @@ BPool::exitswapPoolAmountIn
 
 
 BPool::exitswapExternAmountOut
-├── when pool is the caller (reentrant)
+├── when pool is the reentering caller
 │   └── it should revert
 ├── when the token is not bound
 │   └── it should revert
 ├── when the pool is not finalized
 │   └── it should revert
-├── when the pool amount out is gt tokenOutBalance*MAX_OUT_RATIO
+├── when the pool amount out is gt tokenOutBalance mul by MAX_OUT_RATIO
 │   └── it should revert
 ├── when the calculated pool amount in is zero
 │   └── it should revert

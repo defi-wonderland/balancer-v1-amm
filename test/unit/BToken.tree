@@ -8,6 +8,6 @@ BToken::decreaseApproval
 ├── when called with an amt greather than the current allowance
 │   ├── it should set the allowance to 0
 │   └── it should return true
-├── when called with an amt lte as the current allowance
-├── it should decrease the allowance of dst by amt
-└── it should return true
+└── when called with an amt lte as the current allowance
+    ├── it should decrease the allowance of dst by amt
+    └── it should return true
