@@ -1,4 +1,4 @@
-BPool::setSwapFee
+BPoolTest::setSwapFee
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when pool isn't finalized
@@ -15,7 +15,7 @@ BPool::setSwapFee
         └── it should emit LOG_CALL
 
 
-BPool::setController
+BPoolTest::setController
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when called by a non-controller
@@ -25,7 +25,7 @@ BPool::setController
     └── it should emit LOG_CALL
 
 
-BPool::finalize
+BPoolTest::finalize
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when called by a non-controller
@@ -41,7 +41,7 @@ BPool::finalize
     └── it should emit LOG_CALL
 
 
-BPool::bind
+BPoolTest::bind
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when called by a non-controller
@@ -71,7 +71,7 @@ BPool::bind
         └── it should revert
 
 
-BPool::unbind
+BPoolTest::unbind
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when called by a non-controller
@@ -90,7 +90,7 @@ BPool::unbind
         └── it should revert
 
 
-BPool::joinPool
+BPoolTest::joinPool
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when the pool is not finalized
@@ -110,7 +110,7 @@ BPool::joinPool
         └── it should revert
 
 
-BPool::exitPool
+BPoolTest::exitPool
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when the pool is not finalized
@@ -133,7 +133,7 @@ BPool::exitPool
         └── it should revert
 
 
-BPool::swapExactAmountIn // No in != out check? 
+BPoolTest::swapExactAmountIn // No in != out check? 
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when the tokenIn is not bound
@@ -163,7 +163,7 @@ BPool::swapExactAmountIn // No in != out check?
         └── it should revert
 
 
-BPool::swapExactAmountOut
+BPoolTest::swapExactAmountOut
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when the tokenIn is not bound
@@ -191,7 +191,7 @@ BPool::swapExactAmountOut
     └── when one of the underlying token transfer fails
         └── it should revert
 
-BPool::joinswapExternAmountIn
+BPoolTest::joinswapExternAmountIn
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when the token is not bound
@@ -209,7 +209,7 @@ BPool::joinswapExternAmountIn
     └── it should emit LOG_CALL
 
 
-BPool::joinswapPoolAmountOut
+BPoolTest::joinswapPoolAmountOut
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when the token is not bound
@@ -230,7 +230,7 @@ BPool::joinswapPoolAmountOut
     └── it should emit LOG_CALL
 
 
-BPool::exitswapPoolAmountIn
+BPoolTest::exitswapPoolAmountIn
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when the token is not bound
@@ -250,7 +250,7 @@ BPool::exitswapPoolAmountIn
     └── it should emit LOG_CALL
 
 
-BPool::exitswapExternAmountOut
+BPoolTest::exitswapExternAmountOut
 ├── when pool is the reentering caller
 │   └── it should revert
 ├── when the token is not bound
@@ -272,7 +272,7 @@ BPool::exitswapExternAmountOut
     └── it should emit LOG_CALL
 
 
-BPool::getSpotPrice
+BPoolTest::getSpotPrice
 ├── when the tokenIn is not bound
 │   └── it should revert
 ├── when the tokenOut is not bound
@@ -281,7 +281,7 @@ BPool::getSpotPrice
     └── it should return the spot price
 
 
-BPool::getSpotPriceSansFee
+BPoolTest::getSpotPriceSansFee
 ├── when the tokenIn is not bound
 │   └── it should revert
 ├── when the tokenOut is not bound

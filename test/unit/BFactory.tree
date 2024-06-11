@@ -1,4 +1,4 @@
-BFactory::newBPool
+BFactoryTest::newBPool
 └── when called
     ├── it should deploy a new newBPool
     ├── it should add the newBPool to the list of pools
@@ -6,7 +6,7 @@ BFactory::newBPool
     └── it should call set the controller of the newBPool to the caller
 
 
-BFactory::setBLabs
+BFactoryTest::setBLabs
 ├── when the sender is not the current setBLabs
 │   └── it should revert
 └── when the sender is the current setBLabs
@@ -14,7 +14,7 @@ BFactory::setBLabs
     └── it should emit a BLabsSet event
 
 
-BFactory::collect
+BFactoryTest::collect
 ├── when the sender is not the current setBLabs
 │   └── it should revert
 └── when the sender is the current setBLabs

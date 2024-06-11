@@ -1,4 +1,4 @@
-BMath::calcSpotPrice
+BMathTest::calcSpotPrice
 ├── when swapFee equals BONE
 │   └── it will revert (div by zero)
 ├── when token balance in too big
@@ -18,7 +18,7 @@ BMath::calcSpotPrice
 └── when using known values // generic for some given values
     └── it should return correct value
 
-BMath::calcOutGivenIn
+BMathTest::calcOutGivenIn
 ├── when token weight out is zero
 │   └── it revert (div by zero)
 ├── when  token amount in is zero
@@ -33,7 +33,7 @@ BMath::calcOutGivenIn
 └── when using known values // generic for some given values
     └── it should return correct value
 
-BMath::calcInGivenOut
+BMathTest::calcInGivenOut
 ├── when token weight in is zero
 │   └── it revert (div by zero)
 ├── when  token amount out equals token balance out
@@ -45,7 +45,7 @@ BMath::calcInGivenOut
 └── when using known values // generic for some given values
     └── it should return correct value
 
-BMath::calcPoolOutGivenSingleIn
+BMathTest::calcPoolOutGivenSingleIn
 ├── when token balance in is zero
 │   └── it revert (div by zero)
 ├── when token weight in is zero
@@ -53,7 +53,7 @@ BMath::calcPoolOutGivenSingleIn
 └── when using known values // generic for some given values
     └── it should return correct value
 
-BMath::calcSingleInGivenPoolOut
+BMathTest::calcSingleInGivenPoolOut
 ├── when total weight is zero
 │   └── it revert (div by zero)
 ├── when swap fee is zero
@@ -61,7 +61,7 @@ BMath::calcSingleInGivenPoolOut
 └── when using known values // generic for some given values
     └── it should return correct value
 
-BMath::calcPoolSingleOutGivenPoolIn
+BMathTest::calcPoolSingleOutGivenPoolIn
 ├── when pool supply is zero
 │   └── it revert (div by zero)
 ├── when total weight is zero
@@ -71,7 +71,7 @@ BMath::calcPoolSingleOutGivenPoolIn
 └── when using known values // generic for some given values
     └── it should return correct value
 
-BMath::calcPoolInGivenSingleOut
+BMathTest::calcPoolInGivenSingleOut
 ├── when exit fee is 1
 │   └── it should revert
 ├── when tokenBalanceOut is zero

@@ -1,4 +1,4 @@
-BNum::btoi
+BNumTest::btoi
 ├── when passing zero
 │   └── it should return zero
 ├── when passing BONE
@@ -9,7 +9,7 @@ BNum::btoi
     └── it should return correct value
 
 
-BNum::bfloor
+BNumTest::bfloor
 ├── when passing zero
 │   └── it should return zero
 ├── when passing a value less than BONE
@@ -18,7 +18,7 @@ BNum::bfloor
     └── it should return correct value
 
 
-BNum::badd
+BNumTest::badd
 ├── when passing zero and zero
 │   └── it should return zero
 ├── when passing a as uint256 max and b non zero
@@ -29,7 +29,7 @@ BNum::badd
     └── it should return correct value
 
 
-BNum::bsub
+BNumTest::bsub
 ├── when passing zero and zero
 │   └── it should return zero
 ├── when passing a less than b
@@ -38,7 +38,7 @@ BNum::bsub
     └── it should return correct value
 
 
-BNum::bsubSign
+BNumTest::bsubSign
 ├── when passing zero and zero
 │   └── it should return zero and false
 ├── when passing a less than b
@@ -47,7 +47,7 @@ BNum::bsubSign
     └── it should return correct value
 
 
-BNum::bmul
+BNumTest::bmul
 ├── when passing zero and zero
 │   └── it should return zero
 ├── when passing a as uint256 max and b non zero
@@ -61,7 +61,7 @@ BNum::bmul
     └── it should return correct value
 
 
-BNum::bdiv
+BNumTest::bdiv
 ├── when passing b as zero
 │   └── it should revert
 ├── when passing a as uint256 max
@@ -73,7 +73,7 @@ BNum::bdiv
     └── it should return correct value
 
 
-BNum::bpowi
+BNumTest::bpowi
 ├── when passing a as zero
 │   └── it should return zero
 ├── when passing b as zero
@@ -84,7 +84,7 @@ BNum::bpowi
     └── it should return correct value
 
 
-BNum::bpow
+BNumTest::bpow
 ├── when passing base as zero
 │   └── it should return zero
 ├── when passing exponent as zero
