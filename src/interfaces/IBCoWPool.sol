@@ -19,6 +19,28 @@ interface IBCoWPool is IERC1271 {
   event TradingEnabled(bytes32 indexed hash, bytes32 appData);
 
   /**
+   * @notice thrown when a CoW order has a non-zero fee
+   */
+  error BCoWPool_FeeMustBeZero();
+
+  /**
+   * @notice thrown when a CoW order is executed after its deadline
+   */
+  error BCoWPool_OrderExpired();
+
+  /**
+   * @notice thrown when a CoW order has an unkown type (must be GPv2Order.KIND_SELL)
+   */
+  error BCoWPool_InvalidOperation();
+
+  /**
+   * @notice thrown when a CoW order has an invalid balance marker. BCoWPool
+   * only supports BALANCE_ERC20, instructing to use the underlying ERC20
+   * balance directly instead of balancer's internal accounting
+   */
+  error BCoWPool_InvalidBalanceMarker();
+
+  /**
    * @notice The `commit` function can only be called inside a CoW Swap
    * settlement. This error is thrown when the function is called from another
    * context.

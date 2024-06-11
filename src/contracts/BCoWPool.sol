@@ -148,14 +148,21 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     Record memory inRecord = _records[address(order.sellToken)];
     Record memory outRecord = _records[address(order.buyToken)];
 
-    require(inRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');
-    require(outRecord.bound, 'BCoWPool: TOKEN_NOT_BOUND');
-
-    require(order.validTo < block.timestamp + MAX_ORDER_DURATION, 'BCoWPool: ORDER_EXPIRED');
-    require(order.feeAmount == 0, 'BCoWPool: FEE_NOT_ZERO');
-    require(order.kind == GPv2Order.KIND_SELL, 'BCoWPool: INVALID_OPERATION');
-    require(order.buyTokenBalance == GPv2Order.BALANCE_ERC20, 'BCoWPool: INVALID_BALANCE');
-    require(order.sellTokenBalance == GPv2Order.BALANCE_ERC20, 'BCoWPool: INVALID_BALANCE');
+    if (!inRecord.bound || !inRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
+    if (order.validTo < block.timestamp + MAX_ORDER_DURATION) {
+      revert BCoWPool_OrderExpired();
+    }
+    if (order.feeAmount != 0) {
+      revert BCoWPool_FeeMustBeZero();
+    }
+    if (order.kind != GPv2Order.KIND_SELL) {
+      revert BCoWPool_InvalidOperation();
+    }
+    if (order.buyTokenBalance != GPv2Order.BALANCE_ERC20 || order.sellTokenBalance != GPv2Order.BALANCE_ERC20) {
+      revert BCoWPool_InvalidBalanceMarker();
+    }
 
     uint256 tokenAmountOut = calcOutGivenIn({
       tokenBalanceIn: order.sellToken.balanceOf(address(this)),
@@ -166,7 +173,9 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
       swapFee: 0
     });
 
-    require(tokenAmountOut >= order.buyAmount, 'BCoWPool: INSUFFICIENT_OUTPUT_AMOUNT');
+    if (tokenAmountOut < order.buyAmount) {
+      revert BPool_TokenAmountOutBelowMinOut();
+    }
   }
 
   /**
