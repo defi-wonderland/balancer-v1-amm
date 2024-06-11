@@ -3,7 +3,19 @@ pragma solidity 0.8.25;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-import {BasePoolTest} from './BPool.t.sol';
+import {
+  BaseBPool_Unit_Constructor,
+  BaseBPool_Unit_ExitPool,
+  BaseBPool_Unit_ExitswapExternAmountOut,
+  BaseBPool_Unit_ExitswapPoolAmountIn,
+  BaseBPool_Unit_JoinPool,
+  BaseBPool_Unit_JoinswapExternAmountIn,
+  BaseBPool_Unit_JoinswapPoolAmountOut,
+  BaseBPool_Unit_SetSwapFee,
+  BaseBPool_Unit__PullUnderlying,
+  BaseBPool_Unit__PushUnderlying,
+  BasePoolTest
+} from './BPool.t.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
@@ -16,11 +28,10 @@ abstract contract BaseCoWPoolTest is BasePoolTest {
   bytes32 public domainSeparator = bytes32(bytes2(0xf00b));
   address public vaultRelayer = makeAddr('vaultRelayer');
 
-  function setUp() public override {
-    super.setUp();
+  function _deployPool() internal override returns (address) {
     vm.mockCall(cowSolutionSettler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(domainSeparator));
     vm.mockCall(cowSolutionSettler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(vaultRelayer));
-    bPool = MockBPool(address(new MockBCoWPool(cowSolutionSettler)));
+    return address(new MockBCoWPool(cowSolutionSettler));
   }
 }
 
@@ -62,3 +73,25 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
     bPool.finalize();
   }
 }
+
+// BaseBPool tests implementations
+
+contract BPool_Unit_Constructor is BaseBPool_Unit_Constructor, BaseCoWPoolTest {}
+
+contract BPool_Unit_SetSwapFee is BaseBPool_Unit_SetSwapFee, BaseCoWPoolTest {}
+
+contract BPool_Unit_JoinPool is BaseBPool_Unit_JoinPool, BaseCoWPoolTest {}
+
+contract BPool_Unit_ExitPool is BaseBPool_Unit_ExitPool, BaseCoWPoolTest {}
+
+contract BPool_Unit_JoinswapExternAmountIn is BaseBPool_Unit_JoinswapExternAmountIn, BaseCoWPoolTest {}
+
+contract BPool_Unit_JoinswapPoolAmountOut is BaseBPool_Unit_JoinswapPoolAmountOut, BaseCoWPoolTest {}
+
+contract BPool_Unit_ExitswapPoolAmountIn is BaseBPool_Unit_ExitswapPoolAmountIn, BaseCoWPoolTest {}
+
+contract BPool_Unit_ExitswapExternAmountOut is BaseBPool_Unit_ExitswapExternAmountOut, BaseCoWPoolTest {}
+
+contract BPool_Unit__PullUnderlying is BaseBPool_Unit__PullUnderlying, BaseCoWPoolTest {}
+
+contract BPool_Unit__PushUnderlying is BaseBPool_Unit__PushUnderlying, BaseCoWPoolTest {}

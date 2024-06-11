@@ -21,7 +21,7 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   Pow public pow = new Pow();
 
   function setUp() public virtual {
-    bPool = new MockBPool();
+    bPool = MockBPool(_deployPool());
 
     // Create fake tokens
     address[] memory _tokensToAdd = _getDeterministicTokenArray(TOKENS_AMOUNT);
@@ -29,6 +29,8 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
       tokens[i] = _tokensToAdd[i];
     }
   }
+
+  function _deployPool() internal virtual returns (address _bPool);
 
   function _setRandomTokens(uint256 _length) internal returns (address[] memory _tokensToAdd) {
     _tokensToAdd = _getDeterministicTokenArray(_length);
@@ -245,7 +247,13 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   }
 }
 
-contract BPool_Unit_Constructor is BasePoolTest {
+abstract contract BPoolTest is BasePoolTest {
+  function _deployPool() internal override returns (address _bPool) {
+    _bPool = address(new MockBPool());
+  }
+}
+
+abstract contract BaseBPool_Unit_Constructor is BasePoolTest {
   function test_Deploy(address _deployer) public {
     vm.prank(_deployer);
     MockBPool _newBPool = new MockBPool();
@@ -257,21 +265,21 @@ contract BPool_Unit_Constructor is BasePoolTest {
   }
 }
 
-contract BPool_Unit_IsFinalized is BasePoolTest {
+abstract contract BaseBPool_Unit_IsFinalized is BasePoolTest {
   function test_Returns_IsFinalized(bool _isFinalized) public {
     bPool.set__finalized(_isFinalized);
     assertEq(bPool.isFinalized(), _isFinalized);
   }
 }
 
-contract BPool_Unit_IsBound is BasePoolTest {
+abstract contract BaseBPool_Unit_IsBound is BasePoolTest {
   function test_Returns_IsBound(address _token, bool _isBound) public {
     _setRecord(_token, IBPool.Record({bound: _isBound, index: 0, denorm: 0}));
     assertEq(bPool.isBound(_token), _isBound);
   }
 }
 
-contract BPool_Unit_GetNumTokens is BasePoolTest {
+abstract contract BaseBPool_Unit_GetNumTokens is BasePoolTest {
   function test_Returns_NumTokens(uint256 _tokensToAdd) public {
     vm.assume(_tokensToAdd > 0);
     vm.assume(_tokensToAdd <= MAX_BOUND_TOKENS);
@@ -281,7 +289,7 @@ contract BPool_Unit_GetNumTokens is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetCurrentTokens is BasePoolTest {
+abstract contract BaseBPool_Unit_GetCurrentTokens is BasePoolTest {
   function test_Returns_CurrentTokens(uint256 _length) public {
     vm.assume(_length > 0);
     vm.assume(_length <= MAX_BOUND_TOKENS);
@@ -296,7 +304,7 @@ contract BPool_Unit_GetCurrentTokens is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetFinalTokens is BasePoolTest {
+abstract contract BaseBPool_Unit_GetFinalTokens is BasePoolTest {
   function test_Returns_FinalTokens(uint256 _length) public {
     vm.assume(_length > 0);
     vm.assume(_length <= MAX_BOUND_TOKENS);
@@ -322,7 +330,7 @@ contract BPool_Unit_GetFinalTokens is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetDenormalizedWeight is BasePoolTest {
+abstract contract BaseBPool_Unit_GetDenormalizedWeight is BasePoolTest {
   function test_Returns_DenormalizedWeight(address _token, uint256 _weight) public {
     bPool.set__records(_token, IBPool.Record({bound: true, index: 0, denorm: _weight}));
 
@@ -340,7 +348,7 @@ contract BPool_Unit_GetDenormalizedWeight is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetTotalDenormalizedWeight is BasePoolTest {
+abstract contract BaseBPool_Unit_GetTotalDenormalizedWeight is BasePoolTest {
   function test_Returns_TotalDenormalizedWeight(uint256 _totalWeight) public {
     _setTotalWeight(_totalWeight);
 
@@ -353,7 +361,7 @@ contract BPool_Unit_GetTotalDenormalizedWeight is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
+abstract contract BaseBPool_Unit_GetNormalizedWeight is BasePoolTest {
   function test_Returns_NormalizedWeight(address _token, uint256 _weight, uint256 _totalWeight) public {
     _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
     _totalWeight = bound(_totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT);
@@ -375,7 +383,7 @@ contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetBalance is BasePoolTest {
+abstract contract BaseBPool_Unit_GetBalance is BasePoolTest {
   function test_Returns_Balance(address _token, uint256 _balance) public {
     assumeNotForgeAddress(_token);
 
@@ -396,7 +404,7 @@ contract BPool_Unit_GetBalance is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetSwapFee is BasePoolTest {
+abstract contract BaseBPool_Unit_GetSwapFee is BasePoolTest {
   function test_Returns_SwapFee(uint256 _swapFee) public {
     _setSwapFee(_swapFee);
 
@@ -409,7 +417,7 @@ contract BPool_Unit_GetSwapFee is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetController is BasePoolTest {
+abstract contract BaseBPool_Unit_GetController is BasePoolTest {
   function test_Returns_Controller(address _controller) public {
     bPool.set__controller(_controller);
 
@@ -422,7 +430,7 @@ contract BPool_Unit_GetController is BasePoolTest {
   }
 }
 
-contract BPool_Unit_SetSwapFee is BasePoolTest {
+abstract contract BaseBPool_Unit_SetSwapFee is BasePoolTest {
   modifier happyPath(uint256 _fee) {
     vm.assume(_fee >= MIN_FEE);
     vm.assume(_fee <= MAX_FEE);
@@ -482,7 +490,7 @@ contract BPool_Unit_SetSwapFee is BasePoolTest {
   }
 }
 
-contract BPool_Unit_SetController is BasePoolTest {
+abstract contract BaseBPool_Unit_SetController is BasePoolTest {
   function test_Revert_NotController(address _controller, address _caller, address _newController) public {
     vm.assume(_controller != _caller);
     bPool.set__controller(_controller);
@@ -512,7 +520,7 @@ contract BPool_Unit_SetController is BasePoolTest {
   }
 }
 
-contract BPool_Unit_Finalize is BasePoolTest {
+abstract contract BaseBPool_Unit_Finalize is BasePoolTest {
   modifier happyPath(uint256 _tokensLength) {
     _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
     _setRandomTokens(_tokensLength);
@@ -579,7 +587,7 @@ contract BPool_Unit_Finalize is BasePoolTest {
   }
 }
 
-contract BPool_Unit_Bind is BasePoolTest {
+abstract contract BaseBPool_Unit_Bind is BasePoolTest {
   struct Bind_FuzzScenario {
     address token;
     uint256 balance;
@@ -738,7 +746,7 @@ contract BPool_Unit_Bind is BasePoolTest {
   }
 }
 
-contract BPool_Unit_Unbind is BasePoolTest {
+abstract contract BaseBPool_Unit_Unbind is BasePoolTest {
   struct Unbind_FuzzScenario {
     address token;
     uint256 tokenIndex;
@@ -872,7 +880,7 @@ contract BPool_Unit_Unbind is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetSpotPrice is BasePoolTest {
+abstract contract BaseBPool_Unit_GetSpotPrice is BasePoolTest {
   struct GetSpotPrice_FuzzScenario {
     address tokenIn;
     address tokenOut;
@@ -942,7 +950,7 @@ contract BPool_Unit_GetSpotPrice is BasePoolTest {
   }
 }
 
-contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
+abstract contract BaseBPool_Unit_GetSpotPriceSansFee is BasePoolTest {
   struct GetSpotPriceSansFee_FuzzScenario {
     address tokenIn;
     address tokenOut;
@@ -1008,7 +1016,7 @@ contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
   }
 }
 
-contract BPool_Unit_JoinPool is BasePoolTest {
+abstract contract BaseBPool_Unit_JoinPool is BasePoolTest {
   struct JoinPool_FuzzScenario {
     uint256 poolAmountOut;
     uint256 initPoolSupply;
@@ -1162,7 +1170,7 @@ contract BPool_Unit_JoinPool is BasePoolTest {
   }
 }
 
-contract BPool_Unit_ExitPool is BasePoolTest {
+abstract contract BaseBPool_Unit_ExitPool is BasePoolTest {
   struct ExitPool_FuzzScenario {
     uint256 poolAmountIn;
     uint256 initPoolSupply;
@@ -1343,7 +1351,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   }
 }
 
-contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
+abstract contract BaseBPool_Unit_SwapExactAmountIn is BasePoolTest {
   address tokenIn;
   address tokenOut;
 
@@ -1665,7 +1673,7 @@ contract BPool_Unit_SwapExactAmountIn is BasePoolTest {
   }
 }
 
-contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
+abstract contract BaseBPool_Unit_SwapExactAmountOut is BasePoolTest {
   address tokenIn;
   address tokenOut;
 
@@ -2007,7 +2015,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
   }
 }
 
-contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
+abstract contract BaseBPool_Unit_JoinswapExternAmountIn is BasePoolTest {
   address tokenIn;
 
   struct JoinswapExternAmountIn_FuzzScenario {
@@ -2179,7 +2187,7 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
   }
 }
 
-contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
+abstract contract BaseBPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
   address tokenIn;
 
   struct JoinswapPoolAmountOut_FuzzScenario {
@@ -2406,7 +2414,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
   }
 }
 
-contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
+abstract contract BaseBPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
   address tokenOut;
 
   struct ExitswapPoolAmountIn_FuzzScenario {
@@ -2648,7 +2656,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
   }
 }
 
-contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
+abstract contract BaseBPool_Unit_ExitswapExternAmountOut is BasePoolTest {
   address tokenOut;
 
   struct ExitswapExternAmountOut_FuzzScenario {
@@ -2890,7 +2898,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
   }
 }
 
-contract BPool_Unit__PullUnderlying is BasePoolTest {
+abstract contract BaseBPool_Unit__PullUnderlying is BasePoolTest {
   function test_Call_TransferFrom(address _erc20, address _from, uint256 _amount) public {
     assumeNotForgeAddress(_erc20);
 
@@ -2914,7 +2922,7 @@ contract BPool_Unit__PullUnderlying is BasePoolTest {
   }
 }
 
-contract BPool_Unit__PushUnderlying is BasePoolTest {
+abstract contract BaseBPool_Unit__PushUnderlying is BasePoolTest {
   function test_Call_Transfer(address _erc20, address _to, uint256 _amount) public {
     assumeNotForgeAddress(_erc20);
 
@@ -2933,3 +2941,25 @@ contract BPool_Unit__PushUnderlying is BasePoolTest {
     bPool.call__pushUnderlying(_erc20, _to, _amount);
   }
 }
+
+// BaseBPool tests implementations
+
+contract BPool_Unit_Constructor is BaseBPool_Unit_Constructor, BPoolTest {}
+
+contract BPool_Unit_SetSwapFee is BaseBPool_Unit_SetSwapFee, BPoolTest {}
+
+contract BPool_Unit_JoinPool is BaseBPool_Unit_JoinPool, BPoolTest {}
+
+contract BPool_Unit_ExitPool is BaseBPool_Unit_ExitPool, BPoolTest {}
+
+contract BPool_Unit_JoinswapExternAmountIn is BaseBPool_Unit_JoinswapExternAmountIn, BPoolTest {}
+
+contract BPool_Unit_JoinswapPoolAmountOut is BaseBPool_Unit_JoinswapPoolAmountOut, BPoolTest {}
+
+contract BPool_Unit_ExitswapPoolAmountIn is BaseBPool_Unit_ExitswapPoolAmountIn, BPoolTest {}
+
+contract BPool_Unit_ExitswapExternAmountOut is BaseBPool_Unit_ExitswapExternAmountOut, BPoolTest {}
+
+contract BPool_Unit__PullUnderlying is BaseBPool_Unit__PullUnderlying, BPoolTest {}
+
+contract BPool_Unit__PushUnderlying is BaseBPool_Unit__PushUnderlying, BPoolTest {}
