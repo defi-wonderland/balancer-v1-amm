@@ -318,4 +318,23 @@ contract MockBPool is BPool, Test {
   function expectCall__pushUnderlying(address erc20, address to, uint256 amount) public {
     vm.expectCall(address(this), abi.encodeWithSignature('_pushUnderlying(address,address,uint256)', erc20, to, amount));
   }
+
+  function mock_call__afterFinalize() public {
+    vm.mockCall(address(this), abi.encodeWithSignature('_afterFinalize()'), abi.encode());
+  }
+
+  function _afterFinalize() internal override {
+    (bool _success, bytes memory _data) = address(this).call(abi.encodeWithSignature('_afterFinalize()'));
+
+    if (_success) return abi.decode(_data, ());
+    else return super._afterFinalize();
+  }
+
+  function call__afterFinalize() public {
+    return _afterFinalize();
+  }
+
+  function expectCall__afterFinalize() public {
+    vm.expectCall(address(this), abi.encodeWithSignature('_afterFinalize()'));
+  }
 }

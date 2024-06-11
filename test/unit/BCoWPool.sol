@@ -57,7 +57,7 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
     address[] memory tokens = _getDeterministicTokenArray(_tokensLength);
     for (uint256 i = 0; i < bPool.getNumTokens(); i++) {
       vm.mockCall(tokens[i], abi.encodePacked(IERC20.approve.selector), abi.encode(true));
-      vm.expectCall(tokens[i], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
+      vm.expectCall(tokens[i], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), 1);
     }
     bPool.finalize();
   }

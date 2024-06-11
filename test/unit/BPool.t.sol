@@ -558,6 +558,11 @@ contract BPool_Unit_Finalize is BasePoolTest {
     assertEq(bPool.call__finalized(), true);
   }
 
+  function test_Call_AfterFinalizeHook(uint256 _tokensLength) public happyPath(_tokensLength) {
+    bPool.expectCall__afterFinalize();
+    bPool.finalize();
+  }
+
   function test_Mint_InitPoolSupply(uint256 _tokensLength) public happyPath(_tokensLength) {
     bPool.finalize();
 

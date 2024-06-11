@@ -89,7 +89,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function finalize() public virtual _logs_ _lock_ onlyController {
+  function finalize() external _logs_ _lock_ onlyController {
     if (_finalized) {
       revert BPool_PoolIsFinalized();
     }
@@ -101,6 +101,7 @@ contract BPool is BToken, BMath, IBPool {
 
     _mintPoolShare(INIT_POOL_SUPPLY);
     _pushPoolShare(msg.sender, INIT_POOL_SUPPLY);
+    _afterFinalize();
   }
 
   /// @inheritdoc IBPool
@@ -627,6 +628,13 @@ contract BPool is BToken, BMath, IBPool {
       revert BPool_ERC20TransferFailed();
     }
   }
+
+  /**
+   * @dev hook for extensions to execute custom logic when a pool is finalized,
+   * e.g. setting infinite allowace on BCoWPool
+   */
+  // solhint-disable-next-line no-empty-blocks
+  function _afterFinalize() internal virtual {}
 
   /**
    * @dev Pulls pool tokens from the sender.
