@@ -26,7 +26,7 @@ interface IBCoWPool is IERC1271 {
   /**
    * @notice thrown when a CoW order is executed after its deadline
    */
-  error BCoWPool_OrderExpired();
+  error BCoWPool_OrderValidityTooLong();
 
   /**
    * @notice thrown when a CoW order has an unkown type (must be GPv2Order.KIND_SELL)

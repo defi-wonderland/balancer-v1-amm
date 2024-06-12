@@ -4,12 +4,9 @@ pragma solidity 0.8.25;
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {BasePoolTest} from './BPool.t.sol';
-import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
 import {MockBPool} from 'test/smock/MockBPool.sol';
-
-import {Test} from 'forge-std/Test.sol';
 
 abstract contract BaseCoWPoolTest is BasePoolTest {
   address public cowSolutionSettler = makeAddr('cowSolutionSettler');

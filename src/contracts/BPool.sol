@@ -605,9 +605,9 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @dev Pulls tokens from the sender. Tokens needs to be approved first. Calls are not locked.
-   * @param erc20 address of the token to pull
-   * @param from address to pull the tokens from
-   * @param amount amount of tokens to pull
+   * @param erc20 The address of the token to pull
+   * @param from The address to pull the tokens from
+   * @param amount The amount of tokens to pull
    */
   function _pullUnderlying(address erc20, address from, uint256 amount) internal virtual {
     bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
@@ -618,9 +618,9 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @dev Pushes tokens to the receiver. Calls are not locked.
-   * @param erc20 address of the token to push
-   * @param to address to push the tokens to
-   * @param amount amount of tokens to push
+   * @param erc20 The address of the token to push
+   * @param to The address to push the tokens to
+   * @param amount The amount of tokens to push
    */
   function _pushUnderlying(address erc20, address to, uint256 amount) internal virtual {
     bool xfer = IERC20(erc20).transfer(to, amount);
@@ -630,16 +630,16 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /**
-   * @dev hook for extensions to execute custom logic when a pool is finalized,
-   * e.g. setting infinite allowace on BCoWPool
+   * @dev Hook for extensions to execute custom logic when a pool is finalized,
+   * e.g. Setting infinite allowance on BCoWPool
    */
   // solhint-disable-next-line no-empty-blocks
   function _afterFinalize() internal virtual {}
 
   /**
    * @dev Pulls pool tokens from the sender.
-   * @param from address to pull the pool tokens from
-   * @param amount amount of pool tokens to pull
+   * @param from The address to pull the pool tokens from
+   * @param amount The amount of pool tokens to pull
    */
   function _pullPoolShare(address from, uint256 amount) internal {
     _pull(from, amount);
@@ -647,8 +647,8 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @dev Pushes pool tokens to the receiver.
-   * @param to address to push the pool tokens to
-   * @param amount amount of pool tokens to push
+   * @param to The address to push the pool tokens to
+   * @param amount The amount of pool tokens to push
    */
   function _pushPoolShare(address to, uint256 amount) internal {
     _push(to, amount);
@@ -656,7 +656,7 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @dev Mints an amount of pool tokens.
-   * @param amount amount of pool tokens to mint
+   * @param amount The amount of pool tokens to mint
    */
   function _mintPoolShare(uint256 amount) internal {
     _mint(address(this), amount);
@@ -664,7 +664,7 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @dev Burns an amount of pool tokens.
-   * @param amount amount of pool tokens to burn
+   * @param amount The amount of pool tokens to burn
    */
   function _burnPoolShare(uint256 amount) internal {
     _burn(address(this), amount);

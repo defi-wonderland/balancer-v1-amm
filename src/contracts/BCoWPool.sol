@@ -39,6 +39,10 @@ uint32 constant MAX_ORDER_DURATION = 5 * 60;
  */
 uint256 constant COMMITMENT_SLOT = 0x6c3c90245457060f6517787b2c4b8cf500ca889d2304af02043bd5b513e3b593;
 
+/**
+ * @title BCoWPool
+ * @notice Inherits BPool contract and can trade on CoWSwap Protocol.
+ */
 contract BCoWPool is BPool, IERC1271, IBCoWPool {
   using GPv2Order for GPv2Order.Data;
 
@@ -67,10 +71,6 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
    */
   bytes32 public appDataHash;
 
-  /// @dev we should document somewhere the domain separator is hardcoded at
-  /// deploy time so signatures could be replayed in subsequent forks, but that's
-  /// also the case with GPV2Settlement (_cowSolutionSettler implementation) so
-  /// we can't fix it here
   constructor(address _cowSolutionSettler) BPool() {
     SOLUTION_SETTLER = ISettlement(_cowSolutionSettler);
     SOLUTION_SETTLER_DOMAIN_SEPARATOR = ISettlement(_cowSolutionSettler).domainSeparator();
@@ -153,8 +153,8 @@ contract BCoWPool is BPool, IERC1271, IBCoWPool {
     if (!inRecord.bound || !inRecord.bound) {
       revert BPool_TokenNotBound();
     }
-    if (order.validTo < block.timestamp + MAX_ORDER_DURATION) {
-      revert BCoWPool_OrderExpired();
+    if (order.validTo >= block.timestamp + MAX_ORDER_DURATION) {
+      revert BCoWPool_OrderValidityTooLong();
     }
     if (order.feeAmount != 0) {
       revert BCoWPool_FeeMustBeZero();
