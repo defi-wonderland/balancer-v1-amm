@@ -24,7 +24,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
   address public swapper = makeAddr('swapper');
   address public solver = makeAddr('solver');
 
-  bytes32 public constant APP_DATA_HASH = bytes32(keccak256('exampleIntegrationAppData'));
+  bytes32 public constant APP_DATA = bytes32('exampleIntegrationAppData');
 
   function setUp() public {
     vm.createSelectFork('mainnet', 12_593_265);
@@ -42,9 +42,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
 
     vm.startPrank(controller);
     // deploy
+    // TODO: deploy with BCoWFactory
     pool = new BCoWPool(address(settlement));
-    // enable trading
-    pool.enableTrading(APP_DATA_HASH);
     // bind
     dai.approve(address(pool), type(uint256).max);
     weth.approve(address(pool), type(uint256).max);
@@ -52,6 +51,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     IBPool(pool).bind(address(weth), 1e18, 8e18);
     // finalize
     IBPool(pool).finalize();
+    // enable trading
+    pool.enableTrading(APP_DATA);
 
     vm.startPrank(lp);
     // join pool
@@ -74,8 +75,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     //     appData: appData
     // });
 
-    uint256 sellAmount = 100 ether;
-    uint256 buyAmount = 1 ether;
+    uint256 sellAmount = 1 ether;
+    uint256 buyAmount = 100 ether;
 
     // swapper approves weth to vaultRelayer
     vm.prank(swapper);
@@ -92,7 +93,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
       sellAmount: sellAmount,
       buyAmount: buyAmount,
       validTo: latestValidTimestamp,
-      appData: APP_DATA_HASH,
+      appData: APP_DATA,
       feeAmount: 0,
       kind: GPv2Order.KIND_SELL,
       partiallyFillable: true,
