@@ -16,21 +16,23 @@ import {ISettlement} from 'interfaces/ISettlement.sol';
 
 // TODO: add GasSnapshot
 contract BCowPoolIntegrationTest is Test, BConst, BNum {
+  using GPv2Order for GPv2Order.Data;
+
   BCoWPool public pool;
 
   IERC20 public dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
   IERC20 public weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
   ISettlement public settlement = ISettlement(0x9008D19f58AAbD9eD0D60971565AA8510560ab41);
+  address public solver = address(0xa5559C2E1302c5Ce82582A6b1E4Aec562C2FbCf4);
 
   address public controller = makeAddr('controller');
   address public lp = makeAddr('lp');
-  address public solver = makeAddr('solver');
   Vm.Wallet swapper = vm.createWallet('swapper');
 
   bytes32 public constant APP_DATA = bytes32('exampleIntegrationAppData');
 
   function setUp() public {
-    vm.createSelectFork('mainnet', 12_593_265);
+    vm.createSelectFork('mainnet', 20_012_063);
 
     // deal controller
     deal(address(dai), controller, 100e18);
@@ -160,10 +162,20 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
       signature: swapperSig
     });
 
-    // fourth declare the interactions
+    // declare the interactions
     GPv2Interaction.Data[][3] memory interactions =
       [new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0)];
 
+    bytes32 swapperOrderHash = swapperOrder.hash(settlement.domainSeparator());
+    interactions[0] = new GPv2Interaction.Data[](1);
+    interactions[0][0] = GPv2Interaction.Data({
+      target: address(pool),
+      value: 0,
+      // TODO: change BCoWPool for IBCoWPool
+      callData: abi.encodeWithSelector(BCoWPool.commit.selector, swapperOrderHash)
+    });
+
+    vm.prank(solver);
     settlement.settle(tokens, clearingPrices, trades, interactions);
   }
 }
