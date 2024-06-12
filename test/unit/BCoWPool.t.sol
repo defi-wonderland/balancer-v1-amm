@@ -4,6 +4,8 @@ pragma solidity 0.8.25;
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {BasePoolTest} from './BPool.t.sol';
+
+import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
 import {MockBPool} from 'test/smock/MockBPool.sol';
@@ -13,11 +15,14 @@ abstract contract BaseCoWPoolTest is BasePoolTest {
   bytes32 public domainSeparator = bytes32(bytes2(0xf00b));
   address public vaultRelayer = makeAddr('vaultRelayer');
 
+  MockBCoWPool bCoWPool;
+
   function setUp() public override {
     super.setUp();
     vm.mockCall(cowSolutionSettler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(domainSeparator));
     vm.mockCall(cowSolutionSettler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(vaultRelayer));
-    bPool = MockBPool(address(new MockBCoWPool(cowSolutionSettler)));
+    bCoWPool = new MockBCoWPool(cowSolutionSettler);
+    bPool = MockBPool(address(bCoWPool));
   }
 }
 
@@ -52,10 +57,10 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
     _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
     _setRandomTokens(_tokensLength);
     address[] memory tokens = _getDeterministicTokenArray(_tokensLength);
-    for (uint256 i = 0; i < bPool.getNumTokens(); i++) {
+    for (uint256 i = 0; i < bCoWPool.getNumTokens(); i++) {
       vm.mockCall(tokens[i], abi.encodePacked(IERC20.approve.selector), abi.encode(true));
       vm.expectCall(tokens[i], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), 1);
     }
-    bPool.finalize();
+    bCoWPool.finalize();
   }
 }
