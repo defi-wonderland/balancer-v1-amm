@@ -6,6 +6,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 
+import {BCoWConst} from './BCoWConst.sol';
 import {BPool} from './BPool.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
@@ -14,20 +15,8 @@ import {ISettlement} from 'interfaces/ISettlement.sol';
  * @title BCoWPool
  * @notice Inherits BPool contract and can trade on CoWSwap Protocol.
  */
-contract BCoWPool is IERC1271, IBCoWPool, BPool {
+contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   using GPv2Order for GPv2Order.Data;
-
-  /// @inheritdoc IBCoWPool
-  bytes32 public constant EMPTY_COMMITMENT = bytes32(0);
-
-  /// @inheritdoc IBCoWPool
-  bytes32 public constant NO_TRADING = bytes32(0);
-
-  /// @inheritdoc IBCoWPool
-  uint32 public constant MAX_ORDER_DURATION = 5 * 60;
-
-  /// @inheritdoc IBCoWPool
-  uint256 public constant COMMITMENT_SLOT = 0x6c3c90245457060f6517787b2c4b8cf500ca889d2304af02043bd5b513e3b593;
 
   /// @inheritdoc IBCoWPool
   address public immutable VAULT_RELAYER;
