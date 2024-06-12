@@ -116,12 +116,12 @@ interface IBCoWPool is IERC1271, IBPool {
   function SOLUTION_SETTLER() external view returns (ISettlement _solutionSettler);
 
   /**
-   * @notice The hash of the data describing which `TradingParams` currently apply
-   * to this AMM. If this parameter is set to `NO_TRADING`, then the AMM
+   * @notice The hash of the data describing which `GPv2Order.AppData` currently
+   * apply to this AMM. If this parameter is set to `NO_TRADING`, then the AMM
    * does not accept any order as valid.
    * If trading is enabled, then this value will be the [`hash`] of the only
-   * admissible [`TradingParams`].
-   * @return _appDataHash The hash of the trading parameters.
+   * admissible [`GPv2Order.AppData`].
+   * @return _appDataHash The hash of the allowed GPv2Order AppData.
    */
   function appDataHash() external view returns (bytes32 _appDataHash);
 
