@@ -54,7 +54,7 @@ contract BCoWPool_Unit_Constructor is BaseCoWPoolTest {
 }
 
 contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
-  function test_setsApprovals(uint256 _tokensLength) public {
+  function test_Set_Approvals(uint256 _tokensLength) public {
     _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
     _setRandomTokens(_tokensLength);
     address[] memory tokens = _getDeterministicTokenArray(_tokensLength);
@@ -68,14 +68,14 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
 
 /// @notice this tests both commit and commitment
 contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
-  function test_revertOnNonSolutionSettler(address sender, bytes32 orderHash) public {
+  function test_Revert_NonSolutionSettler(address sender, bytes32 orderHash) public {
     vm.assume(sender != cowSolutionSettler);
     vm.prank(sender);
     vm.expectRevert(IBCoWPool.CommitOutsideOfSettlement.selector);
     bCoWPool.commit(orderHash);
   }
 
-  function test_setCommitment(bytes32 orderHash) public {
+  function test_Set_Commitment(bytes32 orderHash) public {
     vm.prank(cowSolutionSettler);
     bCoWPool.commit(orderHash);
     assertEq(bCoWPool.commitment(), orderHash);
@@ -83,7 +83,7 @@ contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
 }
 
 contract BCoWPool_Unit_DisableTranding is BaseCoWPoolTest {
-  function test_revertOnNonController(address sender) public {
+  function test_Revert_NonController(address sender) public {
     // contract is deployed by this contract without any pranks
     vm.assume(sender != address(this));
     vm.prank(sender);
@@ -91,27 +91,27 @@ contract BCoWPool_Unit_DisableTranding is BaseCoWPoolTest {
     bCoWPool.disableTrading();
   }
 
-  function test_wipesAppdataHash(bytes32 appDataHash) public {
+  function test_Clear_AppdataHash(bytes32 appDataHash) public {
     vm.assume(appDataHash != bytes32(0));
     bCoWPool.set_appDataHash(appDataHash);
     bCoWPool.disableTrading();
     assertEq(bCoWPool.appDataHash(), bytes32(0));
   }
 
-  function test_emitTradingDisabledEvent() public {
+  function test_Emit_TradingDisabledEvent() public {
     vm.expectEmit();
     emit IBCoWPool.TradingDisabled();
     bCoWPool.disableTrading();
   }
 
-  function test_succeedOnAlreadyZeroAppdata() public {
+  function test_Succeed_AlreadyZeroAppdata() public {
     bCoWPool.set_appDataHash(bytes32(0));
     bCoWPool.disableTrading();
   }
 }
 
 contract BCoWPool_Unit_EnableTrading is BaseCoWPoolTest {
-  function test_revertOnNonController(address sender, bytes32 appDataHash) public {
+  function test_Revert_NonController(address sender, bytes32 appDataHash) public {
     // contract is deployed by this contract without any pranks
     vm.assume(sender != address(this));
     vm.prank(sender);
@@ -119,13 +119,13 @@ contract BCoWPool_Unit_EnableTrading is BaseCoWPoolTest {
     bCoWPool.enableTrading(appDataHash);
   }
 
-  function test_setsAppDataHash(bytes32 appData) public {
+  function test_Set_AppDataHash(bytes32 appData) public {
     bytes32 appDataHash = keccak256(abi.encode(appData));
     bCoWPool.enableTrading(appData);
     assertEq(bCoWPool.appDataHash(), appDataHash);
   }
 
-  function test_emitTradingEnabledEvent(bytes32 appData) public {
+  function test_Emit_TradingEnabled(bytes32 appData) public {
     bytes32 appDataHash = keccak256(abi.encode(appData));
     vm.expectEmit();
     emit IBCoWPool.TradingEnabled(appDataHash, appData);
