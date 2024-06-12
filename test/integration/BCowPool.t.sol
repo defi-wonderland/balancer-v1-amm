@@ -31,19 +31,22 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
 
   bytes32 public constant APP_DATA = bytes32('exampleIntegrationAppData');
 
+  uint256 public constant HUNDRED_UNITS = 100 ether;
+  uint256 public constant ONE_UNIT = 1 ether;
+
   function setUp() public {
     vm.createSelectFork('mainnet', 20_012_063);
 
     // deal controller
-    deal(address(dai), controller, 100e18);
-    deal(address(weth), controller, 100e18);
+    deal(address(dai), controller, HUNDRED_UNITS);
+    deal(address(weth), controller, HUNDRED_UNITS);
 
     // deal LP
-    deal(address(dai), address(lp), 100e18);
-    deal(address(weth), address(lp), 100e18);
+    deal(address(dai), address(lp), HUNDRED_UNITS);
+    deal(address(weth), address(lp), HUNDRED_UNITS);
 
     // deal swapper
-    deal(address(weth), swapper.addr, 1e18);
+    deal(address(weth), swapper.addr, ONE_UNIT);
 
     vm.startPrank(controller);
     // deploy
@@ -52,8 +55,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     // bind
     dai.approve(address(pool), type(uint256).max);
     weth.approve(address(pool), type(uint256).max);
-    IBPool(pool).bind(address(dai), 1e18, 2e18);
-    IBPool(pool).bind(address(weth), 1e18, 8e18);
+    IBPool(pool).bind(address(dai), ONE_UNIT, 2e18);
+    IBPool(pool).bind(address(weth), ONE_UNIT, 8e18);
     // finalize
     IBPool(pool).finalize();
     // enable trading
@@ -73,8 +76,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
   function testBCowPoolSwap() public {
     vm.skip(true);
 
-    uint256 sellAmount = 1 ether;
-    uint256 buyAmount = 100 ether;
+    uint256 sellAmount = ONE_UNIT;
+    uint256 buyAmount = HUNDRED_UNITS;
 
     // TODO: add MAX_ORDER_DURATION() to BCoWPool interface
     uint32 latestValidTimestamp = uint32(block.timestamp); // + pool.MAX_ORDER_DURATION();
@@ -177,5 +180,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
 
     vm.prank(solver);
     settlement.settle(tokens, clearingPrices, trades, interactions);
+
+    // TODO: assert balances
   }
 }
