@@ -64,3 +64,19 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
     bCoWPool.finalize();
   }
 }
+
+/// @notice this tests both commit and commitment
+contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
+  function test_revertOnNonSolutionSettler(address sender, bytes32 orderHash) public {
+    vm.assume(sender != cowSolutionSettler);
+    vm.prank(sender);
+    vm.expectRevert(IBCoWPool.CommitOutsideOfSettlement.selector);
+    bCoWPool.commit(orderHash);
+  }
+
+  function test_setCommitment(bytes32 orderHash) public {
+    vm.prank(cowSolutionSettler);
+    bCoWPool.commit(orderHash);
+    assertEq(bCoWPool.commitment(), orderHash);
+  }
+}
