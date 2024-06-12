@@ -8,14 +8,14 @@ import {ISettlement} from 'interfaces/ISettlement.sol';
 
 interface IBCoWPool is IERC1271, IBPool {
   /**
-   * Emitted when the manager disables all trades by the AMM. Existing open
+   * @notice Emitted when the manager disables all trades by the AMM. Existing open
    * order will not be tradeable. Note that the AMM could resume trading with
    * different parameters at a later point.
    */
   event TradingDisabled();
 
   /**
-   * Emitted when the manager enables the AMM to trade on CoW Protocol.
+   * @notice Emitted when the manager enables the AMM to trade on CoW Protocol.
    * @param hash The hash of the trading parameters.
    * @param appData Trading has been enabled for this appData.
    */
@@ -94,42 +94,6 @@ interface IBCoWPool is IERC1271, IBPool {
   function commit(bytes32 orderHash) external;
 
   /**
-   * @notice The value representing the absence of a commitment.
-   * @return _emptyCommitment The commitment value representing no commitment.
-   */
-  // solhint-disable-next-line style-guide-casing
-  function EMPTY_COMMITMENT() external view returns (bytes32 _emptyCommitment);
-
-  /**
-   * @notice The value representing that no trading parameters are currently
-   * accepted as valid by this contract, meaning that no trading can occur.
-   * @return _noTrading The value representing no trading.
-   */
-  // solhint-disable-next-line style-guide-casing
-  function NO_TRADING() external view returns (bytes32 _noTrading);
-
-  /**
-   * @notice The largest possible duration of any AMM order, starting from the
-   * current block timestamp.
-   * @return _maxOrderDuration The maximum order duration.
-   */
-  // solhint-disable-next-line style-guide-casing
-  function MAX_ORDER_DURATION() external view returns (uint32 _maxOrderDuration);
-
-  /**
-   * @notice The transient storage slot specified in this variable stores the
-   * value of the order commitment, that is, the only order hash that can be
-   * validated by calling `isValidSignature`.
-   * The hash corresponding to the constant `EMPTY_COMMITMENT` has special
-   * semantics, discussed in the related documentation.
-   * @dev This value is:
-   * uint256(keccak256("CoWAMM.ConstantProduct.commitment")) - 1
-   * @return _commitmentSlot The slot where the commitment is stored.
-   */
-  // solhint-disable-next-line style-guide-casing
-  function COMMITMENT_SLOT() external view returns (uint256 _commitmentSlot);
-
-  /**
    * @notice The address that can pull funds from the AMM vault to execute an order
    * @return _vaultRelayer The address of the vault relayer.
    */
@@ -152,12 +116,12 @@ interface IBCoWPool is IERC1271, IBPool {
   function SOLUTION_SETTLER() external view returns (ISettlement _solutionSettler);
 
   /**
-   * @notice The hash of the data describing which `TradingParams` currently apply
-   * to this AMM. If this parameter is set to `NO_TRADING`, then the AMM
+   * @notice The hash of the data describing which `GPv2Order.AppData` currently
+   * apply to this AMM. If this parameter is set to `NO_TRADING`, then the AMM
    * does not accept any order as valid.
    * If trading is enabled, then this value will be the [`hash`] of the only
-   * admissible [`TradingParams`].
-   * @return _appDataHash The hash of the trading parameters.
+   * admissible [`GPv2Order.AppData`].
+   * @return _appDataHash The hash of the allowed GPv2Order AppData.
    */
   function appDataHash() external view returns (bytes32 _appDataHash);
 
