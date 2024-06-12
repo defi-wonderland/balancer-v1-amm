@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.25;
 
+import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {IERC1271} from '@openzeppelin/contracts/interfaces/IERC1271.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
+import {ISettlement} from 'interfaces/ISettlement.sol';
 
-interface IBCoWPool is IERC1271 {
+interface IBCoWPool is IERC1271, IBPool {
   /**
    * Emitted when the manager disables all trades by the AMM. Existing open
    * order will not be tradeable. Note that the AMM could resume trading with
@@ -67,4 +70,30 @@ interface IBCoWPool is IERC1271 {
    * AMM has not enabled trading.
    */
   error AppDataDoNotMatchHash();
+
+  function enableTrading(bytes32 appData) external;
+
+  function disableTrading() external;
+
+  function commit(bytes32 orderHash) external;
+
+  function EMPTY_COMMITMENT() external view returns (bytes32 _emptyCommitment);
+
+  function NO_TRADING() external view returns (bytes32 _noTrading);
+
+  function MAX_ORDER_DURATION() external view returns (uint32 _maxOrderDuration);
+
+  function COMMITMENT_SLOT() external view returns (uint256 _commitmentSlot);
+
+  function VAULT_RELAYER() external view returns (address _vaultRelayer);
+
+  function SOLUTION_SETTLER_DOMAIN_SEPARATOR() external view returns (bytes32 _solutionSettlerDomainSeparator);
+
+  function SOLUTION_SETTLER() external view returns (ISettlement _solutionSettler);
+
+  function appDataHash() external view returns (bytes32 _appDataHash);
+
+  function commitment() external view returns (bytes32 _commitment);
+
+  function verify(GPv2Order.Data memory order) external view;
 }
