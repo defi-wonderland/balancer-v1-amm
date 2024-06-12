@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
+import {GPv2TradeEncoder} from './GPv2TradeEncoder.sol';
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
+import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
+import {GPv2Trade} from '@cowprotocol/libraries/GPv2Trade.sol';
+import {GPv2Signing} from '@cowprotocol/mixins/GPv2Signing.sol';
 import {BCoWPool} from 'contracts/BCoWPool.sol';
-
 import {BConst} from 'contracts/BConst.sol';
 import {BNum} from 'contracts/BNum.sol';
-import {Test} from 'forge-std/Test.sol';
+import {Test, Vm} from 'forge-std/Test.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
@@ -21,8 +24,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
 
   address public controller = makeAddr('controller');
   address public lp = makeAddr('lp');
-  address public swapper = makeAddr('swapper');
   address public solver = makeAddr('solver');
+  Vm.Wallet swapper = vm.createWallet('swapper');
 
   bytes32 public constant APP_DATA = bytes32('exampleIntegrationAppData');
 
@@ -38,7 +41,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     deal(address(weth), address(lp), 100e18);
 
     // deal swapper
-    deal(address(weth), address(swapper), 1e18);
+    deal(address(weth), swapper.addr, 1e18);
 
     vm.startPrank(controller);
     // deploy
@@ -68,25 +71,18 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
   function testBCowPoolSwap() public {
     vm.skip(true);
 
-    // ConstantProduct.TradingParams memory data = ConstantProduct.TradingParams({
-    //     minTradedToken0: minTradedToken0,
-    //     priceOracle: uniswapV2PriceOracle,
-    //     priceOracleData: priceOracleData,
-    //     appData: appData
-    // });
-
     uint256 sellAmount = 1 ether;
     uint256 buyAmount = 100 ether;
 
-    // swapper approves weth to vaultRelayer
-    vm.prank(swapper);
-    // TODO: add vaultRelayer() to BCoWPool interface
-    // weth.approve(pool.vaultRelayer(), type(uint256).max);
-
-    // swapper creates the order
     // TODO: add MAX_ORDER_DURATION() to BCoWPool interface
     uint32 latestValidTimestamp = uint32(block.timestamp); // + pool.MAX_ORDER_DURATION();
-    GPv2Order.Data memory order = GPv2Order.Data({
+
+    // swapper approves weth to vaultRelayer
+    vm.prank(swapper.addr);
+    weth.approve(settlement.vaultRelayer(), type(uint256).max);
+
+    // swapper creates the order
+    GPv2Order.Data memory swapperOrder = GPv2Order.Data({
       sellToken: weth,
       buyToken: dai,
       receiver: GPv2Order.RECEIVER_SAME_AS_OWNER,
@@ -95,19 +91,79 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
       validTo: latestValidTimestamp,
       appData: APP_DATA,
       feeAmount: 0,
+      kind: GPv2Order.KIND_BUY,
+      partiallyFillable: false,
+      buyTokenBalance: GPv2Order.BALANCE_ERC20,
+      sellTokenBalance: GPv2Order.BALANCE_ERC20
+    });
+
+    // swapper signs the order
+    (uint8 v, bytes32 r, bytes32 s) =
+      vm.sign(swapper.privateKey, GPv2Order.hash(swapperOrder, settlement.domainSeparator()));
+    bytes memory swapperSig = abi.encodePacked(r, s, v);
+
+    // order for bPool is generated
+    GPv2Order.Data memory poolOrder = GPv2Order.Data({
+      sellToken: dai,
+      buyToken: weth,
+      receiver: GPv2Order.RECEIVER_SAME_AS_OWNER,
+      sellAmount: buyAmount,
+      buyAmount: sellAmount,
+      validTo: latestValidTimestamp,
+      appData: APP_DATA,
+      feeAmount: 0,
       kind: GPv2Order.KIND_SELL,
       partiallyFillable: true,
       sellTokenBalance: GPv2Order.BALANCE_ERC20,
       buyTokenBalance: GPv2Order.BALANCE_ERC20
     });
-    // TODO: use `data` struct
-    // bytes memory sig = abi.encode(order, data);
-    bytes memory sig = abi.encode(order, '');
-
-    // order for bPool is generated
-
-    // solver checks isValidSignature
+    bytes memory poolSig = abi.encode(poolOrder);
 
     // solver calls settle()
+    IERC20[] memory tokens = new IERC20[](2);
+    tokens[0] = IERC20(weth);
+    tokens[1] = IERC20(dai);
+
+    uint256[] memory clearingPrices = new uint256[](2);
+    clearingPrices[0] = sellAmount;
+    clearingPrices[1] = buyAmount;
+
+    GPv2Trade.Data[] memory trades = new GPv2Trade.Data[](2);
+
+    // pool's order
+    trades[0] = GPv2Trade.Data({
+      sellTokenIndex: 1,
+      buyTokenIndex: 0,
+      receiver: poolOrder.receiver,
+      sellAmount: poolOrder.sellAmount,
+      buyAmount: poolOrder.buyAmount,
+      validTo: poolOrder.validTo,
+      appData: poolOrder.appData,
+      feeAmount: poolOrder.feeAmount,
+      flags: GPv2TradeEncoder.encodeFlags(poolOrder, GPv2Signing.Scheme.Eip1271),
+      executedAmount: poolOrder.sellAmount,
+      signature: abi.encodePacked(address(pool), poolSig)
+    });
+
+    // swapper's order
+    trades[1] = GPv2Trade.Data({
+      sellTokenIndex: 0,
+      buyTokenIndex: 1,
+      receiver: swapperOrder.receiver,
+      sellAmount: swapperOrder.sellAmount,
+      buyAmount: swapperOrder.buyAmount,
+      validTo: swapperOrder.validTo,
+      appData: swapperOrder.appData,
+      feeAmount: swapperOrder.feeAmount,
+      flags: GPv2TradeEncoder.encodeFlags(swapperOrder, GPv2Signing.Scheme.Eip712),
+      executedAmount: swapperOrder.sellAmount,
+      signature: swapperSig
+    });
+
+    // fourth declare the interactions
+    GPv2Interaction.Data[][3] memory interactions =
+      [new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0)];
+
+    settlement.settle(tokens, clearingPrices, trades, interactions);
   }
 }
