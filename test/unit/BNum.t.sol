@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {BNum} from 'contracts/BNum.sol';
 import {Test} from 'forge-std/Test.sol';
 
+// For test contract: expose the internal functions of BNum
 contract BNumExposed is BNum {
   function btoiExposed(uint256 a) external pure returns (uint256) {
     return btoi(a);
@@ -42,6 +43,7 @@ contract BNumExposed is BNum {
   }
 }
 
+// Test contract
 contract BNumTest is Test {
   BNumExposed bNum;
 

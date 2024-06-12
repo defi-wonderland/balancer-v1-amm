@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {BPool, IBPool} from 'contracts/BPool.sol';
 import {StdStorage, Test, stdStorage} from 'forge-std/Test.sol';
 
+// For test contract: execute a reentering call to an arbitrary function
 contract BPoolReentering is BPool {
   event HAS_REENTERED();
 
@@ -18,12 +19,14 @@ contract BPoolReentering is BPool {
   }
 }
 
+// For test contract: expose and modify the internal state variables of BPool
 contract BPoolExposed is BPool {
   function forTest_setFinalize(bool _isFinalized) external {
     _finalized = _isFinalized;
   }
 }
 
+// Main test contract
 contract BPoolTest is Test {
   using stdStorage for StdStorage;
 
