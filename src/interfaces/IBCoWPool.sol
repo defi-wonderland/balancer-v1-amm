@@ -71,29 +71,101 @@ interface IBCoWPool is IERC1271, IBPool {
    */
   error AppDataDoNotMatchHash();
 
+  /**
+   * @notice Once this function is called, it will be possible to trade with
+   * this AMM on CoW Protocol.
+   * @param appData Trading is enabled with the appData specified here.
+   */
   function enableTrading(bytes32 appData) external;
 
+  /**
+   * @notice Disable any form of trading on CoW Protocol by this AMM.
+   */
   function disableTrading() external;
 
+  /**
+   * @notice Restricts a specific AMM to being able to trade only the order
+   * with the specified hash.
+   * @dev The commitment is used to enforce that exactly one AMM order is
+   * valid when a CoW Protocol batch is settled.
+   * @param orderHash the order hash that will be enforced by the order
+   * verification function.
+   */
   function commit(bytes32 orderHash) external;
 
+  /**
+   * @notice The value representing the absence of a commitment.
+   * @return _emptyCommitment The commitment value representing no commitment.
+   */
   function EMPTY_COMMITMENT() external view returns (bytes32 _emptyCommitment);
 
+  /**
+   * @notice The value representing that no trading parameters are currently
+   * accepted as valid by this contract, meaning that no trading can occur.
+   * @return _noTrading The value representing no trading.
+   */
   function NO_TRADING() external view returns (bytes32 _noTrading);
 
+  /**
+   * @notice The largest possible duration of any AMM order, starting from the
+   * current block timestamp.
+   * @return _maxOrderDuration The maximum order duration.
+   */
   function MAX_ORDER_DURATION() external view returns (uint32 _maxOrderDuration);
 
+  /**
+   * @notice The transient storage slot specified in this variable stores the
+   * value of the order commitment, that is, the only order hash that can be
+   * validated by calling `isValidSignature`.
+   * The hash corresponding to the constant `EMPTY_COMMITMENT` has special
+   * semantics, discussed in the related documentation.
+   * @dev This value is:
+   * uint256(keccak256("CoWAMM.ConstantProduct.commitment")) - 1
+   * @return _commitmentSlot The slot where the commitment is stored.
+   */
   function COMMITMENT_SLOT() external view returns (uint256 _commitmentSlot);
 
+  /**
+   * @notice The address that can pull funds from the AMM vault to execute an order
+   * @return _vaultRelayer The address of the vault relayer.
+   */
   function VAULT_RELAYER() external view returns (address _vaultRelayer);
 
+  /**
+   * @notice The domain separator used for hashing CoW Protocol orders.
+   * @return _solutionSettlerDomainSeparator The domain separator.
+   */
   function SOLUTION_SETTLER_DOMAIN_SEPARATOR() external view returns (bytes32 _solutionSettlerDomainSeparator);
 
+  /**
+   * @notice The address of the CoW Protocol settlement contract. It is the
+   * only address that can set commitments.
+   * @return _solutionSettler The address of the solution settler.
+   */
   function SOLUTION_SETTLER() external view returns (ISettlement _solutionSettler);
 
+  /**
+   * @notice The hash of the data describing which `TradingParams` currently apply
+   * to this AMM. If this parameter is set to `NO_TRADING`, then the AMM
+   * does not accept any order as valid.
+   * If trading is enabled, then this value will be the [`hash`] of the only
+   * admissible [`TradingParams`].
+   * @return _appDataHash The hash of the trading parameters.
+   */
   function appDataHash() external view returns (bytes32 _appDataHash);
 
+  /**
+   * @notice This function returns the commitment hash that has been set by the
+   * `commit` function. If no commitment has been set, then the value will be
+   * `EMPTY_COMMITMENT`.
+   * @return _commitment The commitment hash.
+   */
   function commitment() external view returns (bytes32 _commitment);
 
+  /**
+   * @notice This function checks that the input order is admissible for the
+   * constant-product curve for the given trading parameters.
+   * @param order `GPv2Order.Data` of a discrete order to be verified.
+   */
   function verify(GPv2Order.Data memory order) external view;
 }
