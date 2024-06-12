@@ -97,6 +97,7 @@ interface IBCoWPool is IERC1271, IBPool {
    * @notice The value representing the absence of a commitment.
    * @return _emptyCommitment The commitment value representing no commitment.
    */
+  // solhint-disable-next-line style-guide-casing
   function EMPTY_COMMITMENT() external view returns (bytes32 _emptyCommitment);
 
   /**
@@ -104,6 +105,7 @@ interface IBCoWPool is IERC1271, IBPool {
    * accepted as valid by this contract, meaning that no trading can occur.
    * @return _noTrading The value representing no trading.
    */
+  // solhint-disable-next-line style-guide-casing
   function NO_TRADING() external view returns (bytes32 _noTrading);
 
   /**
@@ -111,6 +113,7 @@ interface IBCoWPool is IERC1271, IBPool {
    * current block timestamp.
    * @return _maxOrderDuration The maximum order duration.
    */
+  // solhint-disable-next-line style-guide-casing
   function MAX_ORDER_DURATION() external view returns (uint32 _maxOrderDuration);
 
   /**
@@ -123,18 +126,21 @@ interface IBCoWPool is IERC1271, IBPool {
    * uint256(keccak256("CoWAMM.ConstantProduct.commitment")) - 1
    * @return _commitmentSlot The slot where the commitment is stored.
    */
+  // solhint-disable-next-line style-guide-casing
   function COMMITMENT_SLOT() external view returns (uint256 _commitmentSlot);
 
   /**
    * @notice The address that can pull funds from the AMM vault to execute an order
    * @return _vaultRelayer The address of the vault relayer.
    */
+  // solhint-disable-next-line style-guide-casing
   function VAULT_RELAYER() external view returns (address _vaultRelayer);
 
   /**
    * @notice The domain separator used for hashing CoW Protocol orders.
    * @return _solutionSettlerDomainSeparator The domain separator.
    */
+  // solhint-disable-next-line style-guide-casing
   function SOLUTION_SETTLER_DOMAIN_SEPARATOR() external view returns (bytes32 _solutionSettlerDomainSeparator);
 
   /**
@@ -142,6 +148,7 @@ interface IBCoWPool is IERC1271, IBPool {
    * only address that can set commitments.
    * @return _solutionSettler The address of the solution settler.
    */
+  // solhint-disable-next-line style-guide-casing
   function SOLUTION_SETTLER() external view returns (ISettlement _solutionSettler);
 
   /**
