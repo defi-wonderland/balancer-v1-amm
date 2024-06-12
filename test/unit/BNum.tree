@@ -85,8 +85,6 @@ BNumTest::bpowi
 
 
 BNumTest::bpow
-├── when passing base as zero
-│   └── it should return zero
 ├── when passing exponent as zero
 │   └── it should return BONE
 ├── when passing base lte than MIN_BPOW_BASE
