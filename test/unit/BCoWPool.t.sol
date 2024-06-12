@@ -6,6 +6,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {BasePoolTest} from './BPool.t.sol';
 
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
 import {MockBPool} from 'test/smock/MockBPool.sol';
@@ -78,5 +79,56 @@ contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
     vm.prank(cowSolutionSettler);
     bCoWPool.commit(orderHash);
     assertEq(bCoWPool.commitment(), orderHash);
+  }
+}
+
+contract BCoWPool_Unit_DisableTranding is BaseCoWPoolTest {
+  function test_revertOnNonController(address sender) public {
+    // contract is deployed by this contract without any pranks
+    vm.assume(sender != address(this));
+    vm.prank(sender);
+    vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
+    bCoWPool.disableTrading();
+  }
+
+  function test_wipesAppdataHash(bytes32 appDataHash) public {
+    vm.assume(appDataHash != bytes32(0));
+    bCoWPool.set_appDataHash(appDataHash);
+    bCoWPool.disableTrading();
+    assertEq(bCoWPool.appDataHash(), bytes32(0));
+  }
+
+  function test_emitTradingDisabledEvent() public {
+    vm.expectEmit();
+    emit IBCoWPool.TradingDisabled();
+    bCoWPool.disableTrading();
+  }
+
+  function test_succeedOnAlreadyZeroAppdata() public {
+    bCoWPool.set_appDataHash(bytes32(0));
+    bCoWPool.disableTrading();
+  }
+}
+
+contract BCoWPool_Unit_EnableTrading is BaseCoWPoolTest {
+  function test_revertOnNonController(address sender, bytes32 appDataHash) public {
+    // contract is deployed by this contract without any pranks
+    vm.assume(sender != address(this));
+    vm.prank(sender);
+    vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
+    bCoWPool.enableTrading(appDataHash);
+  }
+
+  function test_setsAppDataHash(bytes32 appData) public {
+    bytes32 appDataHash = keccak256(abi.encode(appData));
+    bCoWPool.enableTrading(appData);
+    assertEq(bCoWPool.appDataHash(), appDataHash);
+  }
+
+  function test_emitTradingEnabledEvent(bytes32 appData) public {
+    bytes32 appDataHash = keccak256(abi.encode(appData));
+    vm.expectEmit();
+    emit IBCoWPool.TradingEnabled(appDataHash, appData);
+    bCoWPool.enableTrading(appData);
   }
 }
