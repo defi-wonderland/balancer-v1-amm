@@ -41,7 +41,7 @@ BMathTest::calcInGivenOut
 ├── when token weight out is zero
 │   └── it should return zero
 ├── when token weight in equals token weight out
-│   └── it should return bi * (1 - (bo/(bo-ao) - 1)))
+│   └── it should return bi * ((bo/(bo-ao) - 1))) / (1 - sf)
 └── when using known values // generic for some given values
     └── it should return correct value
 
@@ -61,7 +61,7 @@ BMathTest::calcSingleInGivenPoolOut
 └── when using known values // generic for some given values
     └── it should return correct value
 
-BMathTest::calcPoolSingleOutGivenPoolIn
+BMathTest::calcSingleOutGivenPoolIn
 ├── when pool supply is zero
 │   └── it revert (div by zero)
 ├── when total weight is zero
@@ -72,13 +72,11 @@ BMathTest::calcPoolSingleOutGivenPoolIn
     └── it should return correct value
 
 BMathTest::calcPoolInGivenSingleOut
-├── when exit fee is 1
-│   └── it should revert
 ├── when tokenBalanceOut is zero
 │   └── it should revert
 ├── when swap fee is 1 and token weight out is zero
 │   └── it should revert
 ├── when pool supply is zero
-│   └── it should return zero
+│   └── it should revert
 └── when using known values // generic for some given values
     └── it should return correct value
