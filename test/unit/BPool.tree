@@ -1,7 +1,7 @@
 BPoolTest::setSwapFee
 ├── when pool is the reentering caller
 │   └── it should revert
-├── when pool isn't finalized
+├── when pool is finalized
 │   └── it should revert
 ├── when called by a non-controller
 │   └── it should revert

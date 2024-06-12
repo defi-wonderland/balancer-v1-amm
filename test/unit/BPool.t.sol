@@ -1,47 +1,134 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {Test} from 'forge-std/Test.sol';
+import {BPool, IBPool} from 'contracts/BPool.sol';
+import {StdStorage, Test, stdStorage} from 'forge-std/Test.sol';
+
+contract BPoolReentering is BPool {
+  event HAS_REENTERED();
+
+  function TestTryToReenter(bytes calldata _calldata) external _lock_ {
+    (bool success, bytes memory ret) = address(this).call(_calldata);
+
+    if (!success) {
+      assembly {
+        revert(add(ret, 0x20), mload(ret))
+      }
+    }
+  }
+}
+
+contract BPoolExposed is BPool {
+  function forTest_setFinalize(bool _isFinalized) external {
+    _finalized = _isFinalized;
+  }
+}
 
 contract BPoolTest is Test {
+  using stdStorage for StdStorage;
+
+  BPool pool;
+
+  address deployer = makeAddr('deployer');
+
+  function setUp() external {
+    vm.prank(deployer);
+    pool = new BPool();
+  }
+
   function test_SetSwapFeeRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.setSwapFee, 1));
   }
 
-  function test_SetSwapFeeRevertWhen_PoolIsntFinalized() external {
+  function test_SetSwapFeeRevertWhen_PoolIsFinalized() external {
+    // Pre condition
+    BPoolExposed poolExposed = new BPoolExposed();
+    poolExposed.forTest_setFinalize(true);
+
+    // Post condition
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_IS_FINALIZED');
+
+    // Action
+    vm.prank(deployer);
+    poolExposed.setSwapFee(1);
   }
 
-  function test_SetSwapFeeRevertWhen_CalledByANon_controller() external {
+  function test_SetSwapFeeRevertWhen_CalledByANon_controller(address _caller) external {
+    // Pre condition
+    vm.assume(_caller != deployer);
+
+    // Post condition
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_NOT_CONTROLLER');
+
+    // Action
+    vm.prank(_caller);
+    pool.setSwapFee(1);
   }
 
   modifier whenCalledByTheController() {
+    vm.startPrank(deployer);
     _;
   }
 
-  function test_SetSwapFeeRevertWhen_TheFeeIsSetLteMIN_FEE() external whenCalledByTheController {
+  function test_SetSwapFeeRevertWhen_TheFeeIsSetLteMIN_FEE(uint256 _fee) external whenCalledByTheController {
+    // Pre condition
+    _fee = bound(_fee, 0, pool.MIN_FEE() - 1);
+
+    // Post condition
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_MIN_FEE');
+
+    // Action
+    pool.setSwapFee(_fee);
   }
 
-  function test_SetSwapFeeRevertWhen_TheFeeIsSetGteMAX_FEE() external whenCalledByTheController {
+  function test_SetSwapFeeRevertWhen_TheFeeIsSetGteMAX_FEE(uint256 _fee) external whenCalledByTheController {
+    // Pre condition
+    _fee = bound(_fee, pool.MAX_FEE() + 1, type(uint256).max);
+
+    // Post condition
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_MAX_FEE');
+
+    // Action
+    pool.setSwapFee(_fee);
   }
 
-  function test_SetSwapFeeWhenTheFeeIsSetBetweenMIN_FEEAndMAX_FEE() external whenCalledByTheController {
-    // it should set the fee
+  function test_SetSwapFeeWhenTheFeeIsSetBetweenMIN_FEEAndMAX_FEE(uint256 _fee) external whenCalledByTheController {
+    // Pre condition
+    _fee = bound(_fee, pool.MIN_FEE(), pool.MAX_FEE());
+
+    // Post condition
     // it should emit LOG_CALL
-    vm.skip(true);
+    vm.expectEmit(address(pool));
+    emit IBPool.LOG_CALL(pool.setSwapFee.selector, deployer, abi.encodeCall(pool.setSwapFee, _fee));
+
+    // Action
+    pool.setSwapFee(_fee);
+
+    // Post condition
+    // it should set the fee
+    assertEq(pool.getSwapFee(), _fee);
   }
 
   function test_SetControllerRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.setController, makeAddr('manager')));
   }
 
   function test_SetControllerRevertWhen_CalledByANon_controller() external {
@@ -56,8 +143,14 @@ contract BPoolTest is Test {
   }
 
   function test_FinalizeRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.finalize, ()));
   }
 
   function test_FinalizeRevertWhen_CalledByANon_controller() external {
@@ -84,8 +177,14 @@ contract BPoolTest is Test {
   }
 
   function test_BindRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.bind, (makeAddr('token'), 1, 1)));
   }
 
   function test_BindRevertWhen_CalledByANon_controller() external {
@@ -148,8 +247,14 @@ contract BPoolTest is Test {
   }
 
   function test_UnbindRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.unbind, makeAddr('token')));
   }
 
   function test_UnbindRevertWhen_CalledByANon_controller() external {
@@ -182,8 +287,16 @@ contract BPoolTest is Test {
   }
 
   function test_JoinPoolRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+    uint256[] memory _arr = new uint256[](1);
+    _arr[0] = 1;
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.joinPool, (1, _arr)));
   }
 
   function test_JoinPoolRevertWhen_ThePoolIsNotFinalized() external {
@@ -220,8 +333,16 @@ contract BPoolTest is Test {
   }
 
   function test_ExitPoolRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+    uint256[] memory _arr = new uint256[](1);
+    _arr[0] = 1;
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.exitPool, (1, _arr)));
   }
 
   function test_ExitPoolRevertWhen_ThePoolIsNotFinalized() external {
@@ -267,8 +388,16 @@ contract BPoolTest is Test {
   }
 
   function test_SwapExactAmountInRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(
+      abi.encodeCall(poolReentering.swapExactAmountIn, (makeAddr('tokenIn'), 1, makeAddr('tokenOut'), 1, 1))
+    );
   }
 
   function test_SwapExactAmountInRevertWhen_TheTokenInIsNotBound() external {
@@ -333,8 +462,16 @@ contract BPoolTest is Test {
   }
 
   function test_SwapExactAmountOutRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(
+      abi.encodeCall(poolReentering.swapExactAmountOut, (makeAddr('tokenIn'), 1, makeAddr('tokenOut'), 1, 1))
+    );
   }
 
   function test_SwapExactAmountOutRevertWhen_TheTokenInIsNotBound() external {
@@ -398,8 +535,14 @@ contract BPoolTest is Test {
   }
 
   function test_JoinswapExternAmountInRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.joinswapExternAmountIn, (makeAddr('tokenIn'), 1, 1)));
   }
 
   function test_JoinswapExternAmountInRevertWhen_TheTokenIsNotBound() external {
@@ -431,8 +574,14 @@ contract BPoolTest is Test {
   }
 
   function test_JoinswapPoolAmountOutRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.joinswapPoolAmountOut, (makeAddr('tokenIn'), 1, 1)));
   }
 
   function test_JoinswapPoolAmountOutRevertWhen_TheTokenIsNotBound() external {
@@ -472,8 +621,14 @@ contract BPoolTest is Test {
   }
 
   function test_ExitswapPoolAmountInRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.exitswapPoolAmountIn, (makeAddr('tokenIn'), 1, 1)));
   }
 
   function test_ExitswapPoolAmountInRevertWhen_TheTokenIsNotBound() external {
@@ -509,8 +664,14 @@ contract BPoolTest is Test {
   }
 
   function test_ExitswapExternAmountOutRevertWhen_PoolIsTheReenteringCaller() external {
+    // Pre Condition
+    BPoolReentering poolReentering = new BPoolReentering();
+
     // it should revert
-    vm.skip(true);
+    vm.expectRevert('ERR_REENTRY');
+
+    // Action
+    poolReentering.TestTryToReenter(abi.encodeCall(poolReentering.exitswapExternAmountOut, (makeAddr('tokenIn'), 1, 1)));
   }
 
   function test_ExitswapExternAmountOutRevertWhen_TheTokenIsNotBound() external {
