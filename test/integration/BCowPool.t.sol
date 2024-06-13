@@ -29,7 +29,6 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
   address public solver = address(0xa5559C2E1302c5Ce82582A6b1E4Aec562C2FbCf4);
 
   address public controller = makeAddr('controller');
-  address public lp = makeAddr('lp');
   Vm.Wallet swapper = vm.createWallet('swapper');
 
   bytes32 public constant APP_DATA = bytes32('exampleIntegrationAppData');
@@ -44,12 +43,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
     deal(address(dai), controller, HUNDRED_UNITS);
     deal(address(weth), controller, HUNDRED_UNITS);
 
-    // deal LP
-    deal(address(dai), address(lp), HUNDRED_UNITS);
-    deal(address(weth), address(lp), HUNDRED_UNITS);
-
     // deal swapper
-    deal(address(weth), swapper.addr, ONE_UNIT * 20);
+    deal(address(weth), swapper.addr, HUNDRED_UNITS);
 
     vm.startPrank(controller);
     // deploy
@@ -64,16 +59,6 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
     IBPool(pool).finalize();
     // enable trading
     pool.enableTrading(APP_DATA);
-
-    vm.startPrank(lp);
-    // join pool
-    dai.approve(address(pool), type(uint256).max);
-    weth.approve(address(pool), type(uint256).max);
-    // TODO: join pool using joinPool()
-    uint256 _daiToDeposit = bmul(dai.balanceOf(address(pool)), MAX_IN_RATIO);
-    uint256 _wethToDeposit = bmul(weth.balanceOf(address(pool)), MAX_IN_RATIO);
-    IBPool(pool).joinswapExternAmountIn(address(dai), _daiToDeposit, 0);
-    IBPool(pool).joinswapExternAmountIn(address(weth), _wethToDeposit, 0);
   }
 
   function testBCowPoolSwap() public {
@@ -177,17 +162,23 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
     GPv2Interaction.Data[][3] memory interactions =
       [new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0)];
 
-    bytes32 poolOrderHash = poolOrder.hash(pool.SOLUTION_SETTLER_DOMAIN_SEPARATOR());
     interactions[0] = new GPv2Interaction.Data[](1);
     interactions[0][0] = GPv2Interaction.Data({
       target: address(pool),
       value: 0,
-      callData: abi.encodeWithSelector(IBCoWPool.commit.selector, poolOrderHash)
+      callData: abi.encodeWithSelector(
+        IBCoWPool.commit.selector, poolOrder.hash(pool.SOLUTION_SETTLER_DOMAIN_SEPARATOR())
+      )
     });
 
     vm.startPrank(solver);
     settlement.settle(tokens, clearingPrices, trades, interactions);
 
-    // TODO: assert balances
+    // assert swapper balance
+    assertEq(dai.balanceOf(swapper.addr), buyAmount);
+    assertEq(weth.balanceOf(swapper.addr), HUNDRED_UNITS - sellAmount);
+    // assert pool balance
+    assertEq(dai.balanceOf(address(pool)), HUNDRED_UNITS - buyAmount);
+    assertEq(weth.balanceOf(address(pool)), HUNDRED_UNITS + sellAmount);
   }
 }
