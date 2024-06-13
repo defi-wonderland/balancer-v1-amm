@@ -150,7 +150,7 @@ contract BCoWPool_Unit_EnableTrading is BaseCoWPoolTest {
 }
 
 contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
-  function test_revertOnNonBoundToken() public {
+  function test_Revert_NonBoundToken() public {
     GPv2Order.Data memory order = correctOrder;
     order.buyToken = IERC20(makeAddr('other token'));
     order = correctOrder;
@@ -159,21 +159,21 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
     bCoWPool.verify(order);
   }
 
-  function test_revertOnLargeDurationOrder() public {
+  function test_Revert_LargeDurationOrder() public {
     GPv2Order.Data memory order = correctOrder;
     order.validTo = uint32(block.timestamp + 6 minutes);
     vm.expectRevert(IBCoWPool.BCoWPool_OrderValidityTooLong.selector);
     bCoWPool.verify(order);
   }
 
-  function test_revertOnNonZeroFee() public {
+  function test_Revert_NonZeroFee() public {
     GPv2Order.Data memory order = correctOrder;
     order.feeAmount = 100;
     vm.expectRevert(IBCoWPool.BCoWPool_FeeMustBeZero.selector);
     bCoWPool.verify(order);
   }
 
-  function test_revertOnInvalidOrderKind(bytes32 _orderKind) public {
+  function test_Revert_InvalidOrderKind(bytes32 _orderKind) public {
     vm.assume(_orderKind != GPv2Order.KIND_SELL);
     GPv2Order.Data memory order = correctOrder;
     order.kind = _orderKind;
@@ -181,7 +181,7 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
     bCoWPool.verify(order);
   }
 
-  function test_revertOnInvalidBalanceKind(bytes32 _balanceKind) public {
+  function test_Revert_InvalidBalanceKind(bytes32 _balanceKind) public {
     vm.assume(_balanceKind != GPv2Order.BALANCE_ERC20);
     GPv2Order.Data memory order = correctOrder;
     order.sellTokenBalance = _balanceKind;
@@ -193,7 +193,7 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
     bCoWPool.verify(order);
   }
 
-  function test_revertOnInsufficientReturn(uint256 _buyAmount, uint256 _offset) public {
+  function test_Revert_InsufficientReturn(uint256 _buyAmount, uint256 _offset) public {
     _buyAmount = bound(_buyAmount, 1, type(uint128).max);
     _offset = bound(_offset, 1, _buyAmount);
     GPv2Order.Data memory order = correctOrder;
