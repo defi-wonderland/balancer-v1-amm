@@ -9,16 +9,13 @@ import {GPv2Trade} from '@cowprotocol/libraries/GPv2Trade.sol';
 import {GPv2Signing} from '@cowprotocol/mixins/GPv2Signing.sol';
 import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BCoWPool} from 'contracts/BCoWPool.sol';
-import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
-import {BNum} from 'contracts/BNum.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
-// TODO: add GasSnapshot
-contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
+contract BCowPoolIntegrationTest is Test, BCoWConst, BMath {
   using GPv2Order for GPv2Order.Data;
 
   IBCoWPool public pool;
@@ -116,7 +113,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
     });
     bytes memory poolSig = abi.encode(poolOrder);
 
-    // solver calls settle()
+    // solver prepares for call settle()
     IERC20[] memory tokens = new IERC20[](2);
     tokens[0] = IERC20(weth);
     tokens[1] = IERC20(dai);
@@ -128,7 +125,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
 
     GPv2Trade.Data[] memory trades = new GPv2Trade.Data[](2);
 
-    // pool's order
+    // pool's trade
     trades[0] = GPv2Trade.Data({
       sellTokenIndex: 1,
       buyTokenIndex: 0,
@@ -143,7 +140,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
       signature: abi.encodePacked(address(pool), poolSig)
     });
 
-    // swapper's order
+    // swapper's trade
     trades[1] = GPv2Trade.Data({
       sellTokenIndex: 0,
       buyTokenIndex: 1,
@@ -158,11 +155,10 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
       signature: swapperSig
     });
 
-    // declare the interactions
+    // in the first interactions, save the commitment
     GPv2Interaction.Data[][3] memory interactions =
-      [new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0)];
+      [new GPv2Interaction.Data[](1), new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0)];
 
-    interactions[0] = new GPv2Interaction.Data[](1);
     interactions[0][0] = GPv2Interaction.Data({
       target: address(pool),
       value: 0,
@@ -171,6 +167,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
       )
     });
 
+    // finally, settle
     vm.startPrank(solver);
     settlement.settle(tokens, clearingPrices, trades, interactions);
 
