@@ -10,12 +10,13 @@ import {GPv2Signing} from '@cowprotocol/mixins/GPv2Signing.sol';
 import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BCoWPool} from 'contracts/BCoWPool.sol';
 import {BMath} from 'contracts/BMath.sol';
+import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
-contract BCowPoolIntegrationTest is Test, BCoWConst, BMath {
+contract BCowPoolIntegrationTest is Test, BCoWConst, BMath, GasSnapshot {
   using GPv2Order for GPv2Order.Data;
 
   IBCoWPool public pool;
@@ -169,7 +170,9 @@ contract BCowPoolIntegrationTest is Test, BCoWConst, BMath {
 
     // finally, settle
     vm.startPrank(solver);
+    snapStart('settle');
     settlement.settle(tokens, clearingPrices, trades, interactions);
+    snapEnd();
 
     // assert swapper balance
     assertEq(dai.balanceOf(swapper.addr), buyAmount);
