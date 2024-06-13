@@ -2,10 +2,12 @@
 pragma solidity 0.8.25;
 
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
+
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 
 import {BasePoolTest} from './BPool.t.sol';
 
+import {BMath} from 'contracts/BMath.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
@@ -188,6 +190,42 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
     order = correctOrder;
     order.buyTokenBalance = _balanceKind;
     vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_revertOnInsufficientReturn(uint256 _buyAmount, uint256 _offset) public {
+    _buyAmount = bound(_buyAmount, 1, type(uint128).max);
+    _offset = bound(_offset, 1, _buyAmount);
+    GPv2Order.Data memory order = correctOrder;
+    order.buyAmount = _buyAmount;
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(1 ether));
+    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(1 ether));
+    vm.mockCall(address(bCoWPool), abi.encodePacked(BMath.calcOutGivenIn.selector), abi.encode(_buyAmount - _offset));
+
+    vm.expectRevert(IBPool.BPool_TokenAmountOutBelowMinOut.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_Call_CalcOutGivenIn(
+    uint256 _sellAmount,
+    uint256 _buyTokenBalance,
+    uint256 _sellTokenBalance,
+    uint256 _inRecordDenorm,
+    uint256 _outRecordDenorm
+  ) public {
+    GPv2Order.Data memory order = correctOrder;
+    order.sellAmount = _sellAmount;
+    _setRecord(tokens[0], IBPool.Record({bound: true, index: 0, denorm: _inRecordDenorm}));
+    _setRecord(tokens[1], IBPool.Record({bound: true, index: 1, denorm: _outRecordDenorm}));
+    bCoWPool.mock_call_calcOutGivenIn(
+      _sellTokenBalance, _inRecordDenorm, _buyTokenBalance, _outRecordDenorm, _sellAmount, 0, 1
+    );
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(_sellTokenBalance));
+    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(_buyTokenBalance));
+
+    bCoWPool.expect_call_calcOutGivenIn(
+      _sellTokenBalance, _inRecordDenorm, _buyTokenBalance, _outRecordDenorm, _sellAmount, 0
+    );
     bCoWPool.verify(order);
   }
 }
