@@ -26,6 +26,7 @@ yarn test    # run the tests
 - Bumped Solidity version from `0.5.12` to `0.8.25` (required for transient storage)
   - Added explicit `unchecked` blocks to `BNum` operations (to avoid Solidity overflow checks)
 - Deprecated `Record.balance` storage (in favour of `ERC20.balanceOf(address(this))`)
+- Deprecated `gulp` method (not needed since reading ERC20 balances)
 - Deprecated manageable pools:
   - Deprecated `isPublicSwap` mechanism (for pools to be swapped before being finalized)
   - Deprecated `rebind` method (in favour of `bind + unbind + bind`)
