@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
+import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 
 import {BasePoolTest} from './BPool.t.sol';
 
@@ -15,6 +16,7 @@ abstract contract BaseCoWPoolTest is BasePoolTest {
   address public cowSolutionSettler = makeAddr('cowSolutionSettler');
   bytes32 public domainSeparator = bytes32(bytes2(0xf00b));
   address public vaultRelayer = makeAddr('vaultRelayer');
+  GPv2Order.Data correctOrder;
 
   MockBCoWPool bCoWPool;
 
@@ -25,6 +27,20 @@ abstract contract BaseCoWPoolTest is BasePoolTest {
     bCoWPool = new MockBCoWPool(cowSolutionSettler);
     bPool = MockBPool(address(bCoWPool));
     _setRandomTokens(TOKENS_AMOUNT);
+    correctOrder = GPv2Order.Data({
+      sellToken: IERC20(tokens[0]),
+      buyToken: IERC20(tokens[1]),
+      receiver: makeAddr('unimportant'),
+      sellAmount: 0,
+      buyAmount: 0,
+      validTo: uint32(block.timestamp + 1 minutes),
+      appData: bytes32(0),
+      feeAmount: 0,
+      kind: GPv2Order.KIND_SELL,
+      partiallyFillable: false,
+      sellTokenBalance: GPv2Order.BALANCE_ERC20,
+      buyTokenBalance: GPv2Order.BALANCE_ERC20
+    });
   }
 }
 
@@ -128,5 +144,50 @@ contract BCoWPool_Unit_EnableTrading is BaseCoWPoolTest {
     vm.expectEmit();
     emit IBCoWPool.TradingEnabled(appDataHash, appData);
     bCoWPool.enableTrading(appData);
+  }
+}
+
+contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
+  function test_revertOnNonBoundToken() public {
+    GPv2Order.Data memory order = correctOrder;
+    order.buyToken = IERC20(makeAddr('other token'));
+    order = correctOrder;
+    order.sellToken = IERC20(makeAddr('other token'));
+    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_revertOnLargeDurationOrder() public {
+    GPv2Order.Data memory order = correctOrder;
+    order.validTo = uint32(block.timestamp + 6 minutes);
+    vm.expectRevert(IBCoWPool.BCoWPool_OrderValidityTooLong.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_revertOnNonZeroFee() public {
+    GPv2Order.Data memory order = correctOrder;
+    order.feeAmount = 100;
+    vm.expectRevert(IBCoWPool.BCoWPool_FeeMustBeZero.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_revertOnInvalidOrderKind(bytes32 _orderKind) public {
+    vm.assume(_orderKind != GPv2Order.KIND_SELL);
+    GPv2Order.Data memory order = correctOrder;
+    order.kind = _orderKind;
+    vm.expectRevert(IBCoWPool.BCoWPool_InvalidOperation.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_revertOnInvalidBalanceKind(bytes32 _balanceKind) public {
+    vm.assume(_balanceKind != GPv2Order.BALANCE_ERC20);
+    GPv2Order.Data memory order = correctOrder;
+    order.sellTokenBalance = _balanceKind;
+    vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
+    bCoWPool.verify(order);
+    order = correctOrder;
+    order.buyTokenBalance = _balanceKind;
+    vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
+    bCoWPool.verify(order);
   }
 }
