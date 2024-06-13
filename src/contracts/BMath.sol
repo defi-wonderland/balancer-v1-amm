@@ -61,7 +61,7 @@ contract BMath is BConst, BNum {
     uint256 tokenWeightOut,
     uint256 tokenAmountIn,
     uint256 swapFee
-  ) public pure returns (uint256 tokenAmountOut) {
+  ) public view virtual returns (uint256 tokenAmountOut) {
     uint256 weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
     uint256 adjustedIn = bsub(BONE, swapFee);
     adjustedIn = bmul(tokenAmountIn, adjustedIn);
