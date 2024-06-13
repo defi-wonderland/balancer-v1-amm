@@ -150,11 +150,23 @@ contract BCoWPool_Unit_EnableTrading is BaseCoWPoolTest {
 }
 
 contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
-  function test_Revert_NonBoundToken() public {
+  modifier assumeNotBoundToken(address _token) {
+    for (uint256 i = 0; i < TOKENS_AMOUNT; i++) {
+      vm.assume(tokens[i] != _token);
+    }
+    _;
+  }
+
+  function test_Revert_NonBoundBuyToken(address _otherToken) public assumeNotBoundToken(_otherToken) {
     GPv2Order.Data memory order = correctOrder;
-    order.buyToken = IERC20(makeAddr('other token'));
-    order = correctOrder;
-    order.sellToken = IERC20(makeAddr('other token'));
+    order.buyToken = IERC20(_otherToken);
+    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_Revert_NonBoundSellToken(address _otherToken) public assumeNotBoundToken(_otherToken) {
+    GPv2Order.Data memory order = correctOrder;
+    order.sellToken = IERC20(_otherToken);
     vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
     bCoWPool.verify(order);
   }

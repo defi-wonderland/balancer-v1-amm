@@ -108,7 +108,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     Record memory inRecord = _records[address(order.sellToken)];
     Record memory outRecord = _records[address(order.buyToken)];
 
-    if (!inRecord.bound || !inRecord.bound) {
+    if (!inRecord.bound || !outRecord.bound) {
       revert BPool_TokenNotBound();
     }
     if (order.validTo >= block.timestamp + MAX_ORDER_DURATION) {
