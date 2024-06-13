@@ -2,8 +2,9 @@
 pragma solidity 0.8.25;
 
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
-import {IERC1271} from '@openzeppelin/contracts/interfaces/IERC1271.sol';
+
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
+import {IERC1271} from '@openzeppelin/contracts/interfaces/IERC1271.sol';
 
 import {BasePoolTest} from './BPool.t.sol';
 
@@ -141,7 +142,7 @@ contract BCoWPool_Unit_EnableTrading is BaseCoWPoolTest {
 }
 
 contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
-  function setUp() public virtual override{
+  function setUp() public virtual override {
     super.setUp();
     for (uint256 i = 0; i < TOKENS_AMOUNT; i++) {
       vm.mockCall(tokens[i], abi.encodePacked(IERC20.approve.selector), abi.encode(true));

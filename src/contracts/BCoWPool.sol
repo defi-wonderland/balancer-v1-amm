@@ -112,7 +112,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   }
 
   /// @inheritdoc IBCoWPool
-  function verify(GPv2Order.Data memory order) public virtual view {
+  function verify(GPv2Order.Data memory order) public view virtual {
     Record memory inRecord = _records[address(order.sellToken)];
     Record memory outRecord = _records[address(order.buyToken)];
 
