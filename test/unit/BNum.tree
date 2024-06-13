@@ -69,6 +69,8 @@ BNumTest::bdiv
 ├── when passing a and b too big
 │   └── it should revert
 │       └── a*BONE/b + b/2 > uint256 max
+├── when flooring to zero
+│   └── it should return 0
 └── when passing known values // generic for some given values
     └── it should return correct value
 

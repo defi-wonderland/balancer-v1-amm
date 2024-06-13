@@ -291,6 +291,19 @@ contract BNumTest is Test {
     bNum.bdivExposed(_a, _b);
   }
 
+  function test_BDivWhenFlooringToZero(uint256 _a, uint256 _b) external {
+    // Preconditions
+    _a = bound(_a, 1, (type(uint256).max / (BONE * 2)) - 1);
+    _b = bound(_b, (2 * BONE * _a) + 1, type(uint256).max);
+
+    // Action
+    uint256 _result = bNum.bdivExposed(_a, _b);
+
+    // Post Condition
+    // it should return 0
+    assertEq(_result, 0);
+  }
+
   function test_BdivWhenPassingKnownValues() external {
     // it should return correct value
     vm.skip(true);

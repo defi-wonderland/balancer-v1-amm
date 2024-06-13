@@ -52,9 +52,9 @@ BPoolTest::bind
 │   └── it should revert
 ├── when there are already MAX_BOUND tokens
 │   └── it should revert
-├── when the denorm is lte MIN_WEIGHT
+├── when the denorm is lt MIN_WEIGHT
 │   └── it should revert
-├── when the denorm is gte MAX_WEIGHT
+├── when the denorm is gt MAX_WEIGHT
 │   └── it should revert
 ├── when the balance to send is less than MIN_BALANCE
 │   └── it should revert
