@@ -24,6 +24,7 @@ abstract contract BaseCoWPoolTest is BasePoolTest {
     vm.mockCall(cowSolutionSettler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(vaultRelayer));
     bCoWPool = new MockBCoWPool(cowSolutionSettler);
     bPool = MockBPool(address(bCoWPool));
+    _setRandomTokens(TOKENS_AMOUNT);
   }
 }
 
@@ -54,11 +55,8 @@ contract BCoWPool_Unit_Constructor is BaseCoWPoolTest {
 }
 
 contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
-  function test_Set_Approvals(uint256 _tokensLength) public {
-    _tokensLength = bound(_tokensLength, MIN_BOUND_TOKENS, MAX_BOUND_TOKENS);
-    _setRandomTokens(_tokensLength);
-    address[] memory tokens = _getDeterministicTokenArray(_tokensLength);
-    for (uint256 i = 0; i < bCoWPool.getNumTokens(); i++) {
+  function test_Set_Approvals() public {
+    for (uint256 i = 0; i < TOKENS_AMOUNT; i++) {
       vm.mockCall(tokens[i], abi.encodePacked(IERC20.approve.selector), abi.encode(true));
       vm.expectCall(tokens[i], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), 1);
     }
