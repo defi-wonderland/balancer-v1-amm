@@ -7,18 +7,21 @@ import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {GPv2Trade} from '@cowprotocol/libraries/GPv2Trade.sol';
 import {GPv2Signing} from '@cowprotocol/mixins/GPv2Signing.sol';
+import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BCoWPool} from 'contracts/BCoWPool.sol';
 import {BConst} from 'contracts/BConst.sol';
+import {BMath} from 'contracts/BMath.sol';
 import {BNum} from 'contracts/BNum.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
+import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
 // TODO: add GasSnapshot
-contract BCowPoolIntegrationTest is Test, BConst, BNum {
+contract BCowPoolIntegrationTest is Test, BConst, BCoWConst, BNum, BMath {
   using GPv2Order for GPv2Order.Data;
 
-  BCoWPool public pool;
+  IBCoWPool public pool;
 
   IERC20 public dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
   IERC20 public weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
@@ -46,7 +49,7 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     deal(address(weth), address(lp), HUNDRED_UNITS);
 
     // deal swapper
-    deal(address(weth), swapper.addr, ONE_UNIT);
+    deal(address(weth), swapper.addr, ONE_UNIT * 20);
 
     vm.startPrank(controller);
     // deploy
@@ -55,8 +58,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     // bind
     dai.approve(address(pool), type(uint256).max);
     weth.approve(address(pool), type(uint256).max);
-    IBPool(pool).bind(address(dai), ONE_UNIT, 2e18);
-    IBPool(pool).bind(address(weth), ONE_UNIT, 8e18);
+    IBPool(pool).bind(address(dai), HUNDRED_UNITS, 2e18);
+    IBPool(pool).bind(address(weth), HUNDRED_UNITS, 8e18);
     // finalize
     IBPool(pool).finalize();
     // enable trading
@@ -66,24 +69,28 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     // join pool
     dai.approve(address(pool), type(uint256).max);
     weth.approve(address(pool), type(uint256).max);
+    // TODO: join pool using joinPool()
     uint256 _daiToDeposit = bmul(dai.balanceOf(address(pool)), MAX_IN_RATIO);
     uint256 _wethToDeposit = bmul(weth.balanceOf(address(pool)), MAX_IN_RATIO);
-    // TODO: join pool using joinPool()
     IBPool(pool).joinswapExternAmountIn(address(dai), _daiToDeposit, 0);
     IBPool(pool).joinswapExternAmountIn(address(weth), _wethToDeposit, 0);
   }
 
   function testBCowPoolSwap() public {
-    vm.skip(true);
-
-    uint256 sellAmount = ONE_UNIT;
     uint256 buyAmount = HUNDRED_UNITS;
+    uint256 sellAmount = calcOutGivenIn({
+      tokenBalanceIn: dai.balanceOf(address(pool)),
+      tokenWeightIn: pool.getDenormalizedWeight(address(dai)),
+      tokenBalanceOut: weth.balanceOf(address(pool)),
+      tokenWeightOut: pool.getDenormalizedWeight(address(weth)),
+      tokenAmountIn: buyAmount,
+      swapFee: 0
+    });
 
-    // TODO: add MAX_ORDER_DURATION() to BCoWPool interface
-    uint32 latestValidTimestamp = uint32(block.timestamp); // + pool.MAX_ORDER_DURATION();
+    uint32 latestValidTimestamp = uint32(block.timestamp) + MAX_ORDER_DURATION - 1;
 
     // swapper approves weth to vaultRelayer
-    vm.prank(swapper.addr);
+    vm.startPrank(swapper.addr);
     weth.approve(settlement.vaultRelayer(), type(uint256).max);
 
     // swapper creates the order
@@ -91,8 +98,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
       sellToken: weth,
       buyToken: dai,
       receiver: GPv2Order.RECEIVER_SAME_AS_OWNER,
-      sellAmount: sellAmount,
-      buyAmount: buyAmount,
+      sellAmount: sellAmount, // WETH
+      buyAmount: buyAmount, // 100 DAI
       validTo: latestValidTimestamp,
       appData: APP_DATA,
       feeAmount: 0,
@@ -112,8 +119,8 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
       sellToken: dai,
       buyToken: weth,
       receiver: GPv2Order.RECEIVER_SAME_AS_OWNER,
-      sellAmount: buyAmount,
-      buyAmount: sellAmount,
+      sellAmount: buyAmount, // 100 DAI
+      buyAmount: sellAmount, // WETH
       validTo: latestValidTimestamp,
       appData: APP_DATA,
       feeAmount: 0,
@@ -130,8 +137,9 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     tokens[1] = IERC20(dai);
 
     uint256[] memory clearingPrices = new uint256[](2);
-    clearingPrices[0] = sellAmount;
-    clearingPrices[1] = buyAmount;
+    // TODO: we can use more accurate clearing prices here
+    clearingPrices[0] = buyAmount;
+    clearingPrices[1] = sellAmount;
 
     GPv2Trade.Data[] memory trades = new GPv2Trade.Data[](2);
 
@@ -169,16 +177,15 @@ contract BCowPoolIntegrationTest is Test, BConst, BNum {
     GPv2Interaction.Data[][3] memory interactions =
       [new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0)];
 
-    bytes32 swapperOrderHash = swapperOrder.hash(settlement.domainSeparator());
+    bytes32 poolOrderHash = poolOrder.hash(pool.SOLUTION_SETTLER_DOMAIN_SEPARATOR());
     interactions[0] = new GPv2Interaction.Data[](1);
     interactions[0][0] = GPv2Interaction.Data({
       target: address(pool),
       value: 0,
-      // TODO: change BCoWPool for IBCoWPool
-      callData: abi.encodeWithSelector(BCoWPool.commit.selector, swapperOrderHash)
+      callData: abi.encodeWithSelector(IBCoWPool.commit.selector, poolOrderHash)
     });
 
-    vm.prank(solver);
+    vm.startPrank(solver);
     settlement.settle(tokens, clearingPrices, trades, interactions);
 
     // TODO: assert balances
