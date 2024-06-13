@@ -32,7 +32,7 @@ abstract contract BaseCoWPoolTest is BasePoolTest {
     correctOrder = GPv2Order.Data({
       sellToken: IERC20(tokens[0]),
       buyToken: IERC20(tokens[1]),
-      receiver: makeAddr('unimportant'),
+      receiver: address(0),
       sellAmount: 0,
       buyAmount: 0,
       validTo: uint32(block.timestamp + 1 minutes),
@@ -171,16 +171,18 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
     bCoWPool.verify(order);
   }
 
-  function test_Revert_LargeDurationOrder() public {
+  function test_Revert_LargeDurationOrder(uint256 _timeOffset) public {
+    _timeOffset = bound(_timeOffset, 5 minutes, type(uint16).max);
     GPv2Order.Data memory order = correctOrder;
-    order.validTo = uint32(block.timestamp + 6 minutes);
+    order.validTo = uint32(block.timestamp + _timeOffset);
     vm.expectRevert(IBCoWPool.BCoWPool_OrderValidityTooLong.selector);
     bCoWPool.verify(order);
   }
 
-  function test_Revert_NonZeroFee() public {
+  function test_Revert_NonZeroFee(uint256 _fee) public {
+    _fee = bound(_fee, 1, type(uint256).max);
     GPv2Order.Data memory order = correctOrder;
-    order.feeAmount = 100;
+    order.feeAmount = _fee;
     vm.expectRevert(IBCoWPool.BCoWPool_FeeMustBeZero.selector);
     bCoWPool.verify(order);
   }
@@ -193,14 +195,20 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
     bCoWPool.verify(order);
   }
 
-  function test_Revert_InvalidBalanceKind(bytes32 _balanceKind) public {
+  function test_Revert_InvalidBuyBalanceKind(bytes32 _balanceKind) public {
     vm.assume(_balanceKind != GPv2Order.BALANCE_ERC20);
     GPv2Order.Data memory order = correctOrder;
-    order.sellTokenBalance = _balanceKind;
-    vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
-    bCoWPool.verify(order);
     order = correctOrder;
     order.buyTokenBalance = _balanceKind;
+    vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_Revert_InvalidSellBalanceKind(bytes32 _balanceKind) public {
+    vm.assume(_balanceKind != GPv2Order.BALANCE_ERC20);
+    GPv2Order.Data memory order = correctOrder;
+    order = correctOrder;
+    order.sellTokenBalance = _balanceKind;
     vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
     bCoWPool.verify(order);
   }
