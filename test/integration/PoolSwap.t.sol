@@ -53,7 +53,10 @@ abstract contract PoolSwapIntegrationTest is Test, BCoWConst, GasSnapshot {
     // enable trading
     pool.enableTrading(APP_DATA);
 
-    vm.stopPrank();
+    // clean dai and weth from the settlement
+    vm.startPrank(address(settlement));
+    dai.transfer(address(0), dai.balanceOf(address(settlement)));
+    weth.transfer(address(0), weth.balanceOf(address(settlement)));
   }
 
   function testSimpleSwap() public {
