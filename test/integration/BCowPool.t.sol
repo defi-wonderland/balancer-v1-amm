@@ -9,12 +9,14 @@ import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {GPv2Trade} from '@cowprotocol/libraries/GPv2Trade.sol';
 import {GPv2Signing} from '@cowprotocol/mixins/GPv2Signing.sol';
 import {BCoWConst} from 'contracts/BCoWConst.sol';
-import {BCoWPool} from 'contracts/BCoWPool.sol';
+import {BCoWFactory} from 'contracts/BCoWFactory.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
 contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
   using GPv2Order for GPv2Order.Data;
+
+  BCoWFactory public cowfactory;
 
   address public solver = address(0xa5559C2E1302c5Ce82582A6b1E4Aec562C2FbCf4);
 
@@ -30,9 +32,10 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
 
     deal(address(dai), swapper.addr, ONE_UNIT);
 
+    cowfactory = new BCoWFactory(address(settlement));
+
     vm.startPrank(lp);
-    // TODO: deploy using BCoWFactory
-    pool = address(new BCoWPool(address(settlement)));
+    pool = address(cowfactory.newBPool());
 
     dai.approve(pool, type(uint256).max);
     weth.approve(pool, type(uint256).max);

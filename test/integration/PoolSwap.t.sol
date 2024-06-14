@@ -15,13 +15,13 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
   IERC20 public dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
   IERC20 public weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
-  address public controller = makeAddr('controller');
   address public lp = makeAddr('lp');
 
   Vm.Wallet swapper = vm.createWallet('swapper');
 
   uint256 public constant HUNDRED_UNITS = 100 ether;
   uint256 public constant ONE_UNIT = 1 ether;
+  // NOTE: hardcoded from test result
   uint256 public constant WETH_AMOUNT = 0.096397921069149814e18;
   uint256 public constant DAI_AMOUNT = 0.5e18;
 
@@ -49,7 +49,6 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
   function testSimpleSwap() public {
     _makeSwap();
     assertEq(dai.balanceOf(swapper.addr), DAI_AMOUNT);
-    // NOTE: hardcoded from test result
     assertEq(weth.balanceOf(swapper.addr), WETH_AMOUNT);
 
     vm.startPrank(lp);
@@ -57,9 +56,7 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
     uint256 lpBalance = IBPool(pool).balanceOf(lp);
     IBPool(pool).exitPool(lpBalance, new uint256[](2));
 
-    // NOTE: no swap fees involved
     assertEq(dai.balanceOf(lp), HUNDRED_UNITS + DAI_AMOUNT); // initial 100 + 0.5 dai
-    // NOTE: hardcoded from test result
     assertEq(weth.balanceOf(lp), HUNDRED_UNITS - WETH_AMOUNT); // initial 100 - ~0.09 weth
   }
 
