@@ -11,7 +11,6 @@ import {BCoWPool} from 'contracts/BCoWPool.sol';
 import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
-import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
 abstract contract PoolSwapIntegrationTest is Test, BCoWConst, GasSnapshot {
@@ -50,7 +49,7 @@ abstract contract PoolSwapIntegrationTest is Test, BCoWConst, GasSnapshot {
     pool.bind(address(dai), ONE_UNIT, 2e18); // 20% weight?
     pool.bind(address(weth), ONE_UNIT, 8e18); // 80%
     // finalize
-    IBPool(pool).finalize();
+    pool.finalize();
     // enable trading
     pool.enableTrading(APP_DATA);
 
@@ -59,19 +58,19 @@ abstract contract PoolSwapIntegrationTest is Test, BCoWConst, GasSnapshot {
 
   function testSimpleSwap() public {
     _makeSwap();
-    assertEq(dai.balanceOf(address(swapper.addr)), DAI_AMOUNT);
+    assertEq(dai.balanceOf(swapper.addr), DAI_AMOUNT);
     // NOTE: hardcoded from test result
-    assertEq(weth.balanceOf(address(swapper.addr)), WETH_AMOUNT);
+    assertEq(weth.balanceOf(swapper.addr), WETH_AMOUNT);
 
     vm.startPrank(lp);
 
-    uint256 lpBalance = pool.balanceOf(address(lp));
+    uint256 lpBalance = pool.balanceOf(lp);
     pool.exitPool(lpBalance, new uint256[](2));
 
     // NOTE: no swap fees involved
-    assertEq(dai.balanceOf(address(lp)), HUNDRED_UNITS + DAI_AMOUNT); // initial 100 + 0.5 dai
+    assertEq(dai.balanceOf(lp), HUNDRED_UNITS + DAI_AMOUNT); // initial 100 + 0.5 dai
     // NOTE: hardcoded from test result
-    assertEq(weth.balanceOf(address(lp)), HUNDRED_UNITS - WETH_AMOUNT); // initial 100 - ~0.09 weth
+    assertEq(weth.balanceOf(lp), HUNDRED_UNITS - WETH_AMOUNT); // initial 100 - ~0.09 weth
   }
 
   function _makeSwap() internal virtual;
