@@ -12,6 +12,12 @@ contract MockBCoWPool is BCoWPool, Test {
     appDataHash = _appDataHash;
   }
 
+  function set_commitment(bytes32 _commitment) public {
+    assembly ("memory-safe") {
+      tstore(COMMITMENT_SLOT, _commitment)
+    }
+  }
+
   function mock_call_appDataHash(bytes32 _value) public {
     vm.mockCall(address(this), abi.encodeWithSignature('appDataHash()'), abi.encode(_value));
   }
