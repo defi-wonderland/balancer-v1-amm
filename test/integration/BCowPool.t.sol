@@ -13,7 +13,7 @@ import {BCoWPool} from 'contracts/BCoWPool.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
-contract IndirectPoolSwapIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
+contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
   using GPv2Order for GPv2Order.Data;
 
   address public solver = address(0xa5559C2E1302c5Ce82582A6b1E4Aec562C2FbCf4);
