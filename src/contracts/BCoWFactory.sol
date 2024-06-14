@@ -9,22 +9,22 @@ import {IBPool} from 'interfaces/IBPool.sol';
 
 /**
  * @title BCoWFactory
- * @notice Creates new BPools, logging their addresses and acting as a registry of pools.
+ * @notice Creates new BCoWPools, logging their addresses and acting as a registry of pools.
  */
 contract BCoWFactory is BFactory {
-  address public solutionSettler;
+  address public immutable SOLUTION_SETTLER;
 
   constructor(address _solutionSettler) BFactory() {
-    solutionSettler = _solutionSettler;
+    SOLUTION_SETTLER = _solutionSettler;
   }
 
   /**
    * @inheritdoc IBFactory
-   * @dev deploys a BCoWPool instead of a regular BPool, maintains the interface
+   * @dev Deploys a BCoWPool instead of a regular BPool, maintains the interface
    * to minimize required changes to existing tooling
    */
   function newBPool() external override returns (IBPool _pool) {
-    IBPool bpool = new BCoWPool(solutionSettler);
+    IBPool bpool = new BCoWPool(SOLUTION_SETTLER);
     _isBPool[address(bpool)] = true;
     emit LOG_NEW_POOL(msg.sender, address(bpool));
     bpool.setController(msg.sender);

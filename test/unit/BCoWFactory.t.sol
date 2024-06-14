@@ -26,13 +26,14 @@ abstract contract BCoWFactoryTest is Base {
 contract BCoWFactory_Unit_Constructor is BaseBFactory_Unit_Constructor, BCoWFactoryTest {
   function test_Set_SolutionSettler(address _settler) public {
     MockBCoWFactory factory = new MockBCoWFactory(_settler);
-    assertEq(factory.solutionSettler(), _settler);
+    assertEq(factory.SOLUTION_SETTLER(), _settler);
   }
 }
 
 contract BCoWFactory_Unit_NewBPool is BaseBFactory_Unit_NewBPool, BCoWFactoryTest {
   function test_Set_SolutionSettler(address _settler) public {
-    MockBCoWFactory(address(bFactory)).set_solutionSettler(_settler);
+    vm.prank(owner);
+    bFactory = new MockBCoWFactory(_settler);
     vm.mockCall(_settler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(bytes32(0)));
     vm.mockCall(_settler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(makeAddr('vault relayer')));
     IBCoWPool bCoWPool = IBCoWPool(address(bFactory.newBPool()));
