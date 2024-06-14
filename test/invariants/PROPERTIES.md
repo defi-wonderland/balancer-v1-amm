@@ -51,9 +51,9 @@ bmul should be distributive
 0 should be absorbing for mul
 bmul result should always be gte a and b
 
-bdiv should be bmul reverse operation
+bdiv should be bmul reverse operation // <-- unsolved
 1 should be identity for bdiv
-bdiv should revert if b is 0
+bdiv should revert if b is 0 // <-- impl with wrapper to have low lvl call
 bdiv result should be lte a
 
 
@@ -76,22 +76,17 @@ power of a power should mult the exp (x^a)^b == x^(a*b)
 
 bpowApprox
 
-
 calcOutGivenIn
 
 calcOutGivenIn should be inv with calcInGivenOut
 
-
 calcInGivenOut
-
 
 calcPoolOutGivenSingleIn
 
 calcPoolOutGivenSingleIn should be inv with calcSingleInGivenPoolOut
 
 calcSingleInGivenPoolOut
-
-
 
 calcSingleOutGivenPoolIn
 

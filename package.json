@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "5.0.2",
+    "halmos-cheatcodes": "github:a16z/halmos-cheatcodes#c0d8655",
     "solmate": "github:transmissions11/solmate#c892309"
   },
   "devDependencies": {
