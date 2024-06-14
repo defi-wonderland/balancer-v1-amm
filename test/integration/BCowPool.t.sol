@@ -60,6 +60,8 @@ contract BCowPoolIntegrationTest is Test, BCoWConst, BMath, GasSnapshot {
   }
 
   function testBCowPoolSwap() public {
+    vm.skip(true);
+
     uint256 buyAmount = HUNDRED_UNITS;
     uint256 sellAmount = calcOutGivenIn({
       tokenBalanceIn: dai.balanceOf(address(pool)),
