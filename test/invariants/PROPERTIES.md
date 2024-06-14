@@ -3,8 +3,8 @@
 | BFactory should always be able to deploy new pools                                           | Unit |
 | BFactory's blab should always be modifiable by the current blabs                                        | Unit |
 | BFactory should always be able to transfer the BToken to the blab, if called by it                                      | Unit |
-| BToken increaseApproval should increase the approval of the address by the amount
-| BToken decreaseApproval should decrease the approval to max(old-amount, 0) | Unit | 
+| BToken increaseApproval should increase the approval of the address by the amount | Variable transition |
+| BToken decreaseApproval should decrease the approval to max(old-amount, 0) | Variable transition | 
 | BToken should not break the ToB ERC20 properties (https://github.com/crytic/properties?tab=readme-ov-file#erc20-tests) | High level | 
 | an exact amount in should always earn the amount out calculated in bmath | High level  | 
 | an exact amount out is earned only if the amount in calculated in bmath is transfered | High level  | 
