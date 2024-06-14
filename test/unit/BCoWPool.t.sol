@@ -150,20 +150,36 @@ contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
     bCoWPool.finalize();
   }
 
+  modifier _withValidCommitment(GPv2Order.Data memory _order) {
+    bCoWPool.enableTrading(_order.appData);
+    bytes32 _orderHash = GPv2Order.hash(_order, domainSeparator);
+    vm.prank(cowSolutionSettler);
+    bCoWPool.commit(_orderHash);
+    _;
+  }
+
   function test_Revert_OrderWithWrongAppdata(bytes32 _appData, GPv2Order.Data memory _order) public {
+    vm.assume(_order.appData != _appData);
     bytes32 _appDataHash = keccak256(abi.encode(_appData));
     bCoWPool.enableTrading(_appData);
-    vm.assume(_order.appData != _appData);
     vm.expectRevert(IBCoWPool.AppDataDoNotMatchHash.selector);
     bCoWPool.isValidSignature(_appDataHash, abi.encode(_order));
   }
 
   // AFAIK this should be mostly caused by trying to replay an order in another network
-  // question: should I provide a reasonably-wrong hash like this example, or fuzz the parameter entirely?
-  function test_Revert_OrderWithWrongHash(GPv2Order.Data memory _order, bytes32 _differentDomainSeparator) public {
+  function test_Revert_OrderSignedWithWrongDomainSeparator(
+    GPv2Order.Data memory _order,
+    bytes32 _differentDomainSeparator
+  ) public {
     vm.assume(_differentDomainSeparator != domainSeparator);
     bCoWPool.enableTrading(_order.appData);
     bytes32 _orderHash = GPv2Order.hash(_order, _differentDomainSeparator);
+    vm.expectRevert(IBCoWPool.OrderDoesNotMatchMessageHash.selector);
+    bCoWPool.isValidSignature(_orderHash, abi.encode(_order));
+  }
+
+  function test_Revert_OrderWithUnrelatedSignature(GPv2Order.Data memory _order, bytes32 _orderHash) public {
+    bCoWPool.enableTrading(_order.appData);
     vm.expectRevert(IBCoWPool.OrderDoesNotMatchMessageHash.selector);
     bCoWPool.isValidSignature(_orderHash, abi.encode(_order));
   }
@@ -180,21 +196,15 @@ contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
     bCoWPool.isValidSignature(_orderHash, abi.encode(_order));
   }
 
-  function test_Call_Verify(GPv2Order.Data memory _order) public {
-    bCoWPool.enableTrading(_order.appData);
+  function test_Call_Verify(GPv2Order.Data memory _order) public _withValidCommitment(_order) {
     bytes32 _orderHash = GPv2Order.hash(_order, domainSeparator);
-    vm.prank(cowSolutionSettler);
-    bCoWPool.commit(_orderHash);
     bCoWPool.mock_call_verify(_order);
     bCoWPool.expectCall_verify(_order);
     bCoWPool.isValidSignature(_orderHash, abi.encode(_order));
   }
 
-  function test_Return_MagicValue(GPv2Order.Data memory _order) public {
-    bCoWPool.enableTrading(_order.appData);
+  function test_Return_MagicValue(GPv2Order.Data memory _order) public _withValidCommitment(_order) {
     bytes32 _orderHash = GPv2Order.hash(_order, domainSeparator);
-    vm.prank(cowSolutionSettler);
-    bCoWPool.commit(_orderHash);
     bCoWPool.mock_call_verify(_order);
     assertEq(bCoWPool.isValidSignature(_orderHash, abi.encode(_order)), IERC1271.isValidSignature.selector);
   }
