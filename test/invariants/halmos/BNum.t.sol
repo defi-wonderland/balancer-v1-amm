@@ -79,15 +79,18 @@ contract SymbolicBNum is BNum, SymTest, Test {
 
   // bsub should not be commutative
   function check_bsub_notCommut(uint256 _a, uint256 _b) public {
+    vm.assume(_a != _b);
+
     uint256 _result1 = bsub(_a, _b);
     uint256 _result2 = bsub(_b, _a);
+
     assert(_result1 != _result2);
   }
 
   // bsub should not be associative
   function check_bsub_notAssoc(uint256 _a, uint256 _b, uint256 _c) public {
     vm.assume(_a != _b && _b != _c && _a != _c);
-    vm.assume(_a != 0);
+    vm.assume(_a != 0 && _b != 0 && _c != 0);
 
     uint256 _result1 = bsub(bsub(_a, _b), _c);
     uint256 _result2 = bsub(_a, bsub(_b, _c));
@@ -101,11 +104,12 @@ contract SymbolicBNum is BNum, SymTest, Test {
     assert(_result == _a);
   }
 
-  // bsub result should always be lte its terms
+  // bsub result should always be lte a
   function check_bsub_resultLTE(uint256 _a, uint256 _b) public {
+    vm.assume(_a >= _b); // Avoid underflow
+
     uint256 _result = bsub(_a, _b);
     assert(_result <= _a);
-    assert(_result <= _b);
   }
 
   // bsub should alway revert if b > a (duplicate with previous tho)
@@ -249,25 +253,28 @@ contract SymbolicBNum is BNum, SymTest, Test {
     assert(_result == BONE);
   }
 
+  //todo echidna (loop unrolling bound hit)
   // 0 should be absorbing if base
-  function check_bpowi_absorbingBase(uint256 _exp) public {
-    vm.assume(_exp != 0); // Consider 0^0 as undetermined
+  //   function check_bpowi_absorbingBase(uint256 _exp) public {
+  //     vm.assume(_exp != 0); // Consider 0^0 as undetermined
 
-    uint256 _result = bpowi(0, _exp);
-    assert(_result == 0);
-  }
+  //     uint256 _result = bpowi(0, _exp);
+  //     assert(_result == 0);
+  //   }
 
+  //todo echidna (loop unrolling bound hit)
   // 1 should be identity if base
-  function check_bpowi_identityBase(uint256 _exp) public {
-    uint256 _result = bpowi(BONE, _exp);
-    assert(_result == BONE);
-  }
+  //   function check_bpowi_identityBase(uint256 _exp) public {
+  //     uint256 _result = bpowi(BONE, _exp);
+  //     assert(_result == BONE);
+  //   }
 
+  //todo echidna (loop unrolling bound hit)
   // 1 should be identity if exp
-  function check_bpowi_identityExp(uint256 _base) public {
-    uint256 _result = bpowi(_base, BONE);
-    assert(_result == _base);
-  }
+  //   function check_bpowi_identityExp(uint256 _base) public {
+  //     uint256 _result = bpowi(_base, BONE);
+  //     assert(_result == _base);
+  //   }
 
   /**
    * // bpowi should be distributive over mult of the same base x^a * x^b == x^(a+b)
@@ -309,11 +316,12 @@ contract SymbolicBNum is BNum, SymTest, Test {
   //     assert(_result == 0);
   // }
 
+  //todo echidna (loop unrolling bound hit)
   // 1 should be identity if base
-  function check_bpow_identityBase(uint256 _exp) public {
-    uint256 _result = bpow(BONE, _exp);
-    assert(_result == BONE);
-  }
+  //   function check_bpow_identityBase(uint256 _exp) public {
+  //     uint256 _result = bpow(BONE, _exp);
+  //     assert(_result == BONE);
+  //   }
 
   // 1 should be identity if exp
   function check_bpow_identityExp(uint256 _base) public {
