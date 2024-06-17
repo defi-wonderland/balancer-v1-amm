@@ -8,7 +8,6 @@ import {IERC1271} from '@openzeppelin/contracts/interfaces/IERC1271.sol';
 import {BasePoolTest, SwapExactAmountInUtils} from './BPool.t.sol';
 
 import {BCoWConst} from 'contracts/BCoWConst.sol';
-import {BMath} from 'contracts/BMath.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
@@ -235,7 +234,7 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
   }
 
   function test_Revert_LargeDurationOrder(uint256 _timeOffset) public {
-    _timeOffset = bound(_timeOffset, MAX_ORDER_DURATION, type(uint16).max);
+    _timeOffset = bound(_timeOffset, MAX_ORDER_DURATION, type(uint32).max - block.timestamp);
     GPv2Order.Data memory order = correctOrder;
     order.validTo = uint32(block.timestamp + _timeOffset);
     vm.expectRevert(IBCoWPool.BCoWPool_OrderValidityTooLong.selector);
@@ -261,7 +260,6 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
   function test_Revert_InvalidBuyBalanceKind(bytes32 _balanceKind) public {
     vm.assume(_balanceKind != GPv2Order.BALANCE_ERC20);
     GPv2Order.Data memory order = correctOrder;
-    order = correctOrder;
     order.buyTokenBalance = _balanceKind;
     vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
     bCoWPool.verify(order);
@@ -270,7 +268,6 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
   function test_Revert_InvalidSellBalanceKind(bytes32 _balanceKind) public {
     vm.assume(_balanceKind != GPv2Order.BALANCE_ERC20);
     GPv2Order.Data memory order = correctOrder;
-    order = correctOrder;
     order.sellTokenBalance = _balanceKind;
     vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
     bCoWPool.verify(order);
