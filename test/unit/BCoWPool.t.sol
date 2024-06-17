@@ -161,7 +161,7 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
     BaseCoWPoolTest.setUp();
   }
 
-  function _assumeHappyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) internal view override {
+  function _assumeHappyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) internal pure override {
     // safe bound assumptions
     _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
@@ -172,22 +172,8 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
     _fuzz.tokenInBalance = bound(_fuzz.tokenInBalance, MIN_BALANCE, type(uint256).max / _fuzz.tokenInDenorm);
     _fuzz.tokenOutBalance = bound(_fuzz.tokenOutBalance, MIN_BALANCE, type(uint256).max / _fuzz.tokenOutDenorm);
 
-    // max - calcSpotPrice (spotPriceAfter)
-    vm.assume(_fuzz.tokenAmountIn < type(uint256).max - _fuzz.tokenInBalance);
-    vm.assume(_fuzz.tokenInBalance + _fuzz.tokenAmountIn < type(uint256).max / _fuzz.tokenInDenorm);
-
-    // internal calculation for calcSpotPrice (spotPriceBefore)
-    _assumeCalcSpotPrice(
-      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
-    );
-
     // MAX_IN_RATIO
     vm.assume(_fuzz.tokenAmountIn <= bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
-
-    // L338 BPool.sol
-    uint256 _spotPriceBefore = calcSpotPrice(
-      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
-    );
 
     _assumeCalcOutGivenIn(_fuzz.tokenInBalance, _fuzz.tokenAmountIn, _fuzz.swapFee);
     uint256 _tokenAmountOut = calcOutGivenIn(
@@ -199,17 +185,6 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
       _fuzz.swapFee
     );
     vm.assume(_tokenAmountOut > BONE);
-
-    // internal calculation for calcSpotPrice (spotPriceAfter)
-    _assumeCalcSpotPrice(
-      _fuzz.tokenInBalance + _fuzz.tokenAmountIn,
-      _fuzz.tokenInDenorm,
-      _fuzz.tokenOutBalance - _tokenAmountOut,
-      _fuzz.tokenOutDenorm,
-      _fuzz.swapFee
-    );
-
-    vm.assume(bmul(_spotPriceBefore, _tokenAmountOut) <= _fuzz.tokenAmountIn);
   }
 
   modifier assumeNotBoundToken(address _token) {
