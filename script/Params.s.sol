@@ -18,15 +18,15 @@ contract Params {
   mapping(uint256 _chainId => BCoWFactoryDeploymentParams _params) internal _bCoWFactoryDeploymentParams;
 
   /// @notice Settlement address
-  address internal _settlement = 0x9008D19f58AAbD9eD0D60971565AA8510560ab41;
+  address internal _GPv2Settlement = 0x9008D19f58AAbD9eD0D60971565AA8510560ab41;
 
   constructor() {
     // Mainnet
     _bFactoryDeploymentParams[1] = BFactoryDeploymentParams(address(this));
-    _bCoWFactoryDeploymentParams[1] = BCoWFactoryDeploymentParams(address(this), _settlement);
+    _bCoWFactoryDeploymentParams[1] = BCoWFactoryDeploymentParams(address(this), _GPv2Settlement);
 
     // Sepolia
     _bFactoryDeploymentParams[11_155_111] = BFactoryDeploymentParams(address(this));
-    _bCoWFactoryDeploymentParams[11_155_111] = BCoWFactoryDeploymentParams(address(this), _settlement);
+    _bCoWFactoryDeploymentParams[11_155_111] = BCoWFactoryDeploymentParams(address(this), _GPv2Settlement);
   }
 }
