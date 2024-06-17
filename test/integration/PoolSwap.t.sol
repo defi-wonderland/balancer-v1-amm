@@ -109,7 +109,7 @@ contract DirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
     vm.startPrank(swapperInverse.addr);
     weth.approve(address(pool), type(uint256).max);
 
-    // swap 0.1 tokenB for tokenA
+    // swap 0.1 weth for dai
     snapStart('swapExactAmountInInverse');
     pool.swapExactAmountIn(address(weth), WETH_AMOUNT_INVERSE, address(dai), 0, type(uint256).max);
     snapEnd();
