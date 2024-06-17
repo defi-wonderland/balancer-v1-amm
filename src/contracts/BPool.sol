@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {BMath} from './BMath.sol';
 import {BToken} from './BToken.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IERC20} from '@openzeppelin/token/ERC20/IERC20.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
 /**

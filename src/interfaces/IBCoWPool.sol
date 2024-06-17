@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.25;
 
-import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
-import {IERC1271} from '@openzeppelin/contracts/interfaces/IERC1271.sol';
+import {IERC1271} from '@openzeppelin/interfaces/IERC1271.sol';
+import {GPv2Order} from 'cowprotocol/libraries/GPv2Order.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
