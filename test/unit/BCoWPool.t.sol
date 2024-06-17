@@ -263,6 +263,17 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
     vm.expectRevert(IBPool.BPool_TokenAmountOutBelowMinOut.selector);
     bCoWPool.verify(order);
   }
+
+  function test_Success_HappyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+    uint256 _tokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.tokenAmountIn, 0
+    );
+    GPv2Order.Data memory order = correctOrder;
+    order.buyAmount = _fuzz.tokenAmountIn;
+    order.sellAmount = _tokenAmountOut;
+
+    bCoWPool.verify(order);
+  }
 }
 
 contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
