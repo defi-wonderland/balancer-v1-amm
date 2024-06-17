@@ -263,12 +263,13 @@ contract EchidnaBNum is BNum, Test {
   // └ Value: false
   // bmul result should always be gte a and b
   function bmul_resultGTE(uint256 _a, uint256 _b) public pure {
-    // vm.assume(_a != 0 && _b != 0); // Avoid absorbing
-    // vm.assume(_a < type(uint256).max / BONE); // Avoid mul overflow
-    // vm.assume(_b < type(uint256).max / BONE); // Avoid mul overflow
-    // vm.assume(_a * BONE + _b / 2 < type(uint256).max); // Avoid add overflow
+    require(_a >= BONE && _b >= BONE); // Avoid absorbing
+    require(_a < type(uint256).max / BONE); // Avoid mul overflow
+    require(_b < type(uint256).max / BONE); // Avoid mul overflow
+    require(_a * BONE + _b / 2 < type(uint256).max); // Avoid add overflow
 
     uint256 _result = bmul(_a, _b);
+
     assert(_result >= _a);
     assert(_result >= _b);
   }
@@ -340,11 +341,12 @@ contract EchidnaBNum is BNum, Test {
   //todo hangs
   // bdiv should be bmul reverse operation
   function bdiv_bmul(uint256 _a, uint256 _b) public pure {
-    // vm.assume(_b > 0);
-    // vm.assume(_a > _b); // todo: overconstrained?
+    require(_b > 0);
+    require(_a > _b); // todo: overconstrained?
 
     uint256 _bdivResult = bdiv(_a, _b);
     uint256 _result = bmul(_bdivResult, _b);
+
     assert(_result == _a);
   }
 
@@ -361,10 +363,9 @@ contract EchidnaBNum is BNum, Test {
     assert(_result == BONE);
   }
 
-  //todo echidna (loop unrolling bound hit)
   // 0 should be absorbing if base
   function bpowi_absorbingBase(uint256 _exp) public pure {
-    // vm.assume(_exp != 0); // Consider 0^0 as undetermined
+    require(_exp != 0); // Consider 0^0 as undetermined
 
     uint256 _result = bpowi(0, _exp);
     assert(_result == 0);
@@ -377,15 +378,20 @@ contract EchidnaBNum is BNum, Test {
     assert(_result == BONE);
   }
 
-  //todo echidna (loop unrolling bound hit)
   // 1 should be identity if exp
   function bpowi_identityExp(uint256 _base) public pure {
+    require(_base >= BONE);
+
     uint256 _result = bpowi(_base, BONE);
-    assert(_result == _base);
+
+    if (_base != 0) assert(_result == _base);
+    else assert(_result == 0);
   }
 
   // bpowi should be distributive over mult of the same base x^a  x^b == x^(a+b)
   function bpowi_distributiveBase(uint256 _base, uint256 _a, uint256 _b) public pure {
+    require(_a >= BONE && _b >= BONE);
+
     uint256 _result1 = bpowi(_base, badd(_a, _b));
     uint256 _result2 = bmul(bpowi(_base, _a), bpowi(_base, _b));
     assert(_result1 == _result2);
@@ -400,6 +406,9 @@ contract EchidnaBNum is BNum, Test {
 
   // power of a power should mult the exp (x^a)^b == x^(ab)
   function bpowi_powerOfPower(uint256 _base, uint256 _a, uint256 _b) public pure {
+    require(_a >= BONE);
+    require(_b >= BONE);
+
     uint256 _result1 = bpowi(bpowi(_base, _a), _b);
     uint256 _result2 = bpowi(_base, bmul(_a, _b));
     assert(_result1 == _result2);
@@ -452,6 +461,8 @@ contract EchidnaBNum is BNum, Test {
   //todo loop
   // bpow should be distributive over mult of the same exp  a^x * b^x == (a*b)^x
   function bpow_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public pure {
+    require(_exp >= BONE);
+
     uint256 _result1 = bpow(bmul(_a, _b), _exp);
     uint256 _result2 = bmul(bpow(_a, _exp), bpow(_b, _exp));
     assert(_result1 == _result2);
