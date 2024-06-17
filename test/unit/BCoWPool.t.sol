@@ -7,6 +7,7 @@ import {IERC1271} from '@openzeppelin/contracts/interfaces/IERC1271.sol';
 
 import {BasePoolTest, SwapExactAmountInUtils} from './BPool.t.sol';
 
+import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BMath} from 'contracts/BMath.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
@@ -14,7 +15,7 @@ import {ISettlement} from 'interfaces/ISettlement.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
 import {MockBPool} from 'test/smock/MockBPool.sol';
 
-abstract contract BaseCoWPoolTest is BasePoolTest {
+abstract contract BaseCoWPoolTest is BasePoolTest, BCoWConst {
   address public cowSolutionSettler = makeAddr('cowSolutionSettler');
   bytes32 public domainSeparator = bytes32(bytes2(0xf00b));
   address public vaultRelayer = makeAddr('vaultRelayer');
@@ -234,7 +235,7 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
   }
 
   function test_Revert_LargeDurationOrder(uint256 _timeOffset) public {
-    _timeOffset = bound(_timeOffset, 5 minutes, type(uint16).max);
+    _timeOffset = bound(_timeOffset, MAX_ORDER_DURATION, type(uint16).max);
     GPv2Order.Data memory order = correctOrder;
     order.validTo = uint32(block.timestamp + _timeOffset);
     vm.expectRevert(IBCoWPool.BCoWPool_OrderValidityTooLong.selector);
