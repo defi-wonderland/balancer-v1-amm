@@ -293,7 +293,7 @@ abstract contract SwapExactAmountInUtils is BasePoolTest {
     _setFinalize(true);
   }
 
-  function _assumeHappyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) internal view {
+  function _assumeHappyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) internal view virtual {
     // safe bound assumptions
     _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
     _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);

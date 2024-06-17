@@ -5,7 +5,7 @@ import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 
-import {BasePoolTest} from './BPool.t.sol';
+import {BasePoolTest, SwapExactAmountInUtils} from './BPool.t.sol';
 
 import {BMath} from 'contracts/BMath.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
@@ -22,7 +22,7 @@ abstract contract BaseCoWPoolTest is BasePoolTest {
 
   MockBCoWPool bCoWPool;
 
-  function setUp() public override {
+  function setUp() public virtual override {
     super.setUp();
     vm.mockCall(cowSolutionSettler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(domainSeparator));
     vm.mockCall(cowSolutionSettler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(vaultRelayer));
@@ -156,7 +156,62 @@ contract BCoWPool_Unit_EnableTrading is BaseCoWPoolTest {
   }
 }
 
-contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
+contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
+  function setUp() public virtual override(BaseCoWPoolTest, BasePoolTest) {
+    BaseCoWPoolTest.setUp();
+  }
+
+  function _assumeHappyPath(SwapExactAmountIn_FuzzScenario memory _fuzz) internal view override {
+    // safe bound assumptions
+    _fuzz.tokenInDenorm = bound(_fuzz.tokenInDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    _fuzz.tokenOutDenorm = bound(_fuzz.tokenOutDenorm, MIN_WEIGHT, MAX_WEIGHT);
+    // LP fee when swapping via CoW will always be zero
+    _fuzz.swapFee = 0;
+
+    // min - max - calcSpotPrice (spotPriceBefore)
+    _fuzz.tokenInBalance = bound(_fuzz.tokenInBalance, MIN_BALANCE, type(uint256).max / _fuzz.tokenInDenorm);
+    _fuzz.tokenOutBalance = bound(_fuzz.tokenOutBalance, MIN_BALANCE, type(uint256).max / _fuzz.tokenOutDenorm);
+
+    // max - calcSpotPrice (spotPriceAfter)
+    vm.assume(_fuzz.tokenAmountIn < type(uint256).max - _fuzz.tokenInBalance);
+    vm.assume(_fuzz.tokenInBalance + _fuzz.tokenAmountIn < type(uint256).max / _fuzz.tokenInDenorm);
+
+    // internal calculation for calcSpotPrice (spotPriceBefore)
+    _assumeCalcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+
+    // MAX_IN_RATIO
+    vm.assume(_fuzz.tokenAmountIn <= bmul(_fuzz.tokenInBalance, MAX_IN_RATIO));
+
+    // L338 BPool.sol
+    uint256 _spotPriceBefore = calcSpotPrice(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.swapFee
+    );
+
+    _assumeCalcOutGivenIn(_fuzz.tokenInBalance, _fuzz.tokenAmountIn, _fuzz.swapFee);
+    uint256 _tokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance,
+      _fuzz.tokenOutDenorm,
+      _fuzz.tokenAmountIn,
+      _fuzz.swapFee
+    );
+    vm.assume(_tokenAmountOut > BONE);
+
+    // internal calculation for calcSpotPrice (spotPriceAfter)
+    _assumeCalcSpotPrice(
+      _fuzz.tokenInBalance + _fuzz.tokenAmountIn,
+      _fuzz.tokenInDenorm,
+      _fuzz.tokenOutBalance - _tokenAmountOut,
+      _fuzz.tokenOutDenorm,
+      _fuzz.swapFee
+    );
+
+    vm.assume(bmul(_spotPriceBefore, _tokenAmountOut) <= _fuzz.tokenAmountIn);
+  }
+
   modifier assumeNotBoundToken(address _token) {
     for (uint256 i = 0; i < TOKENS_AMOUNT; i++) {
       vm.assume(tokens[i] != _token);
@@ -220,39 +275,19 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest {
     bCoWPool.verify(order);
   }
 
-  function test_Revert_InsufficientReturn(uint256 _buyAmount, uint256 _offset) public {
-    _buyAmount = bound(_buyAmount, 1, type(uint128).max);
-    _offset = bound(_offset, 1, _buyAmount);
+  function test_Revert_InsufficientReturn(
+    SwapExactAmountIn_FuzzScenario memory _fuzz,
+    uint256 _offset
+  ) public happyPath(_fuzz) {
+    uint256 _tokenAmountOut = calcOutGivenIn(
+      _fuzz.tokenInBalance, _fuzz.tokenInDenorm, _fuzz.tokenOutBalance, _fuzz.tokenOutDenorm, _fuzz.tokenAmountIn, 0
+    );
+    _offset = bound(_offset, 1, _tokenAmountOut);
     GPv2Order.Data memory order = correctOrder;
-    order.buyAmount = _buyAmount;
-    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(1 ether));
-    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(1 ether));
-    vm.mockCall(address(bCoWPool), abi.encodePacked(BMath.calcOutGivenIn.selector), abi.encode(_buyAmount - _offset));
+    order.sellAmount = _fuzz.tokenAmountIn;
+    order.buyAmount = _tokenAmountOut + _offset;
 
     vm.expectRevert(IBPool.BPool_TokenAmountOutBelowMinOut.selector);
-    bCoWPool.verify(order);
-  }
-
-  function test_Call_CalcOutGivenIn(
-    uint256 _sellAmount,
-    uint256 _buyTokenBalance,
-    uint256 _sellTokenBalance,
-    uint256 _inRecordDenorm,
-    uint256 _outRecordDenorm
-  ) public {
-    GPv2Order.Data memory order = correctOrder;
-    order.sellAmount = _sellAmount;
-    _setRecord(tokens[0], IBPool.Record({bound: true, index: 0, denorm: _inRecordDenorm}));
-    _setRecord(tokens[1], IBPool.Record({bound: true, index: 1, denorm: _outRecordDenorm}));
-    bCoWPool.mock_call_calcOutGivenIn(
-      _sellTokenBalance, _inRecordDenorm, _buyTokenBalance, _outRecordDenorm, _sellAmount, 0, 1
-    );
-    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(_sellTokenBalance));
-    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(_buyTokenBalance));
-
-    bCoWPool.expect_call_calcOutGivenIn(
-      _sellTokenBalance, _inRecordDenorm, _buyTokenBalance, _outRecordDenorm, _sellAmount, 0
-    );
     bCoWPool.verify(order);
   }
 }
