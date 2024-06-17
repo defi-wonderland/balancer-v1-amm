@@ -34,7 +34,7 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
   function setUp() public virtual {
     vm.createSelectFork('mainnet', 20_012_063);
 
-    factory = new BFactory();
+    factory = _deployFactory();
 
     deal(address(dai), lp, HUNDRED_UNITS);
     deal(address(weth), lp, HUNDRED_UNITS);
@@ -81,12 +81,18 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
     assertEq(weth.balanceOf(address(lp)), HUNDRED_UNITS + WETH_AMOUNT_INVERSE); // initial 100 + 0.1 tokenB
   }
 
+  function _deployFactory() internal virtual returns (IBFactory);
+
   function _makeSwap() internal virtual;
 
   function _makeSwapInverse() internal virtual;
 }
 
 contract DirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
+  function _deployFactory() internal override returns (IBFactory) {
+    return new BFactory();
+  }
+
   function _makeSwap() internal override {
     vm.startPrank(swapper.addr);
     dai.approve(pool, type(uint256).max);

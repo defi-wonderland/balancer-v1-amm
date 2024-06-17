@@ -10,13 +10,13 @@ import {GPv2Trade} from '@cowprotocol/libraries/GPv2Trade.sol';
 import {GPv2Signing} from '@cowprotocol/mixins/GPv2Signing.sol';
 import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BCoWFactory} from 'contracts/BCoWFactory.sol';
+
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
+import {IBFactory} from 'interfaces/IBFactory.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
 contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
   using GPv2Order for GPv2Order.Data;
-
-  BCoWFactory public cowfactory;
 
   address public solver = address(0xa5559C2E1302c5Ce82582A6b1E4Aec562C2FbCf4);
 
@@ -25,27 +25,14 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
   bytes32 public constant APP_DATA = bytes32('exampleIntegrationAppData');
 
   function setUp() public override {
-    vm.createSelectFork('mainnet', 20_012_063);
+    super.setUp();
 
-    deal(address(dai), lp, HUNDRED_UNITS);
-    deal(address(weth), lp, HUNDRED_UNITS);
-
-    deal(address(dai), swapper.addr, ONE_UNIT);
-    deal(address(weth), swapperInverse.addr, ONE_UNIT);
-
-    cowfactory = new BCoWFactory(address(settlement));
-
-    vm.startPrank(lp);
-    pool = address(cowfactory.newBPool());
-
-    dai.approve(pool, type(uint256).max);
-    weth.approve(pool, type(uint256).max);
-    IBCoWPool(pool).bind(address(dai), ONE_UNIT, 2e18); // 20% weight
-    IBCoWPool(pool).bind(address(weth), ONE_UNIT, 8e18); // 80% weight
-    // finalize
-    IBCoWPool(pool).finalize();
     // enable trading
     IBCoWPool(pool).enableTrading(APP_DATA);
+  }
+
+  function _deployFactory() internal override returns (IBFactory) {
+    return new BCoWFactory(address(settlement));
   }
 
   function _makeSwap() internal override {
