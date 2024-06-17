@@ -52,7 +52,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   }
 
   /// @inheritdoc IBCoWPool
-  function enableTrading(bytes32 appData) external onlyController {
+  function enableTrading(bytes32 appData) external _controller_ {
     if (!_finalized) {
       revert BPool_PoolNotFinalized();
     }
@@ -63,7 +63,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   }
 
   /// @inheritdoc IBCoWPool
-  function disableTrading() external onlyController {
+  function disableTrading() external _controller_ {
     appDataHash = NO_TRADING;
     emit TradingDisabled();
   }
@@ -116,7 +116,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     Record memory inRecord = _records[address(order.buyToken)];
     Record memory outRecord = _records[address(order.sellToken)];
 
-    if (!inRecord.bound || !inRecord.bound) {
+    if (!inRecord.bound || !outRecord.bound) {
       revert BPool_TokenNotBound();
     }
     if (order.validTo >= block.timestamp + MAX_ORDER_DURATION) {
