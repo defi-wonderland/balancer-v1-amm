@@ -6,6 +6,38 @@ import {BNum} from './BNum.sol';
 
 contract BMath is BConst, BNum {
   /**
+   * @notice Calculate the spot price of a token in terms of another one
+   * @dev The price denomination depends on the decimals of the tokens.
+   * @dev To obtain the price with 18 decimals the next formula should be applied to the result
+   * @dev spotPrice = spotPrice ÷ (10^tokenInDecimals) × (10^tokenOutDecimals)
+   * @param tokenBalanceIn The balance of the input token in the pool
+   * @param tokenWeightIn The weight of the input token in the pool
+   * @param tokenBalanceOut The balance of the output token in the pool
+   * @param tokenWeightOut The weight of the output token in the pool
+   * @param swapFee The swap fee of the pool
+   * @dev Formula:
+   * sP = spotPrice
+   * bI = tokenBalanceIn                ( bI / wI )         1
+   * bO = tokenBalanceOut         sP =  -----------  *  ----------
+   * wI = tokenWeightIn                 ( bO / wO )     ( 1 - sF )
+   * wO = tokenWeightOut
+   * sF = swapFee
+   */
+  function calcSpotPrice(
+    uint256 tokenBalanceIn,
+    uint256 tokenWeightIn,
+    uint256 tokenBalanceOut,
+    uint256 tokenWeightOut,
+    uint256 swapFee
+  ) public pure returns (uint256 spotPrice) {
+    uint256 numer = bdiv(tokenBalanceIn, tokenWeightIn);
+    uint256 denom = bdiv(tokenBalanceOut, tokenWeightOut);
+    uint256 ratio = bdiv(numer, denom);
+    uint256 scale = bdiv(BONE, bsub(BONE, swapFee));
+    return (spotPrice = bmul(ratio, scale));
+  }
+
+  /**
    * @notice Calculate the amount of token out given the amount of token in for a swap
    * @param tokenBalanceIn The balance of the input token in the pool
    * @param tokenWeightIn The weight of the input token in the pool
@@ -38,38 +70,6 @@ contract BMath is BConst, BNum {
     uint256 bar = bsub(BONE, foo);
     tokenAmountOut = bmul(tokenBalanceOut, bar);
     return tokenAmountOut;
-  }
-
-  /**
-   * @notice Calculate the spot price of a token in terms of another one
-   * @dev The price denomination depends on the decimals of the tokens.
-   * @dev To obtain the price with 18 decimals the next formula should be applied to the result
-   * @dev spotPrice = spotPrice ÷ (10^tokenInDecimals) × (10^tokenOutDecimals)
-   * @param tokenBalanceIn The balance of the input token in the pool
-   * @param tokenWeightIn The weight of the input token in the pool
-   * @param tokenBalanceOut The balance of the output token in the pool
-   * @param tokenWeightOut The weight of the output token in the pool
-   * @param swapFee The swap fee of the pool
-   * @dev Formula:
-   * sP = spotPrice
-   * bI = tokenBalanceIn                ( bI / wI )         1
-   * bO = tokenBalanceOut         sP =  -----------  *  ----------
-   * wI = tokenWeightIn                 ( bO / wO )     ( 1 - sF )
-   * wO = tokenWeightOut
-   * sF = swapFee
-   */
-  function calcSpotPrice(
-    uint256 tokenBalanceIn,
-    uint256 tokenWeightIn,
-    uint256 tokenBalanceOut,
-    uint256 tokenWeightOut,
-    uint256 swapFee
-  ) public pure returns (uint256 spotPrice) {
-    uint256 numer = bdiv(tokenBalanceIn, tokenWeightIn);
-    uint256 denom = bdiv(tokenBalanceOut, tokenWeightOut);
-    uint256 ratio = bdiv(numer, denom);
-    uint256 scale = bdiv(BONE, bsub(BONE, swapFee));
-    return (spotPrice = bmul(ratio, scale));
   }
 
   /**
