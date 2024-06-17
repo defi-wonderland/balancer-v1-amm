@@ -9,7 +9,7 @@ contract DeployBCoWFactory is Script, Params {
   function run() public {
     BCoWFactoryDeploymentParams memory _params = _bCoWFactoryDeploymentParams[block.chainid];
 
-    vm.startBroadcast(_deployer[block.chainid]);
+    vm.startBroadcast();
     BCoWFactory bCoWFactory = new BCoWFactory(_params.settlement);
     bCoWFactory.setBLabs(_params.bLabs);
     vm.stopBroadcast();
