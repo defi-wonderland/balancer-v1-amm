@@ -85,9 +85,13 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   function isValidSignature(bytes32 _hash, bytes memory signature) external view returns (bytes4) {
     (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
 
-    if (appDataHash != keccak256(abi.encode(order.appData))) revert AppDataDoNotMatchHash();
+    if (appDataHash != keccak256(abi.encode(order.appData))) {
+      revert AppDataDoNotMatchHash();
+    }
     bytes32 orderHash = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);
-    if (orderHash != _hash) revert OrderDoesNotMatchMessageHash();
+    if (orderHash != _hash) {
+      revert OrderDoesNotMatchMessageHash();
+    }
 
     if (orderHash != commitment()) {
       revert OrderDoesNotMatchCommitmentHash();
@@ -108,9 +112,9 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   }
 
   /// @inheritdoc IBCoWPool
-  function verify(GPv2Order.Data memory order) public view {
-    Record memory inRecord = _records[address(order.sellToken)];
-    Record memory outRecord = _records[address(order.buyToken)];
+  function verify(GPv2Order.Data memory order) public view virtual {
+    Record memory inRecord = _records[address(order.buyToken)];
+    Record memory outRecord = _records[address(order.sellToken)];
 
     if (!inRecord.bound || !outRecord.bound) {
       revert BPool_TokenNotBound();
@@ -129,15 +133,15 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     }
 
     uint256 tokenAmountOut = calcOutGivenIn({
-      tokenBalanceIn: order.sellToken.balanceOf(address(this)),
+      tokenBalanceIn: order.buyToken.balanceOf(address(this)),
       tokenWeightIn: inRecord.denorm,
-      tokenBalanceOut: order.buyToken.balanceOf(address(this)),
+      tokenBalanceOut: order.sellToken.balanceOf(address(this)),
       tokenWeightOut: outRecord.denorm,
-      tokenAmountIn: order.sellAmount,
+      tokenAmountIn: order.buyAmount,
       swapFee: 0
     });
 
-    if (tokenAmountOut < order.buyAmount) {
+    if (tokenAmountOut < order.sellAmount) {
       revert BPool_TokenAmountOutBelowMinOut();
     }
   }
