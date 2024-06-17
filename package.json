@@ -24,8 +24,10 @@
     "prepare": "husky install",
     "smock": "smock-foundry --contracts src/contracts",
     "test": "forge test -vvv",
+    "test:echidna": "echidna test/invariants/fuzz/BNum.t.sol --contract EchidnaBNum --config test/invariants/fuzz/config.yaml",
     "test:integration": "forge test --match-contract Integration -vvv",
     "test:local": "FOUNDRY_FUZZ_RUNS=100 forge test -vvv",
+    "test:symbolic": "halmos",
     "test:unit": "forge test --match-contract Unit -vvv",
     "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit"
   },

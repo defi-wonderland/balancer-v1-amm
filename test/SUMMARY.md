@@ -16,7 +16,8 @@ Bmath uses bnum
 
 Beside BTT unit test and happy path integration, we could prioritize (ie only do the second tool if we have extra-time, when applicable):
 - Echidna for BFactory (internal), BToken (internal, reusing ToB erc20 properties), and protocol-wide properties (factory deploying bpool)
-- symbolic execution for the BMath and BNum contracts (as they're fully stateless)
+- symbolic execution for the BMath and BNum contracts (as they're fully stateless). Some properties cannot be tested with Halmos though (some of bmul and bdiv for an unknow reason, where Halmos hangs, and some bpow as there is a an arbitrary long loop) and are therefore evaluated using Echidna only.
+
 Then slither-mutate.
 
 Setup for protocol-wide *looks* pretty simple (using the factory) - tbc

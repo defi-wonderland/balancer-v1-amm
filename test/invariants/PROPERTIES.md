@@ -56,7 +56,6 @@ bdiv should be bmul reverse operation // <-- unsolved
 bdiv should revert if b is 0 // <-- impl with wrapper to have low lvl call
 bdiv result should be lte a
 
-
 bpowi should return 1 if exp is 0
 0 should be absorbing if base
 1 should be identity if base
