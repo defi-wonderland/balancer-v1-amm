@@ -4,10 +4,6 @@
 
 Balancer is based on an N-dimensional invariant surface which is a generalization of the constant product formula described by Vitalik Buterin and proven viable by the popular Uniswap dapp.
 
-## Documentation
-
-The full documentation can be found at `TODO BAL-98`.
-
 ## Development
 
 Most users will want to consume the ABI definitions for BPool, BCoWPool, BFactory and BCoWFactory.
@@ -44,3 +40,16 @@ yarn test    # run the tests
 - Implements a `commit` method to avoid multiple swaps from conflicting with each other
 - Allows the controller to allow only one `GPv2Order.appData` at a time
 - Validates the `GPv2Order` requirements before allowing the swap
+
+## Creating a Pool
+- Create a new pool by calling `IBFactory.newBPool()`
+- Give ERC20 allowance to the pool by calling `IERC20.approve(pool, amount)`
+- Bind tokens one by one by calling `IBPool.bind(token, amount, weight)`
+  - The amount represents the initial balance of the token in the pool (pulled from the caller's balance)
+  - The weight represents the intended distribution of value between the tokens in the pool
+- Modify the pool's swap fee by calling `IBPool.setSwapFee(fee)`
+- Finalize the pool by calling `IBPool.finalize()`
+
+This actions allow the Pool to be directly swapped by users. In the case of BCoWPool, the pool will need the pool creator to perform another action in order to allow CoW Protocol swaps:
+- Call `IBCoWPool.enableTrading(appData)`
+  - The `appData` is a unique identifier for the swap origin (used to avoid replay attacks)

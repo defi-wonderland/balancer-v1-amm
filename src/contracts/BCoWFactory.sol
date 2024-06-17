@@ -10,8 +10,13 @@ import {IBPool} from 'interfaces/IBPool.sol';
 /**
  * @title BCoWFactory
  * @notice Creates new BCoWPools, logging their addresses and acting as a registry of pools.
+ * @dev Inherits BFactory contract functionalities, but deploys BCoWPools instead of BPool.
  */
 contract BCoWFactory is BFactory {
+  /**
+   * @notice The address of the SolutionSettler contract, which is the source of truth
+   * for the configuration of the BCoWPool contract.
+   */
   address public immutable SOLUTION_SETTLER;
 
   constructor(address _solutionSettler) BFactory() {
