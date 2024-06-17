@@ -9,7 +9,7 @@ import {IBFactory} from 'interfaces/IBFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
 abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
-  address public pool;
+  IBPool public pool;
   IBFactory public factory;
 
   IERC20 public dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
@@ -43,14 +43,14 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
     deal(address(weth), swapperInverse.addr, ONE_UNIT);
 
     vm.startPrank(lp);
-    pool = address(factory.newBPool());
+    pool = factory.newBPool();
 
-    dai.approve(pool, type(uint256).max);
-    weth.approve(pool, type(uint256).max);
-    IBPool(pool).bind(address(dai), ONE_UNIT, 2e18); // 20% weight
-    IBPool(pool).bind(address(weth), ONE_UNIT, 8e18); // 80% weight
+    dai.approve(address(pool), type(uint256).max);
+    weth.approve(address(pool), type(uint256).max);
+    pool.bind(address(dai), ONE_UNIT, 2e18); // 20% weight
+    pool.bind(address(weth), ONE_UNIT, 8e18); // 80% weight
     // finalize
-    IBPool(pool).finalize();
+    pool.finalize();
   }
 
   function testSimpleSwap() public {
@@ -60,8 +60,8 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     vm.startPrank(lp);
 
-    uint256 lpBalance = IBPool(pool).balanceOf(lp);
-    IBPool(pool).exitPool(lpBalance, new uint256[](2));
+    uint256 lpBalance = pool.balanceOf(lp);
+    pool.exitPool(lpBalance, new uint256[](2));
 
     assertEq(dai.balanceOf(lp), HUNDRED_UNITS + DAI_AMOUNT); // initial 100 + 0.5 dai
     assertEq(weth.balanceOf(lp), HUNDRED_UNITS - WETH_AMOUNT); // initial 100 - ~0.09 weth
@@ -74,8 +74,8 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     vm.startPrank(lp);
 
-    uint256 lpBalance = IBPool(pool).balanceOf(address(lp));
-    IBPool(pool).exitPool(lpBalance, new uint256[](2));
+    uint256 lpBalance = pool.balanceOf(address(lp));
+    pool.exitPool(lpBalance, new uint256[](2));
 
     assertEq(dai.balanceOf(address(lp)), HUNDRED_UNITS - DAI_AMOUNT_INVERSE); // initial 100 - ~0.5 dai
     assertEq(weth.balanceOf(address(lp)), HUNDRED_UNITS + WETH_AMOUNT_INVERSE); // initial 100 + 0.1 tokenB
@@ -95,11 +95,11 @@ contract DirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
 
   function _makeSwap() internal override {
     vm.startPrank(swapper.addr);
-    dai.approve(pool, type(uint256).max);
+    dai.approve(address(pool), type(uint256).max);
 
     // swap 0.5 dai for weth
     snapStart('swapExactAmountIn');
-    IBPool(pool).swapExactAmountIn(address(dai), DAI_AMOUNT, address(weth), 0, type(uint256).max);
+    pool.swapExactAmountIn(address(dai), DAI_AMOUNT, address(weth), 0, type(uint256).max);
     snapEnd();
 
     vm.stopPrank();
@@ -111,7 +111,7 @@ contract DirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
 
     // swap 0.1 tokenB for tokenA
     snapStart('swapExactAmountInInverse');
-    IBPool(pool).swapExactAmountIn(address(weth), WETH_AMOUNT_INVERSE, address(dai), 0, type(uint256).max);
+    pool.swapExactAmountIn(address(weth), WETH_AMOUNT_INVERSE, address(dai), 0, type(uint256).max);
     snapEnd();
 
     vm.stopPrank();

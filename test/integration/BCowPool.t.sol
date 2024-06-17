@@ -28,7 +28,7 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
     super.setUp();
 
     // enable trading
-    IBCoWPool(pool).enableTrading(APP_DATA);
+    IBCoWPool(address(pool)).enableTrading(APP_DATA);
   }
 
   function _deployFactory() internal override returns (IBFactory) {
@@ -127,10 +127,10 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
       [new GPv2Interaction.Data[](1), new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0)];
 
     interactions[0][0] = GPv2Interaction.Data({
-      target: pool,
+      target: address(pool),
       value: 0,
       callData: abi.encodeWithSelector(
-        IBCoWPool.commit.selector, poolOrder.hash(IBCoWPool(pool).SOLUTION_SETTLER_DOMAIN_SEPARATOR())
+        IBCoWPool.commit.selector, poolOrder.hash(IBCoWPool(address(pool)).SOLUTION_SETTLER_DOMAIN_SEPARATOR())
       )
     });
 
@@ -233,10 +233,10 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
       [new GPv2Interaction.Data[](1), new GPv2Interaction.Data[](0), new GPv2Interaction.Data[](0)];
 
     interactions[0][0] = GPv2Interaction.Data({
-      target: pool,
+      target: address(pool),
       value: 0,
       callData: abi.encodeWithSelector(
-        IBCoWPool.commit.selector, poolOrder.hash(IBCoWPool(pool).SOLUTION_SETTLER_DOMAIN_SEPARATOR())
+        IBCoWPool.commit.selector, poolOrder.hash(IBCoWPool(address(pool)).SOLUTION_SETTLER_DOMAIN_SEPARATOR())
       )
     });
 
