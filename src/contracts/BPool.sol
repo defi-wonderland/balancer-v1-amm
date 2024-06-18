@@ -34,8 +34,6 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @dev Prevents reentrancy in non-view functions
   modifier _lock_() {
-    // Take care to compare against the free value, as different 'taken' values
-    // can mean different things for contracs extending this one
     if (_getLock() != _MUTEX_FREE) {
       revert BPool_Reentrancy();
     }
@@ -605,8 +603,8 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @notice Sets the value of the transient storage slot used for reentrancy locks
-   * @param _value The value of the transient storage slot used for reentrancy
-   * locks. Should be set to _MUTEX_FREE after a call, any other value will
+   * @param _value The value of the transient storage slot used for reentrancy locks.
+   * @dev Should be set to _MUTEX_FREE after a call, any other value will
    * be interpreted as locked
    */
   function _setLock(bytes32 _value) internal {
@@ -684,8 +682,8 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @notice Gets the value of the transient storage slot used for reentrancy locks
-   * @return _value Contents of transient storage slot used for reentrancy
-   * locks. Should only be compared against _MUTEX_FREE for the purposes of
+   * @return _value Contents of transient storage slot used for reentrancy locks.
+   * @dev Should only be compared against _MUTEX_FREE for the purposes of
    * allowing calls
    */
   function _getLock() internal view returns (bytes32 _value) {
