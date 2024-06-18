@@ -98,6 +98,14 @@ contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
     bCoWPool.commit(orderHash);
   }
 
+  function test_Revert_ZeroOrderHash(bytes32 _existingCommitment, bytes32 _newCommitment) public {
+    vm.assume(_existingCommitment != bytes32(0));
+    bCoWPool.set_commitment(_existingCommitment);
+    vm.prank(cowSolutionSettler);
+    vm.expectRevert(IBCoWPool.BCoWPool_CommitmentAlreadySet.selector);
+    bCoWPool.commit(_newCommitment);
+  }
+
   function test_Set_Commitment(bytes32 orderHash) public {
     vm.prank(cowSolutionSettler);
     bCoWPool.commit(orderHash);

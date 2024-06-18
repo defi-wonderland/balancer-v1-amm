@@ -57,6 +57,9 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     if (msg.sender != address(SOLUTION_SETTLER)) {
       revert CommitOutsideOfSettlement();
     }
+    if (_getLock() != _MUTEX_FREE) {
+      revert BCoWPool_CommitmentAlreadySet();
+    }
     _setLock(orderHash);
   }
 
