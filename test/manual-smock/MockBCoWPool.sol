@@ -11,7 +11,7 @@ contract MockBCoWPool is BCoWPool, Test {
 
   function set_commitment(bytes32 _commitment) public {
     assembly ("memory-safe") {
-      tstore(COMMITMENT_SLOT, _commitment)
+      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, _commitment)
     }
   }
 

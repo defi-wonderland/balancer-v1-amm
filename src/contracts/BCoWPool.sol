@@ -58,7 +58,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
       revert CommitOutsideOfSettlement();
     }
     assembly ("memory-safe") {
-      tstore(COMMITMENT_SLOT, orderHash)
+      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, orderHash)
     }
   }
 
@@ -92,7 +92,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   /// @inheritdoc IBCoWPool
   function commitment() public view returns (bytes32 value) {
     assembly ("memory-safe") {
-      value := tload(COMMITMENT_SLOT)
+      value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
     }
   }
 
