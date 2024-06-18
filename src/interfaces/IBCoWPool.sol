@@ -51,10 +51,15 @@ interface IBCoWPool is IERC1271, IBPool {
   error OrderDoesNotMatchMessageHash();
 
   /**
-   * @notice The AppData that was provided during signature verification
+   * @notice Thrown when AppData that was provided during signature verification
    * does not match the one stored in this contract.
    */
   error AppDataDoNotMatch();
+
+  /**
+   * @notice Thrown when the receiver of the order is not the bCoWPool itself.
+   */
+  error BCoWPool_ReceiverIsNotBCoWPool();
 
   /**
    * @notice Restricts a specific AMM to being able to trade only the order

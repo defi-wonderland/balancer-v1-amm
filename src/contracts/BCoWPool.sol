@@ -104,6 +104,9 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     if (!inRecord.bound || !outRecord.bound) {
       revert BPool_TokenNotBound();
     }
+    if (order.receiver != GPv2Order.RECEIVER_SAME_AS_OWNER) {
+      revert BCoWPool_ReceiverIsNotBCoWPool();
+    }
     if (order.validTo >= block.timestamp + MAX_ORDER_DURATION) {
       revert BCoWPool_OrderValidityTooLong();
     }
@@ -117,8 +120,13 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
       revert BCoWPool_InvalidBalanceMarker();
     }
 
+    uint256 buyTokenBalance = order.buyToken.balanceOf(address(this));
+    if (order.buyAmount > bmul(buyTokenBalance, MAX_IN_RATIO)) {
+      revert BPool_TokenAmountInAboveMaxIn();
+    }
+
     uint256 tokenAmountOut = calcOutGivenIn({
-      tokenBalanceIn: order.buyToken.balanceOf(address(this)),
+      tokenBalanceIn: buyTokenBalance,
       tokenWeightIn: inRecord.denorm,
       tokenBalanceOut: order.sellToken.balanceOf(address(this)),
       tokenWeightOut: outRecord.denorm,
