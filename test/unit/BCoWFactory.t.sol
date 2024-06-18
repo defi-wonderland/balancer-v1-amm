@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-
 import {Base, BaseBFactory_Unit_Constructor, BaseBFactory_Unit_NewBPool} from './BFactory.t.sol';
-
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
@@ -50,5 +49,28 @@ contract BCoWFactory_Unit_NewBPool is BaseBFactory_Unit_NewBPool, BCoWFactoryTes
     bFactory = new MockBCoWFactory(solutionSettler, _appData);
     IBCoWPool bCoWPool = IBCoWPool(address(bFactory.newBPool()));
     assertEq(bCoWPool.APP_DATA(), _appData);
+  }
+}
+
+contract BCoWPoolFactory_Unit_EmitEvent is BCoWFactoryTest {
+  function test_Return_IfNotBPool(address _pool) public {
+    bFactory = new MockBCoWFactory(solutionSettler, appData);
+    MockBCoWFactory(address(bFactory)).set__isBPool(address(_pool), false);
+
+    vm.prank(_pool);
+    IBCoWFactory(address(bFactory)).emitEvent();
+
+    // Assert no logs were emitted
+    assertEq((vm.getRecordedLogs()).length, 0);
+  }
+
+  function test_Emit_COWAMMPoolCreated(address _pool) public {
+    bFactory = new MockBCoWFactory(solutionSettler, appData);
+    MockBCoWFactory(address(bFactory)).set__isBPool(address(_pool), true);
+    vm.expectEmit();
+    emit IBCoWFactory.COWAMMPoolCreated(_pool);
+
+    vm.prank(_pool);
+    IBCoWFactory(address(bFactory)).emitEvent();
   }
 }

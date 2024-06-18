@@ -10,4 +10,8 @@ contract MockBCoWFactory is BCoWFactory, Test {
   function mock_call_newBPool(IBPool _pool) public {
     vm.mockCall(address(this), abi.encodeWithSignature('newBPool()'), abi.encode(_pool));
   }
+
+  function set__isBPool(address _key0, bool _value) public {
+    _isBPool[_key0] = _value;
+  }
 }
