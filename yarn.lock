@@ -548,9 +548,9 @@ compare-func@^2.0.0:
     array-ify "^1.0.0"
     dot-prop "^5.1.0"
 
-"composable-cow@github:cowprotocol/composable-cow.git#9ea0394":
+"composable-cow@github:cowprotocol/composable-cow.git#24d556b":
   version "0.0.0"
-  resolved "https://codeload.github.com/cowprotocol/composable-cow/tar.gz/9ea0394e15eec16550ba4c327d10c920880eb355"
+  resolved "https://codeload.github.com/cowprotocol/composable-cow/tar.gz/24d556b634e21065e0ee70dd27469a6e699a8998"
 
 conventional-changelog-angular@^7.0.0:
   version "7.0.0"

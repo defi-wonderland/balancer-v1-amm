@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {BCoWPool, BPool, GPv2Order, IBCoWPool, IERC1271, IERC20, ISettlement} from '../../src/contracts/BCoWPool.sol';
 import {BMath, IBPool} from '../../src/contracts/BPool.sol';
-import {GPv2Order} from 'cowprotocol/libraries/GPv2Order.sol';
+import {GPv2Order} from 'cowprotocol/contracts/libraries/GPv2Order.sol';
 import {Test} from 'forge-std/Test.sol';
 
 contract MockBCoWPool is BCoWPool, Test {

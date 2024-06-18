@@ -6,11 +6,11 @@ import {GPv2TradeEncoder} from 'composable-cow/test/vendored/GPv2TradeEncoder.so
 
 import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BCoWFactory} from 'contracts/BCoWFactory.sol';
-import {IERC20} from 'cowprotocol/interfaces/IERC20.sol';
-import {GPv2Interaction} from 'cowprotocol/libraries/GPv2Interaction.sol';
-import {GPv2Order} from 'cowprotocol/libraries/GPv2Order.sol';
-import {GPv2Trade} from 'cowprotocol/libraries/GPv2Trade.sol';
-import {GPv2Signing} from 'cowprotocol/mixins/GPv2Signing.sol';
+import {IERC20} from 'cowprotocol/contracts/interfaces/IERC20.sol';
+import {GPv2Interaction} from 'cowprotocol/contracts/libraries/GPv2Interaction.sol';
+import {GPv2Order} from 'cowprotocol/contracts/libraries/GPv2Order.sol';
+import {GPv2Trade} from 'cowprotocol/contracts/libraries/GPv2Trade.sol';
+import {GPv2Signing} from 'cowprotocol/contracts/mixins/GPv2Signing.sol';
 
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';

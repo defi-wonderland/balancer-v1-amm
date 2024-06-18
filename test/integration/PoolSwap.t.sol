@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 import {BFactory} from 'contracts/BFactory.sol';
-import {IERC20} from 'cowprotocol/interfaces/IERC20.sol';
+import {IERC20} from 'cowprotocol/contracts/interfaces/IERC20.sol';
 import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
