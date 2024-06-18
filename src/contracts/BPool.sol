@@ -11,8 +11,6 @@ import {IBPool} from 'interfaces/IBPool.sol';
  * @notice Pool contract that holds tokens, allows to swap, add and remove liquidity.
  */
 contract BPool is BToken, BMath, IBPool {
-  /// @dev True if a call to the contract is in progress, False otherwise
-  bool internal _mutex;
   /// @dev BFactory address to push token exitFee to
   address internal _factory;
   /// @dev Has CONTROL role
@@ -36,17 +34,19 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @dev Prevents reentrancy in non-view functions
   modifier _lock_() {
-    if (_mutex) {
+    // take care to compare against the free value, as different 'taken' values
+    // can mean different things for contracs extending this one
+    if (_getLock() != _MUTEX_FREE) {
       revert BPool_Reentrancy();
     }
-    _mutex = true;
+    _setLock(_MUTEX_TAKEN);
     _;
-    _mutex = false;
+    _setLock(_MUTEX_FREE);
   }
 
   /// @dev Prevents reentrancy in view functions
   modifier _viewlock_() {
-    if (_mutex) {
+    if (_getLock() != _MUTEX_FREE) {
       revert BPool_Reentrancy();
     }
     _;
@@ -601,6 +601,26 @@ contract BPool is BToken, BMath, IBPool {
   /// @inheritdoc IBPool
   function getController() external view _viewlock_ returns (address) {
     return _controller;
+  }
+
+  /**
+   * @notice gets the value of the transient storage slot used for reentrancy locks
+   * @return _value its value
+   */
+  function _getLock() internal view returns (bytes32 _value) {
+    assembly ("memory-safe") {
+      _value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
+    }
+  }
+  /**
+   * @notice sets the value of the transient storage slot used for reentrancy locks
+   * @param _value its value
+   */
+
+  function _setLock(bytes32 _value) internal {
+    assembly ("memory-safe") {
+      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, _value)
+    }
   }
 
   /**

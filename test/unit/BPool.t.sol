@@ -82,10 +82,10 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
   function _expectRevertByReentrancy() internal {
     // Assert that the contract is accessible
-    assertEq(bPool.call__mutex(), false);
+    assertEq(bPool.call__getLock(), _MUTEX_FREE);
 
     // Simulate ongoing call to the contract
-    bPool.set__mutex(true);
+    bPool.call__setLock(_MUTEX_TAKEN);
 
     vm.expectRevert(IBPool.BPool_Reentrancy.selector);
   }

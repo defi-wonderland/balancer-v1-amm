@@ -24,4 +24,8 @@ contract BConst {
 
   uint256 public constant MAX_IN_RATIO = BONE / 2;
   uint256 public constant MAX_OUT_RATIO = (BONE / 3) + 1 wei;
+
+  uint256 internal constant _MUTEX_TRANSIENT_STORAGE_SLOT = 0;
+  bytes32 internal constant _MUTEX_FREE = bytes32(uint256(0));
+  bytes32 internal constant _MUTEX_TAKEN = bytes32(uint256(1));
 }
