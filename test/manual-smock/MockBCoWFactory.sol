@@ -15,7 +15,7 @@ contract MockBCoWFactory is BCoWFactory, Test {
     vm.mockCall(address(this), abi.encodeWithSignature('newBPool()'), abi.encode(_pool));
   }
 
-  function mock_call_emitEvent() public {
-    vm.mockCall(address(this), abi.encodeWithSignature('emitEvent()'), abi.encode());
+  function mock_call_logBCoWPool() public {
+    vm.mockCall(address(this), abi.encodeWithSignature('logBCoWPool()'), abi.encode());
   }
 }

@@ -13,5 +13,5 @@ interface IBCoWFactory is IBFactory {
   /**
    * @notice Emits the COWAMMPoolCreated event if the caller is a bCoWPool, to be indexed by off-chain agents
    */
-  function emitEvent() external;
+  function logBCoWPool() external;
 }

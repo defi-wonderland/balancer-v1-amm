@@ -150,6 +150,6 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     }
 
     // Emit event
-    IBCoWFactory(_factory).emitEvent();
+    IBCoWFactory(_factory).logBCoWPool();
   }
 }
