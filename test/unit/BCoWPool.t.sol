@@ -194,14 +194,6 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
     _;
   }
 
-  function test_Revert_ReceiverIsNotBCoWPool(address _receiver) public {
-    vm.assume(_receiver != GPv2Order.RECEIVER_SAME_AS_OWNER);
-    GPv2Order.Data memory order = correctOrder;
-    order.receiver = _receiver;
-    vm.expectRevert(IBCoWPool.BCoWPool_ReceiverIsNotBCoWPool.selector);
-    bCoWPool.verify(order);
-  }
-
   function test_Revert_NonBoundBuyToken(address _otherToken) public assumeNotBoundToken(_otherToken) {
     GPv2Order.Data memory order = correctOrder;
     order.buyToken = IERC20(_otherToken);
@@ -213,6 +205,14 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
     GPv2Order.Data memory order = correctOrder;
     order.sellToken = IERC20(_otherToken);
     vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    bCoWPool.verify(order);
+  }
+
+  function test_Revert_ReceiverIsNotBCoWPool(address _receiver) public {
+    vm.assume(_receiver != GPv2Order.RECEIVER_SAME_AS_OWNER);
+    GPv2Order.Data memory order = correctOrder;
+    order.receiver = _receiver;
+    vm.expectRevert(IBCoWPool.BCoWPool_ReceiverIsNotBCoWPool.selector);
     bCoWPool.verify(order);
   }
 
