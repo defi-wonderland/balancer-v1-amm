@@ -26,13 +26,10 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
 
   function setUp() public override {
     super.setUp();
-
-    // enable trading
-    IBCoWPool(address(pool)).enableTrading(APP_DATA);
   }
 
   function _deployFactory() internal override returns (IBFactory) {
-    return new BCoWFactory(address(settlement));
+    return new BCoWFactory(address(settlement), APP_DATA);
   }
 
   function _makeSwap() internal override {
