@@ -7,7 +7,7 @@ import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
-import {MockBCoWFactory} from 'test/smock/MockBCoWFactory.sol';
+import {MockBCoWFactory} from 'test/manual-smock/MockBCoWFactory.sol';
 
 abstract contract BCoWFactoryTest is Base {
   address public solutionSettler = makeAddr('solutionSettler');
