@@ -51,9 +51,8 @@ interface IBCoWPool is IERC1271, IBPool {
   error OrderDoesNotMatchMessageHash();
 
   /**
-   * @notice The order trade parameters that were provided during signature
-   * verification does not match the data stored in this contract _or_ the
-   * AMM has not enabled trading.
+   * @notice The AppData that was provided during signature verification
+   * does not match the one stored in this contract.
    */
   error AppDataDoNotMatch();
 
