@@ -604,19 +604,9 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /**
-   * @notice gets the value of the transient storage slot used for reentrancy locks
-   * @return _value its value
-   */
-  function _getLock() internal view returns (bytes32 _value) {
-    assembly ("memory-safe") {
-      _value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
-    }
-  }
-  /**
    * @notice sets the value of the transient storage slot used for reentrancy locks
    * @param _value its value
    */
-
   function _setLock(bytes32 _value) internal {
     assembly ("memory-safe") {
       tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, _value)
@@ -688,5 +678,15 @@ contract BPool is BToken, BMath, IBPool {
    */
   function _burnPoolShare(uint256 amount) internal {
     _burn(address(this), amount);
+  }
+
+  /**
+   * @notice gets the value of the transient storage slot used for reentrancy locks
+   * @return _value its value
+   */
+  function _getLock() internal view returns (bytes32 _value) {
+    assembly ("memory-safe") {
+      _value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
+    }
   }
 }
