@@ -114,6 +114,9 @@ interface IBCoWPool is IERC1271, IBPool {
    * `commit` function. If no commitment has been set, then the value will be
    * `EMPTY_COMMITMENT`.
    * @return _commitment The commitment hash.
+   * @dev since commitments share a transient storage slot with reentrancy
+   * locks, this will return an invalid value while there's a reentrancy lock
+   * active
    */
   function commitment() external view returns (bytes32 _commitment);
 
