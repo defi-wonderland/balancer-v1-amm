@@ -57,9 +57,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     if (msg.sender != address(SOLUTION_SETTLER)) {
       revert CommitOutsideOfSettlement();
     }
-    assembly ("memory-safe") {
-      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, orderHash)
-    }
+    _setLock(orderHash);
   }
 
   /**
@@ -91,9 +89,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
 
   /// @inheritdoc IBCoWPool
   function commitment() public view returns (bytes32 value) {
-    assembly ("memory-safe") {
-      value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
-    }
+    value = _getLock();
   }
 
   /// @inheritdoc IBCoWPool
