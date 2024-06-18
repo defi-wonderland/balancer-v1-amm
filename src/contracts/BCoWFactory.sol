@@ -35,7 +35,7 @@ contract BCoWFactory is BFactory, IBCoWFactory {
 
   /// @inheritdoc IBCoWFactory
   function logBCoWPool() external {
-    if (!_isBPool[msg.sender]) return;
+    if (!_isBPool[msg.sender]) revert BCoWFactory_NotValidBCoWPool();
     emit COWAMMPoolCreated(msg.sender);
   }
 }

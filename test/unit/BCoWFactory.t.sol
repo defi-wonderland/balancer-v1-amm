@@ -53,15 +53,14 @@ contract BCoWFactory_Unit_NewBPool is BaseBFactory_Unit_NewBPool, BCoWFactoryTes
 }
 
 contract BCoWPoolFactory_Unit_LogBCoWPool is BCoWFactoryTest {
-  function test_Return_IfNotBPool(address _pool) public {
+  function test_Revert_NotValidBCoWPool(address _pool) public {
     bFactory = new MockBCoWFactory(solutionSettler, appData);
     MockBCoWFactory(address(bFactory)).set__isBPool(address(_pool), false);
 
+    vm.expectRevert(IBCoWFactory.BCoWFactory_NotValidBCoWPool.selector);
+
     vm.prank(_pool);
     IBCoWFactory(address(bFactory)).logBCoWPool();
-
-    // Assert no logs were emitted
-    assertEq((vm.getRecordedLogs()).length, 0);
   }
 
   function test_Emit_COWAMMPoolCreated(address _pool) public {
