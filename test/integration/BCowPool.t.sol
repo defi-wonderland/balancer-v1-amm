@@ -24,10 +24,6 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
 
   bytes32 public constant APP_DATA = bytes32('exampleIntegrationAppData');
 
-  function setUp() public override {
-    super.setUp();
-  }
-
   function _deployFactory() internal override returns (IBFactory) {
     return new BCoWFactory(address(settlement), APP_DATA);
   }

@@ -70,7 +70,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
 
     if (order.appData != APP_DATA) {
-      revert AppDataDoNotMatch();
+      revert AppDataDoesNotMatch();
     }
 
     bytes32 orderHash = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);

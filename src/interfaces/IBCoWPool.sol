@@ -54,7 +54,7 @@ interface IBCoWPool is IERC1271, IBPool {
    * @notice Thrown when AppData that was provided during signature verification
    * does not match the one stored in this contract.
    */
-  error AppDataDoNotMatch();
+  error AppDataDoesNotMatch();
 
   /**
    * @notice Thrown when the receiver of the order is not the bCoWPool itself.

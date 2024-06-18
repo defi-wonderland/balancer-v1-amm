@@ -256,11 +256,11 @@ contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
   }
 
   modifier happyPath(GPv2Order.Data memory _order) {
-    // happy values
+    // sets the order appData to the one defined at deployment (setUp)
     _order.appData = appData;
-    bytes32 _orderHash = GPv2Order.hash(_order, domainSeparator);
 
-    // set values
+    // stores the order hash in the transient storage slot
+    bytes32 _orderHash = GPv2Order.hash(_order, domainSeparator);
     bCoWPool.set_commitment(_orderHash);
     _;
   }
@@ -269,7 +269,7 @@ contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
     vm.assume(_appData != appData);
     _order.appData = _appData;
     bytes32 _orderHash = GPv2Order.hash(_order, domainSeparator);
-    vm.expectRevert(IBCoWPool.AppDataDoNotMatch.selector);
+    vm.expectRevert(IBCoWPool.AppDataDoesNotMatch.selector);
     bCoWPool.isValidSignature(_orderHash, abi.encode(_order));
   }
 
