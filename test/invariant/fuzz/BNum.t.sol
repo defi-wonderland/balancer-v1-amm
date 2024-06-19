@@ -384,8 +384,7 @@ contract EchidnaBNum is BNum, Test {
 
     uint256 _result = bpowi(_base, BONE);
 
-    if (_base != 0) assert(_result == _base);
-    else assert(_result == 0);
+    assert(_result == _base);
   }
 
   // bpowi should be distributive over mult of the same base x^a  x^b == x^(a+b)
