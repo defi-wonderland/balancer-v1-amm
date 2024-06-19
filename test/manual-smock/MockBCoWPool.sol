@@ -8,9 +8,6 @@ import {Test} from 'forge-std/Test.sol';
 
 contract MockBCoWPool is BCoWPool, Test {
   /// MockBCoWPool mock methods
-  function set_appDataHash(bytes32 _appDataHash) public {
-    appDataHash = _appDataHash;
-  }
 
   function set_commitment(bytes32 _commitment) public {
     assembly ("memory-safe") {
@@ -18,19 +15,7 @@ contract MockBCoWPool is BCoWPool, Test {
     }
   }
 
-  function mock_call_appDataHash(bytes32 _value) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('appDataHash()'), abi.encode(_value));
-  }
-
-  constructor(address _cowSolutionSettler) BCoWPool(_cowSolutionSettler) {}
-
-  function mock_call_enableTrading(bytes32 appData) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('enableTrading(bytes32)', appData), abi.encode());
-  }
-
-  function mock_call_disableTrading() public {
-    vm.mockCall(address(this), abi.encodeWithSignature('disableTrading()'), abi.encode());
-  }
+  constructor(address _cowSolutionSettler, bytes32 _appData) BCoWPool(_cowSolutionSettler, _appData) {}
 
   function mock_call_commit(bytes32 orderHash) public {
     vm.mockCall(address(this), abi.encodeWithSignature('commit(bytes32)', orderHash), abi.encode());
@@ -56,14 +41,6 @@ contract MockBCoWPool is BCoWPool, Test {
     vm.mockCall(address(this), abi.encodeWithSignature('hash(bytes32)', appData), abi.encode(_returnParam0));
   }
   /// BPool Mocked methods
-
-  function set__mutex(bool __mutex) public {
-    _mutex = __mutex;
-  }
-
-  function call__mutex() public view returns (bool) {
-    return _mutex;
-  }
 
   function set__factory(address __factory) public {
     _factory = __factory;

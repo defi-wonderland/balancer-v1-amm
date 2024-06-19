@@ -44,29 +44,13 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   ISettlement public immutable SOLUTION_SETTLER;
 
   /// @inheritdoc IBCoWPool
-  bytes32 public appDataHash;
+  bytes32 public immutable APP_DATA;
 
-  constructor(address _cowSolutionSettler) BPool() {
+  constructor(address _cowSolutionSettler, bytes32 _appData) BPool() {
     SOLUTION_SETTLER = ISettlement(_cowSolutionSettler);
     SOLUTION_SETTLER_DOMAIN_SEPARATOR = ISettlement(_cowSolutionSettler).domainSeparator();
     VAULT_RELAYER = ISettlement(_cowSolutionSettler).vaultRelayer();
-  }
-
-  /// @inheritdoc IBCoWPool
-  function enableTrading(bytes32 appData) external onlyController {
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
-    }
-
-    bytes32 _appDataHash = keccak256(abi.encode(appData));
-    appDataHash = _appDataHash;
-    emit TradingEnabled(_appDataHash, appData);
-  }
-
-  /// @inheritdoc IBCoWPool
-  function disableTrading() external onlyController {
-    appDataHash = NO_TRADING;
-    emit TradingDisabled();
+    APP_DATA = _appData;
   }
 
   /// @inheritdoc IBCoWPool
@@ -86,9 +70,10 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   function isValidSignature(bytes32 _hash, bytes memory signature) external view returns (bytes4) {
     (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
 
-    if (appDataHash != keccak256(abi.encode(order.appData))) {
-      revert AppDataDoNotMatchHash();
+    if (order.appData != APP_DATA) {
+      revert AppDataDoesNotMatch();
     }
+
     bytes32 orderHash = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);
     if (orderHash != _hash) {
       revert OrderDoesNotMatchMessageHash();
@@ -117,8 +102,11 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     Record memory inRecord = _records[address(order.buyToken)];
     Record memory outRecord = _records[address(order.sellToken)];
 
-    if (!inRecord.bound || !inRecord.bound) {
+    if (!inRecord.bound || !outRecord.bound) {
       revert BPool_TokenNotBound();
+    }
+    if (order.receiver != GPv2Order.RECEIVER_SAME_AS_OWNER) {
+      revert BCoWPool_ReceiverIsNotBCoWPool();
     }
     if (order.validTo >= block.timestamp + MAX_ORDER_DURATION) {
       revert BCoWPool_OrderValidityTooLong();
@@ -133,8 +121,13 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
       revert BCoWPool_InvalidBalanceMarker();
     }
 
+    uint256 buyTokenBalance = order.buyToken.balanceOf(address(this));
+    if (order.buyAmount > bmul(buyTokenBalance, MAX_IN_RATIO)) {
+      revert BPool_TokenAmountInAboveMaxIn();
+    }
+
     uint256 tokenAmountOut = calcOutGivenIn({
-      tokenBalanceIn: order.buyToken.balanceOf(address(this)),
+      tokenBalanceIn: buyTokenBalance,
       tokenWeightIn: inRecord.denorm,
       tokenBalanceOut: order.sellToken.balanceOf(address(this)),
       tokenWeightOut: outRecord.denorm,
