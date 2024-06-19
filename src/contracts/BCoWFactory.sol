@@ -20,16 +20,16 @@ contract BCoWFactory is BFactory, IBCoWFactory {
     APP_DATA = _appData;
   }
 
+  /// @inheritdoc IBCoWFactory
+  function logBCoWPool() external {
+    if (!_isBPool[msg.sender]) revert BCoWFactory_NotValidBCoWPool();
+    emit COWAMMPoolCreated(msg.sender);
+  }
+
   /**
    * @dev Deploys a BCoWPool instead of a regular BPool.
    */
   function _newBPool() internal virtual override returns (IBPool _pool) {
     return new BCoWPool(SOLUTION_SETTLER, APP_DATA);
-  }
-
-  /// @inheritdoc IBCoWFactory
-  function logBCoWPool() external {
-    if (!_isBPool[msg.sender]) revert BCoWFactory_NotValidBCoWPool();
-    emit COWAMMPoolCreated(msg.sender);
   }
 }
