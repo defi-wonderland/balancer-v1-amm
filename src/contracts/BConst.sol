@@ -45,12 +45,16 @@ contract BConst {
   /// @notice The maximum ratio of output tokens vs the current pool balance.
   uint256 public constant MAX_OUT_RATIO = (BONE / 3) + 1 wei;
 
-  // Using an arbitrary storage slot to prevent possible future
-  // _transient_ variables defined by solidity from overriding it, if they were
-  // to start on slot zero as regular storage variables do. Value is:
-  // uint256(keccak256('BPool.transientStorageLock')) - 1;
+  /**
+   * @notice The storage slot used to write transient data.
+   * @dev Using an arbitrary storage slot to prevent possible future
+   * transient variables defined by solidity from overriding it.
+   * @dev Value is: uint256(keccak256('BPool.transientStorageLock')) - 1;
+   */
   uint256 internal constant _MUTEX_TRANSIENT_STORAGE_SLOT =
     0x3f8f4c536ce1b925b469af1b09a44da237dab5bbc584585648c12be1ca25a8c4;
+  /// @notice The value representing an unlocked state of the mutex.
   bytes32 internal constant _MUTEX_FREE = bytes32(uint256(0));
+  /// @notice The value representing a locked state of the mutex.
   bytes32 internal constant _MUTEX_TAKEN = bytes32(uint256(1));
 }
