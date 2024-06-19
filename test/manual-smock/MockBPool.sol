@@ -5,18 +5,6 @@ import {BMath, BPool, BToken, IBPool, IERC20} from '../../src/contracts/BPool.so
 import {Test} from 'forge-std/Test.sol';
 
 contract MockBPool is BPool, Test {
-  function call__setLock(bytes32 _value) public {
-    assembly ("memory-safe") {
-      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, _value)
-    }
-  }
-
-  function call__getLock() public view returns (bytes32 _value) {
-    assembly ("memory-safe") {
-      _value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
-    }
-  }
-
   function set__factory(address __factory) public {
     _factory = __factory;
   }
@@ -340,5 +328,43 @@ contract MockBPool is BPool, Test {
 
   function expectCall__afterFinalize() public {
     vm.expectCall(address(this), abi.encodeWithSignature('_afterFinalize()'));
+  }
+
+  function mock_call__getLock(bytes32 _value) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('_getLock()'), abi.encode(_value));
+  }
+
+  function _getLock() internal view override returns (bytes32 _value) {
+    (bool _success, bytes memory _data) = address(this).staticcall(abi.encodeWithSignature('_getLock()'));
+
+    if (_success) return abi.decode(_data, (bytes32));
+    else return super._getLock();
+  }
+
+  function call__getLock() public returns (bytes32 _value) {
+    return _getLock();
+  }
+
+  function expectCall__getLock() public {
+    vm.expectCall(address(this), abi.encodeWithSignature('_getLock()'));
+  }
+
+  function mock_call__setLock(bytes32 _value) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('_setLock(bytes32)', _value), abi.encode());
+  }
+
+  function _setLock(bytes32 _value) internal override {
+    (bool _success, bytes memory _data) = address(this).call(abi.encodeWithSignature('_setLock(bytes32)', _value));
+
+    if (_success) return abi.decode(_data, ());
+    else return super._setLock(_value);
+  }
+
+  function call__setLock(bytes32 _value) public {
+    return _setLock(_value);
+  }
+
+  function expectCall__setLock(bytes32 _value) public {
+    vm.expectCall(address(this), abi.encodeWithSignature('_setLock(bytes32)', _value));
   }
 }
