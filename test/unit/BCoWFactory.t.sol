@@ -66,7 +66,7 @@ contract BCoWPoolFactory_Unit_LogBCoWPool is BCoWFactoryTest {
   function test_Emit_COWAMMPoolCreated(address _pool) public {
     bFactory = new MockBCoWFactory(solutionSettler, appData);
     MockBCoWFactory(address(bFactory)).set__isBPool(address(_pool), true);
-    vm.expectEmit();
+    vm.expectEmit(address(bFactory));
     emit IBCoWFactory.COWAMMPoolCreated(_pool);
 
     vm.prank(_pool);

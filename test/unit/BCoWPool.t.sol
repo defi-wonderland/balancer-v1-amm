@@ -103,7 +103,7 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
       address(bCoWPool.call__factory()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode()
     );
 
-    vm.expectEmit();
+    vm.expectEmit(address(bCoWPool));
     emit IBCoWFactory.COWAMMPoolCreated(address(bCoWPool));
 
     bCoWPool.finalize();
