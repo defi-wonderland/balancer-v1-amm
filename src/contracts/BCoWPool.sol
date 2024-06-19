@@ -149,7 +149,12 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
       IERC20(_tokens[i]).approve(VAULT_RELAYER, type(uint256).max);
     }
 
-    // Emit event
-    IBCoWFactory(_factory).logBCoWPool();
+    // Make the factory emit the event, to be easily indexed by off-chain agents
+    // If this pool was not deployed using a bCoWFactory, this will revert and catch
+    // solhint-disable-next-line no-empty-blocks
+    try IBCoWFactory(_factory).logBCoWPool() {}
+    catch {
+      emit IBCoWFactory.COWAMMPoolCreated(address(this));
+    }
   }
 }

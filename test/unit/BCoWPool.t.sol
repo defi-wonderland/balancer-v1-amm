@@ -98,6 +98,17 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
     bCoWPool.finalize();
   }
 
+  function test_Log_IfRevert() public {
+    vm.mockCallRevert(
+      address(bCoWPool.call__factory()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode()
+    );
+
+    vm.expectEmit();
+    emit IBCoWFactory.COWAMMPoolCreated(address(bCoWPool));
+
+    bCoWPool.finalize();
+  }
+
   function test_Call_LogBCoWPool() public {
     vm.expectCall(address(bCoWPool.call__factory()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), 1);
     bCoWPool.finalize();
