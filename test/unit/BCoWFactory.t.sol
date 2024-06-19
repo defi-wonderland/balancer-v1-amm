@@ -5,6 +5,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {Base, BaseBFactory_Unit_Constructor, BaseBFactory_Unit_NewBPool} from './BFactory.t.sol';
 
+import {BCoWPool} from 'contracts/BCoWPool.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
@@ -21,6 +22,14 @@ abstract contract BCoWFactoryTest is Base {
     );
     vm.prank(owner);
     return new MockBCoWFactory(solutionSettler, appData);
+  }
+
+  function _bPoolBytecode() internal virtual override returns (bytes memory _bytecode) {
+    vm.skip(true);
+
+    // NOTE: "runtimeCode" is not available for contracts containing immutable variables.
+    // return type(BCoWPool).runtimeCode;
+    return _bytecode;
   }
 }
 
