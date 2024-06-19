@@ -35,11 +35,14 @@ yarn test    # run the tests
 ## Features on BCoWPool (added via inheritance to BPool)
 - Immutably stores CoW Protocol's `SolutionSettler` and `VaultRelayer` addresses at deployment
 - Immutably stores Cow Protocol's a Domain Separator at deployment (to avoid replay attacks)
+- Immutably stores Cow Protocol's `GPv2Order.appData` to be allowed to swap
 - Gives infinite ERC20 approval to the CoW Protocol's `VaultRelayer` contract
 - Implements IERC1271 `isValidSignature` method to allow for validating intentions of swaps
 - Implements a `commit` method to avoid multiple swaps from conflicting with each other
-- Allows the controller to allow only one `GPv2Order.appData` at a time
 - Validates the `GPv2Order` requirements before allowing the swap
+
+## Features on BCoWFactory
+- Added a `logBCoWPool` to log the finalization of BCoWPool contracts, to be called by a child pool
 
 ## Creating a Pool
 - Create a new pool by calling `IBFactory.newBPool()`
