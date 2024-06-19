@@ -2,8 +2,8 @@
 pragma solidity 0.8.25;
 
 import {BCoWPool} from './BCoWPool.sol';
-
 import {BFactory} from './BFactory.sol';
+import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
@@ -11,7 +11,7 @@ import {IBPool} from 'interfaces/IBPool.sol';
  * @title BCoWFactory
  * @notice Creates new BCoWPools, logging their addresses and acting as a registry of pools.
  */
-contract BCoWFactory is BFactory {
+contract BCoWFactory is BFactory, IBCoWFactory {
   address public immutable SOLUTION_SETTLER;
   bytes32 public immutable APP_DATA;
 
@@ -25,5 +25,11 @@ contract BCoWFactory is BFactory {
    */
   function _newBPool() internal virtual override returns (IBPool _pool) {
     return new BCoWPool(SOLUTION_SETTLER, APP_DATA);
+  }
+
+  /// @inheritdoc IBCoWFactory
+  function logBCoWPool() external {
+    if (!_isBPool[msg.sender]) revert BCoWFactory_NotValidBCoWPool();
+    emit COWAMMPoolCreated(msg.sender);
   }
 }
