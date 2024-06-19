@@ -576,18 +576,12 @@ contract BPool_Unit_SetSwapFee is BasePoolTest {
   }
 
   function test_Set_SwapFee(uint256 _fee) public happyPath(_fee) {
-    vm.assume(_fee >= MIN_FEE);
-    vm.assume(_fee <= MAX_FEE);
-
     bPool.setSwapFee(_fee);
 
     assertEq(bPool.call__swapFee(), _fee);
   }
 
   function test_Set_ReentrancyLock(uint256 _fee) public happyPath(_fee) {
-    vm.assume(_fee >= MIN_FEE);
-    vm.assume(_fee <= MAX_FEE);
-
     _expectSetReentrancyLock();
     bPool.setSwapFee(_fee);
   }

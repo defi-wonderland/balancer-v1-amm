@@ -145,10 +145,8 @@ contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
   }
 
   function test_Set_ReentrancyLock(bytes32 orderHash) public {
-    vm.assume(orderHash != _MUTEX_FREE);
     vm.prank(cowSolutionSettler);
     bCoWPool.commit(orderHash);
-    assertNotEq(bCoWPool.call__getLock(), _MUTEX_FREE);
     assertEq(bCoWPool.call__getLock(), orderHash);
   }
 }
