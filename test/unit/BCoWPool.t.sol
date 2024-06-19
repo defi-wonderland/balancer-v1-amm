@@ -87,7 +87,7 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
     }
 
     vm.mockCall(
-      address(bCoWPool.call__factory()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode(0)
+      address(bCoWPool.call__factory()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode()
     );
   }
 
@@ -268,7 +268,7 @@ contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
       vm.mockCall(tokens[i], abi.encodePacked(IERC20.approve.selector), abi.encode(true));
     }
     vm.mockCall(
-      address(bCoWPool.call__factory()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode(0)
+      address(bCoWPool.call__factory()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode()
     );
     bCoWPool.finalize();
   }
