@@ -9,12 +9,6 @@ import {Test} from 'forge-std/Test.sol';
 contract MockBCoWPool is BCoWPool, Test {
   /// MockBCoWPool mock methods
 
-  function set_commitment(bytes32 _commitment) public {
-    assembly ("memory-safe") {
-      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, _commitment)
-    }
-  }
-
   constructor(address _cowSolutionSettler, bytes32 _appData) BCoWPool(_cowSolutionSettler, _appData) {}
 
   function mock_call_commit(bytes32 orderHash) public {
