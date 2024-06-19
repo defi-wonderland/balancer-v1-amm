@@ -44,3 +44,6 @@ yarn test    # run the tests
 - Implements IERC1271 `isValidSignature` method to allow for validating intentions of swaps
 - Implements a `commit` method to avoid multiple swaps from conflicting with each other
 - Validates the `GPv2Order` requirements before allowing the swap
+
+## Features on BCoWFactory
+- Added a `logBCoWPool` to log the finalization of BCoWPool contracts, to be called by a child pool
