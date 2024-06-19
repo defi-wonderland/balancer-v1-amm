@@ -151,6 +151,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
 
     // Make the factory emit the event, to be easily indexed by off-chain agents
     // If this pool was not deployed using a bCoWFactory, this will revert and catch
+    // And the event will be emitted by this contract instead
     // solhint-disable-next-line no-empty-blocks
     try IBCoWFactory(_factory).logBCoWPool() {}
     catch {
