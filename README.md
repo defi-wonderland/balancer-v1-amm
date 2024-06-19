@@ -49,7 +49,3 @@ yarn test    # run the tests
   - The weight represents the intended distribution of value between the tokens in the pool
 - Modify the pool's swap fee by calling `IBPool.setSwapFee(fee)`
 - Finalize the pool by calling `IBPool.finalize()`
-
-This actions allow the Pool to be directly swapped by users. In the case of BCoWPool, the pool will need the pool creator to perform another action in order to allow CoW Protocol swaps:
-- Call `IBCoWPool.enableTrading(appData)`
-  - The `appData` is a unique identifier for the swap origin (used to avoid replay attacks)
