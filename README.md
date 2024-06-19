@@ -43,7 +43,6 @@ yarn test    # run the tests
   - This is stored in the same transient storage slot as reentrancy locks in order to prevent calls to swap/join functions within a settlement execution or vice versa.
   - It's an error to override a commitment since that could be used to clear reentrancy locks. Commitments can only be cleared by ending a transaction.
 - Validates the `GPv2Order` requirements before allowing the swap
-- Allows the controller to allow only one `GPv2Order.appData` at a time
 
 ## Features on BCoWFactory
 - Added a `logBCoWPool` to log the finalization of BCoWPool contracts, to be called by a child pool
