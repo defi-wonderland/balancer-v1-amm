@@ -55,3 +55,8 @@ yarn test    # run the tests
   - The weight represents the intended distribution of value between the tokens in the pool
 - Modify the pool's swap fee by calling `IBPool.setSwapFee(fee)`
 - Finalize the pool by calling `IBPool.finalize()`
+
+# Deployments
+Sepolia:
+  - BCoWFactory: (0x130289c2C29861a246BA45974E184A21F13843FC)[https://sepolia.etherscan.io/address/0x130289c2c29861a246ba45974e184a21f13843fc#code]
+  - BCoWPool: (0x1eFFACfD8Fe9f3dE58D6B6F1688fD86bB61e302f)[https://sepolia.etherscan.io/address/0x1effacfd8fe9f3de58d6b6f1688fd86bb61e302f#code]
