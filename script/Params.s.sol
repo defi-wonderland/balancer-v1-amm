@@ -24,7 +24,8 @@ contract Params {
   address internal constant _B_LABS = 0xAF38644Bb3Af9217383CE0C0fb390128B5c8F4A6; // TODO: update this address
 
   /// @notice AppData identifier
-  bytes32 internal constant _APP_DATA = bytes32('appData');
+  /// @dev Value obtained from https://explorer.cow.fi/appdata?tab=encode using "CoW AMM balancer" as the App Code
+  bytes32 internal constant _APP_DATA = 0x865eefa670f204d06d405b88130062c4789d9b35a58245d87aca11e9a53cbc24;
 
   /// @notice BFactory deployment parameters for each chain
   mapping(uint256 _chainId => BFactoryDeploymentParams _params) internal _bFactoryDeploymentParams;
