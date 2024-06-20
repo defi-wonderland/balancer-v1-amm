@@ -239,10 +239,13 @@ contract BFactory_Unit_Collect is BFactoryTest {
   }
 }
 
-contract BFactory_Internal_NewBPool is BFactoryTest {
+abstract contract BaseBFactory_Internal_NewBPool is Base {
   function test_Deploy_NewBPool() public {
     IBPool _pool = MockBFactory(address(bFactory)).call__newBPool();
 
     assertEq(_bPoolBytecode(), address(_pool).code);
   }
 }
+
+// solhint-disable-next-line no-empty-blocks
+contract BFactory_Internal_NewBPool is BFactoryTest, BaseBFactory_Internal_NewBPool {}
