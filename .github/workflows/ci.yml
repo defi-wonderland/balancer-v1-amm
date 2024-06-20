@@ -94,3 +94,6 @@ jobs:
 
       - name: Run natspec-smells
         run: yarn lint:natspec 2>&1 >/dev/null | grep 'No issues found'
+
+      - name: Ensure gas snapshots were updated
+        run: git diff --exit-code -- .forge-snapshots/
