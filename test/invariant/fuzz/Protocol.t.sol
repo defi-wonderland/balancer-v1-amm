@@ -1,44 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {AgentsHandler, EchidnaTest, FuzzERC20, IERC20} from '../AdvancedTestsUtils.sol';
+import {EchidnaTest, FuzzERC20} from '../AdvancedTestsUtils.sol';
 import {BConst} from 'contracts/BConst.sol';
-import {BFactory, BPool, IBPool} from 'contracts/BFactory.sol';
+import {BFactory, IBPool} from 'contracts/BFactory.sol';
 
-contract Setup {
-  IERC20 public tokenA;
-  IERC20 public tokenB;
-
-  BFactory public factory;
-  BPool public pool;
-
-  AgentsHandler agentHandler;
-}
-
-contract Test is EchidnaTest {
+contract BalancerTest is EchidnaTest {
   // System under test
   BFactory factory;
   BConst bconst;
   FuzzERC20 tokenA;
   FuzzERC20 tokenB;
 
-  // Handler
-  AgentsHandler agentHandler;
-  address currentCaller;
-
   mapping(address => bool) alreadyMinted;
 
   IBPool[] deployedPools;
 
-  modifier AgentOrDeployer() {
-    uint256 _currentAgentIndex = agentHandler.agentsIndex();
-    currentCaller = _currentAgentIndex == 0 ? address(this) : agentHandler.getCurrentAgent();
-    _;
-  }
-
   constructor() {
-    agentHandler = new AgentsHandler(5);
-
     tokenA = new FuzzERC20();
     tokenB = new FuzzERC20();
     tokenA.initialize('', '', 18);

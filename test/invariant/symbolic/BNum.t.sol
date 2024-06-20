@@ -5,7 +5,7 @@ import {HalmosTest} from '../AdvancedTestsUtils.sol';
 import {BNum} from 'contracts/BNum.sol';
 import {Test} from 'forge-std/Test.sol';
 
-contract SymbolicBNum is BNum, HalmosTest {
+contract SymbolicBNum is BNum, Test, HalmosTest {
   /////////////////////////////////////////////////////////////////////
   //                           Bnum::btoi                            //
   /////////////////////////////////////////////////////////////////////
