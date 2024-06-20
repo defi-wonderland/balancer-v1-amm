@@ -2,6 +2,9 @@
 pragma solidity 0.8.23;
 
 import {IERC20, MockERC20} from 'forge-std/mocks/MockERC20.sol';
+import {SymTest} from 'halmos-cheatcodes/SymTest.sol';
+
+import {Test} from 'forge-std/Test.sol';
 
 interface IHevm {
   function prank(address) external;
@@ -36,8 +39,10 @@ contract AgentsHandler {
   }
 }
 
-contract EchidnaUtils {
+contract EchidnaTest is Test {
   event AssertionFailed();
 
   IHevm hevm = IHevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 }
+
+contract HalmosTest is SymTest, Test {}

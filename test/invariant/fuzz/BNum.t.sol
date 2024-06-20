@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {Test} from 'forge-std/Test.sol';
+import {EchidnaTest} from '../AdvancedTestsUtils.sol';
 
 import {BNum} from 'contracts/BNum.sol';
 
-contract EchidnaBNum is BNum, Test {
+contract EchidnaBNum is BNum, EchidnaTest {
   function bsub_exposed(uint256 a, uint256 b) external pure returns (uint256) {
     return bsub(a, b);
   }

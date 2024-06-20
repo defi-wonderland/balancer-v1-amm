@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {AgentsHandler, EchidnaUtils, FuzzERC20, IERC20} from '../AdvancedTestsUtils.sol';
+import {AgentsHandler, EchidnaTest, FuzzERC20, IERC20} from '../AdvancedTestsUtils.sol';
 import {BConst} from 'contracts/BConst.sol';
 import {BFactory, BPool, IBPool} from 'contracts/BFactory.sol';
 
@@ -15,7 +15,7 @@ contract Setup {
   AgentsHandler agentHandler;
 }
 
-contract Test is EchidnaUtils {
+contract Test is EchidnaTest {
   // System under test
   BFactory factory;
   BConst bconst;

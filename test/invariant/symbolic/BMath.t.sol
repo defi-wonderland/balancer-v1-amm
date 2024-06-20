@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {Test} from 'forge-std/Test.sol';
-import {SymTest} from 'halmos-cheatcodes/SymTest.sol';
-
+import {HalmosTest} from '../AdvancedTestsUtils.sol';
 import {BMath} from 'contracts/BMath.sol';
 
-contract SymbolicBMath is BMath, SymTest, Test {
+contract SymbolicBMath is BMath, HalmosTest {
 // todo crashes (pow -> loop...)
 // calcOutGivenIn should be inv with calcInGivenOut
 // function check_calcOutGivenInEquiv() public {
