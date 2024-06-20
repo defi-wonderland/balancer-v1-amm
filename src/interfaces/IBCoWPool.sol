@@ -110,17 +110,6 @@ interface IBCoWPool is IERC1271, IBPool {
   function APP_DATA() external view returns (bytes32 _appData);
 
   /**
-   * @notice This function returns the commitment hash that has been set by the
-   * `commit` function. If no commitment has been set, then the value will be
-   * `EMPTY_COMMITMENT`.
-   * @return _commitment The commitment hash.
-   * @dev since commitments share a transient storage slot with reentrancy
-   * locks, this will return an invalid value while there's a reentrancy lock
-   * active
-   */
-  function commitment() external view returns (bytes32 _commitment);
-
-  /**
    * @notice This function checks that the input order is admissible for the
    * constant-product curve for the given trading parameters.
    * @param order `GPv2Order.Data` of a discrete order to be verified.
