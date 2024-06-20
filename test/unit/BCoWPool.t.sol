@@ -127,7 +127,7 @@ contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
     vm.assume(_existingCommitment != bytes32(0));
     bCoWPool.call__setLock(_existingCommitment);
     vm.prank(cowSolutionSettler);
-    vm.expectRevert(IBCoWPool.BCoWPool_CommitmentAlreadySet.selector);
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
     bCoWPool.commit(_newCommitment);
   }
 

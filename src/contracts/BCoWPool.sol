@@ -54,12 +54,9 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   }
 
   /// @inheritdoc IBCoWPool
-  function commit(bytes32 orderHash) external {
+  function commit(bytes32 orderHash) external _viewlock_ {
     if (msg.sender != address(SOLUTION_SETTLER)) {
       revert CommitOutsideOfSettlement();
-    }
-    if (_getLock() != _MUTEX_FREE) {
-      revert BCoWPool_CommitmentAlreadySet();
     }
     _setLock(orderHash);
   }

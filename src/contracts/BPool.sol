@@ -42,7 +42,7 @@ contract BPool is BToken, BMath, IBPool {
     _setLock(_MUTEX_FREE);
   }
 
-  /// @dev Prevents reentrancy in view functions
+  /// @dev Throws an error when the reentrancy mutex is taken. Doesn't modify it.
   modifier _viewlock_() {
     if (_getLock() != _MUTEX_FREE) {
       revert BPool_Reentrancy();
