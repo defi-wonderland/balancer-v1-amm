@@ -15,7 +15,7 @@ yarn build   # build artifacts to `out/`
 yarn test    # run the tests
 ```
 
-## Changes on BPool from (Balancer V1)[https://github.com/balancer/balancer-core]
+## Changes on BPool from [Balancer V1](https://github.com/balancer/balancer-core)
 - Migrated to Foundry project structure
 - Implementation of interfaces with Natspec documentation
 - Replaced `require(cond, 'STRING')` for `if(!cond) revert CustomError()`
