@@ -19,3 +19,8 @@ broadcast/*/*/*
 
 # Out dir
 out
+
+# Test utils
+.python-version
+test/invariant/fuzz/corpus
+crytic-export

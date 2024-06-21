@@ -26,8 +26,10 @@
     "prepare": "husky install",
     "smock": "smock-foundry --contracts src/contracts",
     "test": "forge test -vvv",
+    "test:echidna": "echidna test/invariant/fuzz/BNum.t.sol --contract EchidnaBNum --config test/invariant/fuzz/config.yaml",
     "test:integration": "forge test --match-contract Integration -vvv --isolate",
     "test:local": "FOUNDRY_FUZZ_RUNS=100 forge test -vvv",
+    "test:symbolic": "halmos",
     "test:unit": "forge test --match-contract Unit -vvv",
     "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit"
   },
@@ -40,6 +42,7 @@
     "@cowprotocol/contracts": "github:cowprotocol/contracts.git#a10f40788a",
     "@openzeppelin/contracts": "5.0.2",
     "composable-cow": "github:cowprotocol/composable-cow.git#24d556b",
+    "halmos-cheatcodes": "github:a16z/halmos-cheatcodes#c0d8655",
     "solmate": "github:transmissions11/solmate#c892309"
   },
   "devDependencies": {
