@@ -38,9 +38,6 @@ jobs:
         shell: bash
         run: yarn test:unit
 
-      - name: Ensure gas snapshots were updated
-        run: git diff --exit-code -- .forge-snapshots/
-
   integration-tests:
     name: Run Integration Tests
     runs-on: ubuntu-latest
@@ -66,6 +63,9 @@ jobs:
 
       - name: Run tests
         run: yarn test:integration
+
+      - name: Ensure gas snapshots were updated
+        run: git diff --exit-code -- .forge-snapshots/
 
   lint:
     name: Static Analysis
