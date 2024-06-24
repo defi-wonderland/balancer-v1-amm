@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "balancer-v1-amm"
+version = "0.1.0"
+description = ""
+authors = ["teddy <teddy@defi.sucks>"]
+readme = "README.md"
+package-mode = false
+
+[virtualenvs]
+prever-active-python = true
+
+[tool.poetry.dependencies]
+python = "3.11.9"
+halmos = {git = "https://github.com/a16z/halmos"}
+slither = "^0.3.0"
+crytic-compile = "^0.3.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
