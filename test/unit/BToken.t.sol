@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3
+import "forge-std/console.sol";
 pragma solidity ^0.8.25;
 
 import {IERC20Errors} from '@openzeppelin/contracts/interfaces/draft-IERC6093.sol';
 import {Test} from 'forge-std/Test.sol';
 import {MockBToken} from 'test/smock/MockBToken.sol';
+import {BNum} from 'contracts/BNum.sol';
 
 contract BToken_Unit_Constructor is Test {
   function test_ConstructorParams() public {
@@ -33,7 +35,22 @@ abstract contract BToken_Unit_base is Test {
   }
 }
 
-contract BToken_Unit_IncreaseApproval is BToken_Unit_base {
+contract BToken_Unit_IncreaseApproval is BToken_Unit_base, BNum {
+
+  function test_bpow_distributiveBase(uint256 _base, uint256 _a, uint256 _b) public {
+    _base = bound(_base,MIN_BPOW_BASE,MAX_BPOW_BASE);
+    _a = bound(_a,0,50e18);
+    _b = bound(_b,0,50e18);
+    uint256 _result1 = bpow(_base, badd(_a, _b));
+    uint256 _result2 = bmul(bpow(_base, _a), bpow(_base, _b));
+    console.log('_base   :', _base);
+    console.log('_a   :', _a);
+    console.log('_b   :', _b);
+    console.log('_result1   :', _result1);
+    console.log('_result2   :', _result2);
+    assertEq(_result1,_result2);
+  }
+
   function test_increasesApprovalFromZero(
     address sender,
     address spender,
