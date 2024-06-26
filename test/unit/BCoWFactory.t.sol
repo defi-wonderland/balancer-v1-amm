@@ -1,13 +1,97 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {
-  Base,
-  BaseBFactory_Internal_NewBPool,
-  BaseBFactory_Unit_Constructor,
-  BaseBFactory_Unit_NewBPool
-} from './BFactory.t.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {Test} from 'forge-std/Test.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
+import {MockBFactory} from 'test/smock/MockBFactory.sol';
+
+abstract contract Base is Test {
+  IBFactory public bFactory;
+  address public owner = makeAddr('owner');
+
+  function _configureBFactory() internal virtual returns (IBFactory);
+
+  function _bPoolBytecode() internal virtual returns (bytes memory);
+
+  function setUp() public virtual {
+    bFactory = _configureBFactory();
+  }
+}
+
+abstract contract BaseBFactory_Unit_Constructor is Base {
+  /**
+   * @notice Test that the owner is set correctly
+   */
+  function test_Deploy() public view {
+    assertEq(owner, bFactory.getBLabs());
+  }
+}
+
+abstract contract BaseBFactory_Internal_NewBPool is Base {
+  function test_Deploy_NewBPool() public {
+    IBPool _pool = MockBFactory(address(bFactory)).call__newBPool();
+
+    assertEq(_bPoolBytecode(), address(_pool).code);
+  }
+}
+
+abstract contract BaseBFactory_Unit_NewBPool is Base {
+  /**
+   * @notice Test that the pool is set on the mapping
+   */
+  function test_Set_Pool() public {
+    IBPool _pool = bFactory.newBPool();
+    assertTrue(bFactory.isBPool(address(_pool)));
+  }
+
+  /**
+   * @notice Test that event is emitted
+   */
+  function test_Emit_Log(address _randomCaller) public {
+    assumeNotForgeAddress(_randomCaller);
+
+    vm.expectEmit();
+    address _expectedPoolAddress = vm.computeCreateAddress(address(bFactory), 1);
+    emit IBFactory.LOG_NEW_POOL(_randomCaller, _expectedPoolAddress);
+    vm.prank(_randomCaller);
+    bFactory.newBPool();
+  }
+
+  /**
+   * @notice Test that msg.sender is set as the controller
+   */
+  function test_Set_Controller(address _randomCaller) public {
+    assumeNotForgeAddress(_randomCaller);
+
+    vm.prank(_randomCaller);
+    IBPool _pool = bFactory.newBPool();
+    assertEq(_randomCaller, _pool.getController());
+  }
+
+  /**
+   * @notice Test that the pool address is returned
+   */
+  function test_Returns_Pool() public {
+    address _expectedPoolAddress = vm.computeCreateAddress(address(bFactory), 1);
+    IBPool _pool = bFactory.newBPool();
+    assertEq(_expectedPoolAddress, address(_pool));
+  }
+
+  /**
+   * @notice Test that the internal function is called
+   */
+  function test_Call_NewBPool(address _bPool) public {
+    assumeNotForgeAddress(_bPool);
+    MockBFactory(address(bFactory)).mock_call__newBPool(IBPool(_bPool));
+    MockBFactory(address(bFactory)).expectCall__newBPool();
+    vm.mockCall(_bPool, abi.encodeWithSignature('setController(address)'), abi.encode());
+
+    IBPool _pool = bFactory.newBPool();
+
+    assertEq(_bPool, address(_pool));
+  }
+}
 
 import {BCoWPool} from 'contracts/BCoWPool.sol';
 import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
