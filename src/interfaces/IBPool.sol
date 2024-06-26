@@ -152,9 +152,9 @@ interface IBPool is IERC20 {
   error BPool_PoolNotFinalized();
 
   /**
-   * @notice Thrown when the token amount in surpasses the maximum in allowed by the pool
+   * @notice Thrown when the token amount in surpasses the maximum in ratio allowed by the pool
    */
-  error BPool_TokenAmountInAboveMaxIn();
+  error BPool_TokenAmountInAboveMaxRatio();
 
   /**
    * @notice Thrown when the spot price before the swap is above the max allowed by the caller
