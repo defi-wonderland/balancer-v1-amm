@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {BFactory, IBFactory, IBPool} from 'contracts/BFactory.sol';
 import {Test} from 'forge-std/Test.sol';
 
@@ -44,7 +45,7 @@ contract BFactoryTest is Test {
 
     // Post-condition
     // it should revert
-    vm.expectRevert('ERR_NOT_BLABS');
+    vm.expectRevert(IBFactory.BFactory_NotBLabs.selector);
 
     // Action
     vm.prank(_caller);
@@ -69,7 +70,7 @@ contract BFactoryTest is Test {
     vm.assume(_caller != factoryDeployer);
 
     // it should revert (post condition)
-    vm.expectRevert('ERR_NOT_BLABS');
+    vm.expectRevert(IBFactory.BFactory_NotBLabs.selector);
 
     // Action
     vm.prank(_caller);
@@ -113,7 +114,7 @@ contract BFactoryTest is Test {
     vm.expectCall(_mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, _factoryBTBalance)));
 
     // it should revert
-    vm.expectRevert('ERR_ERC20_FAILED');
+    vm.expectRevert(abi.encodeWithSelector(SafeERC20.SafeERC20FailedOperation.selector, _mockPool));
 
     // Action
     factory.collect(IBPool(_mockPool));
