@@ -115,7 +115,6 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
   }
 }
 
-/// @notice this tests both commit and commitment
 contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
   function test_Revert_NonSolutionSettler(address sender, bytes32 orderHash) public {
     vm.assume(sender != cowSolutionSettler);
@@ -128,14 +127,8 @@ contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
     vm.assume(_existingCommitment != bytes32(0));
     bCoWPool.call__setLock(_existingCommitment);
     vm.prank(cowSolutionSettler);
-    vm.expectRevert(IBCoWPool.BCoWPool_CommitmentAlreadySet.selector);
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
     bCoWPool.commit(_newCommitment);
-  }
-
-  function test_Set_Commitment(bytes32 orderHash) public {
-    vm.prank(cowSolutionSettler);
-    bCoWPool.commit(orderHash);
-    assertEq(bCoWPool.commitment(), orderHash);
   }
 
   function test_Call_SetLock(bytes32 orderHash) public {
@@ -260,7 +253,7 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
     GPv2Order.Data memory order = correctOrder;
     order.buyAmount = _tokenAmountIn;
 
-    vm.expectRevert(IBPool.BPool_TokenAmountInAboveMaxIn.selector);
+    vm.expectRevert(IBPool.BPool_TokenAmountInAboveMaxRatio.selector);
     bCoWPool.verify(order);
   }
 

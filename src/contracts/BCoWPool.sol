@@ -54,12 +54,9 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
   }
 
   /// @inheritdoc IBCoWPool
-  function commit(bytes32 orderHash) external {
+  function commit(bytes32 orderHash) external _viewlock_ {
     if (msg.sender != address(SOLUTION_SETTLER)) {
       revert CommitOutsideOfSettlement();
-    }
-    if (_getLock() != _MUTEX_FREE) {
-      revert BCoWPool_CommitmentAlreadySet();
     }
     _setLock(orderHash);
   }
@@ -80,7 +77,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
       revert OrderDoesNotMatchMessageHash();
     }
 
-    if (orderHash != commitment()) {
+    if (orderHash != _getLock()) {
       revert OrderDoesNotMatchCommitmentHash();
     }
 
@@ -89,11 +86,6 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     // A signature is valid according to EIP-1271 if this function returns
     // its selector as the so-called "magic value".
     return this.isValidSignature.selector;
-  }
-
-  /// @inheritdoc IBCoWPool
-  function commitment() public view returns (bytes32 value) {
-    value = _getLock();
   }
 
   /// @inheritdoc IBCoWPool
@@ -122,7 +114,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
 
     uint256 buyTokenBalance = order.buyToken.balanceOf(address(this));
     if (order.buyAmount > bmul(buyTokenBalance, MAX_IN_RATIO)) {
-      revert BPool_TokenAmountInAboveMaxIn();
+      revert BPool_TokenAmountInAboveMaxRatio();
     }
 
     uint256 tokenAmountOut = calcOutGivenIn({
