@@ -36,21 +36,24 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
   function testGetTradeableOrder() public {
     uint256 initialSpotPrice = BPool(address(pool)).calcSpotPrice({
       tokenBalanceIn: weth.balanceOf(address(pool)), // 1 WETH
-      tokenWeightIn: 1e18,
+      tokenWeightIn: 2e18,
       tokenBalanceOut: dai.balanceOf(address(pool)), // 4000 DAI
-      tokenWeightOut: 1e18,
+      tokenWeightOut: 8e18,
       swapFee: 0
     });
     console.log(initialSpotPrice);
-    // 0.00025 (1 DAI in WETH terms)
+    // 0.0001 (1 DAI in WETH terms)
+    // notice the weight distribution of 80% DAI and 20% WETH
 
     GPv2Order.Data memory order = GetTradeableOrder.getTradeableOrder(
       GetTradeableOrder.GetTradeableOrderParams({
         pool: address(pool),
         token0: weth,
         token1: dai,
+        token0Weight: 2e18,
+        token1Weight: 8e18,
         priceNumerator: 1e18,
-        priceDenominator: 8000e18, // reach 0.000125
+        priceDenominator: 2000e18, // reach 0.0005
         appData: APP_DATA
       })
     );
@@ -67,21 +70,21 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
     order.buyToken.transfer(address(pool), order.buyAmount);
     vm.stopPrank();
 
-    // final balances:
+    // final balances
     // 0.75 WETH
     // 5500 DAI
 
     uint256 finalSpotPrice = BPool(address(pool)).calcSpotPrice({
       tokenBalanceIn: weth.balanceOf(address(pool)),
-      tokenWeightIn: 1e18,
+      tokenWeightIn: 2e18,
       tokenBalanceOut: dai.balanceOf(address(pool)),
-      tokenWeightOut: 1e18,
+      tokenWeightOut: 8e18,
       swapFee: 0
     });
 
     console.log(finalSpotPrice);
-    // 0.000136 (1 DAI in WETH terms)
-    // doesn't reach 0.000125 but doesn't overshoot
+    // 0.00054 (1 DAI in WETH terms)
+    // doesn't reach 0.0005 but doesn't overshoot
   }
 
   function _makeSwap() internal override {
