@@ -36,9 +36,9 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
   function testGetTradeableOrder() public {
     uint256 initialSpotPrice = BPool(address(pool)).calcSpotPrice({
       tokenBalanceIn: weth.balanceOf(address(pool)), // 1 WETH
-      tokenWeightIn: 2e18,
+      tokenWeightIn: WETH_WEIGHT,
       tokenBalanceOut: dai.balanceOf(address(pool)), // 4000 DAI
-      tokenWeightOut: 8e18,
+      tokenWeightOut: DAI_WEIGHT,
       swapFee: 0
     });
     console.log(initialSpotPrice);
@@ -50,8 +50,8 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
         pool: address(pool),
         token0: weth,
         token1: dai,
-        token0Weight: 2e18,
-        token1Weight: 8e18,
+        token0Weight: WETH_WEIGHT,
+        token1Weight: DAI_WEIGHT,
         priceNumerator: 1e18,
         priceDenominator: 2000e18, // reach 0.0005
         appData: APP_DATA
@@ -76,9 +76,9 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
 
     uint256 finalSpotPrice = BPool(address(pool)).calcSpotPrice({
       tokenBalanceIn: weth.balanceOf(address(pool)),
-      tokenWeightIn: 2e18,
+      tokenWeightIn: WETH_WEIGHT,
       tokenBalanceOut: dai.balanceOf(address(pool)),
-      tokenWeightOut: 8e18,
+      tokenWeightOut: DAI_WEIGHT,
       swapFee: 0
     });
 
