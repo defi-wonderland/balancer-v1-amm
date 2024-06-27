@@ -64,8 +64,8 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     dai.approve(address(pool), type(uint256).max);
     weth.approve(address(pool), type(uint256).max);
-    pool.bind(address(dai), DAI_LP_AMOUNT, 8e18); // 80% weight
-    pool.bind(address(weth), WETH_LP_AMOUNT, 2e18); // 20% weight
+    pool.bind(address(dai), DAI_LP_AMOUNT, 1e18); // 80% weight
+    pool.bind(address(weth), WETH_LP_AMOUNT, 1e18); // 20% weight
     // finalize
     pool.finalize();
   }
