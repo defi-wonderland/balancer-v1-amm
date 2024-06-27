@@ -3,40 +3,60 @@ pragma solidity 0.8.25;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {BFactory, IBFactory, IBPool} from 'contracts/BFactory.sol';
+
+import {BPool} from 'contracts/BPool.sol';
+
 import {Test} from 'forge-std/Test.sol';
+import {IBFactory} from 'interfaces/IBFactory.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
+import {MockBFactory} from 'test/smock/MockBFactory.sol';
 
 contract BFactoryTest is Test {
   address factoryDeployer = makeAddr('factoryDeployer');
-  address deployer = makeAddr('deployer');
 
-  BFactory factory;
+  MockBFactory factory;
 
   function setUp() external {
     vm.prank(factoryDeployer);
-    factory = new BFactory();
+    factory = new MockBFactory();
   }
 
-  function test_NewBPoolWhenCalled() external {
+  function test_ConstructorWhenCalled(address _blabs) external {
+    vm.prank(_blabs);
+    MockBFactory newFactory = new MockBFactory();
+    // it should set BLabs
+    assertEq(newFactory.getBLabs(), _blabs);
+  }
+
+  function test_NewBPoolWhenCalled(address _deployer, address _newBPool) external {
+    assumeNotForgeAddress(_deployer);
+    assumeNotForgeAddress(_newBPool);
+    vm.mockCall(_newBPool, abi.encodePacked(IBPool.setController.selector), abi.encode());
+    factory.mock_call__newBPool(IBPool(_newBPool));
+    // it should call _newBPool
+    factory.expectCall__newBPool();
+    // it should set the controller of the newBPool to the caller (post condition)
+    vm.expectCall(_newBPool, abi.encodeCall(IBPool.setController, (_deployer)));
     // it should emit a PoolCreated event (post condition)
-    address _futurePool = vm.computeCreateAddress(address(factory), 1);
     vm.expectEmit(address(factory));
-    emit IBFactory.LOG_NEW_POOL(deployer, _futurePool);
+    emit IBFactory.LOG_NEW_POOL(_deployer, _newBPool);
 
     // Action
-    vm.prank(deployer);
+    vm.prank(_deployer);
     IBPool pool = factory.newBPool();
 
-    // Post-conditions
-
-    // it should deploy a new newBPool
-    assertGt(address(pool).code.length, 0);
-
     // it should add the newBPool to the list of pools
-    assertTrue(factory.isBPool(address(pool)));
+    assertTrue(factory.isBPool(address(_newBPool)));
+    // it should return the address of the new BPool
+    assertEq(address(pool), _newBPool);
+  }
 
-    // it should call set the controller of the newBPool to the caller
-    assertEq(pool.getController(), deployer);
+  function test__newBPoolWhenCalled() external {
+    address _futurePool = vm.computeCreateAddress(address(factory), 1);
+    address _newBPool = address(factory.call__newBPool());
+    assertEq(_newBPool, _futurePool);
+    // it should deploy a new BPool
+    assertEq(_newBPool.code, address(new BPool()).code);
   }
 
   function test_SetBLabsRevertWhen_TheSenderIsNotTheCurrentSetBLabs(address _caller) external {
