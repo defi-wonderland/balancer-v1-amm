@@ -113,6 +113,10 @@ contract BNumTest is Test {
     assertEq(_result, 2.5e18);
   }
 
+  function test_BsubWhenPassingZeroAndZero() external {
+    // it should return zero
+  }
+
   function test_BsubRevertWhen_PassingALessThanB(uint256 _a, uint256 _b) external {
     _a = bound(_a, 0, type(uint256).max - 1);
     _b = bound(_b, _a + 1, type(uint256).max);
@@ -236,6 +240,17 @@ contract BNumTest is Test {
     bNum.call_bdiv(_a, _b);
   }
 
+  function test_BdivWhenFlooringToZero() external {
+    //     (1 * BONE) / 2 * BONE + 1 = 0.499..
+    uint256 _a = 1;
+    uint256 _b = 2e18 + 1;
+
+    uint256 _result = bNum.call_bdiv(_a, _b);
+
+    // it should return 0
+    assertEq(_result, 0);
+  }
+
   function test_BDivWhenFlooringToZero(uint256 _a, uint256 _b) external {
     _a = bound(_a, 1, (type(uint256).max / (BONE * 2)) - 1);
     _b = bound(_b, (2 * BONE * _a) + 1, type(uint256).max);
@@ -257,21 +272,21 @@ contract BNumTest is Test {
     assertEq(_result, 2.5e18);
   }
 
-  function test_BpowiWhenPassingAAsZero() external {
+  function test_BpowiWhenPassingBaseAsZero() external {
     uint256 _result = bNum.call_bpowi(0, 3);
 
     // it should return zero
     assertEq(_result, 0);
   }
 
-  function test_BpowiWhenPassingBAsZero() external {
+  function test_BpowiWhenPassingExponentAsZero() external {
     uint256 _result = bNum.call_bpowi(3e18, 0);
 
     // it should return BONE
     assertEq(_result, BONE);
   }
 
-  function test_BpowiWhenPassingAAsOne() external {
+  function test_BpowiWhenPassingBaseAsOne() external {
     uint256 _result = bNum.call_bpowi(BONE, 3);
 
     // it should return BONE
@@ -286,7 +301,7 @@ contract BNumTest is Test {
 
     uint256 _result = bNum.call_bpowi(_a, _b);
 
-    assertEq(_result, 16777216e18);
+    assertEq(_result, 16_777_216e18);
   }
 
   function test_BpowWhenPassingExponentAsZero() external {
@@ -314,7 +329,7 @@ contract BNumTest is Test {
     bNum.call_bpow(type(uint256).max, 3e18);
   }
 
-  function test_BpowWhenPassingKnownValues() external {    
+  function test_BpowWhenPassingKnownValues() external {
     // it should return correct value
     //     1.01 ^ 3 = 1.030301
     uint256 _a = 1.01e18;

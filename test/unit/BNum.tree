@@ -76,11 +76,11 @@ BNumTest::bdiv
 
 
 BNumTest::bpowi
-├── when passing a as zero
+├── when passing base as zero
 │   └── it should return zero
-├── when passing b as zero
+├── when passing exponent as zero
 │   └── it should return BONE
-├── when passing a as one
+├── when passing base as one
 │   └── it should return BONE
 └── when passing known values
     └── it should return correct value
