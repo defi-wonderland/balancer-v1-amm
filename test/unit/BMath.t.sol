@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+import {BConst} from 'contracts/BConst.sol';
 import {BMath, BNum} from 'contracts/BMath.sol';
 import {Test} from 'forge-std/Test.sol';
 
 // Main test contract
-contract BMathTest is Test {
+contract BMathTest is Test, BConst {
   BMath bMath;
-
-  uint256 constant BONE = 1e18; // The fixed-point unit for BMath and BNum
 
   // valid scenario
   uint256 constant weightIn = BONE;
@@ -135,7 +134,7 @@ contract BMathTest is Test {
   }
 
   function test_CalcOutGivenInWhenTokenWeightInEqualsTokenWeightOut(uint256 _weight) external {
-    _weight = bound(_weight, BONE, 50 * BONE);
+    _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
 
     // it should return correct value
     //     bo * (1 - (bi / (bi + (ai * (1-sf)))))
