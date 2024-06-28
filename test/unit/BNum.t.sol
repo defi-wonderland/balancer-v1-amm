@@ -313,7 +313,7 @@ contract BNumTest is Test, BConst {
   }
 
   function test_BpowRevertWhen_PassingBaseLteThanMIN_BPOW_BASE(uint256 _base) external {
-    _base = bound(_base, 0, bNum.MIN_BPOW_BASE());
+    _base = bound(_base, 0, MIN_BPOW_BASE);
 
     // it should revert
     vm.expectRevert(BNum.BNum_BPowBaseTooLow.selector);
@@ -322,7 +322,7 @@ contract BNumTest is Test, BConst {
   }
 
   function test_BpowRevertWhen_PassingBaseGteMAX_BPOW_BASE(uint256 _base) external {
-    _base = bound(_base, bNum.MAX_BPOW_BASE(), type(uint256).max);
+    _base = bound(_base, MAX_BPOW_BASE, type(uint256).max);
 
     // it should revert
     vm.expectRevert(BNum.BNum_BPowBaseTooHigh.selector);
