@@ -68,7 +68,7 @@ contract BFactoryTest is Test {
     factory.setBLabs(makeAddr('newBLabs'));
   }
 
-  function test_SetBLabsWhenTheSenderIsTheCurrentSetBLabs(address _newBLabs) external {
+  function test_SetBLabsWhenTheSenderIsTheCurrentBLabs(address _newBLabs) external {
     // it should emit a BLabsSet event
     vm.expectEmit(address(factory));
     emit IBFactory.LOG_BLABS(factoryDeployer, _newBLabs);
@@ -80,7 +80,7 @@ contract BFactoryTest is Test {
     assertEq(factory.getBLabs(), _newBLabs);
   }
 
-  function test_CollectRevertWhen_TheSenderIsNotTheCurrentSetBLabs(address _caller) external {
+  function test_CollectRevertWhen_TheSenderIsNotTheCurrentBLabs(address _caller) external {
     vm.assume(_caller != factoryDeployer);
 
     // it should revert
@@ -90,14 +90,14 @@ contract BFactoryTest is Test {
     factory.collect(IBPool(makeAddr('pool')));
   }
 
-  modifier whenTheSenderIsTheCurrentSetBLabs() {
+  modifier whenTheSenderIsTheCurrentBLabs() {
     vm.startPrank(factoryDeployer);
     _;
   }
 
-  function test_CollectWhenTheSenderIsTheCurrentSetBLabs(uint256 _factoryBTBalance)
+  function test_CollectWhenTheSenderIsTheCurrentBLabs(uint256 _factoryBTBalance)
     external
-    whenTheSenderIsTheCurrentSetBLabs
+    whenTheSenderIsTheCurrentBLabs
   {
     address _mockPool = makeAddr('pool');
     vm.mockCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)), abi.encode(_factoryBTBalance));
@@ -114,7 +114,7 @@ contract BFactoryTest is Test {
 
   function test_CollectRevertWhen_TheBtokenTransferFails(uint256 _factoryBTBalance)
     external
-    whenTheSenderIsTheCurrentSetBLabs
+    whenTheSenderIsTheCurrentBLabs
   {
     address _mockPool = makeAddr('pool');
     vm.mockCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)), abi.encode(_factoryBTBalance));
