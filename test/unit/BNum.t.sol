@@ -40,7 +40,12 @@ contract BNumTest is Test {
 
   function test_BtoiWhenUsingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
+    //     btoi(4 * BONE + 1) = 4
+    uint256 _a = 4e18 + 1;
+
+    uint256 _result = bNum.call_btoi(_a);
+
+    assertEq(_result, 4);
   }
 
   function test_BfloorWhenPassingZero() external {
@@ -61,7 +66,13 @@ contract BNumTest is Test {
 
   function test_BfloorWhenUsingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
+    //     bfloor(4 * BONE + 1) = 4e18
+
+    uint256 _a = 4e18 + 1;
+
+    uint256 _result = bNum.call_bfloor(_a);
+
+    assertEq(_result, 4e18);
   }
 
   function test_BaddWhenPassingZeroAndZero() external {
@@ -93,7 +104,13 @@ contract BNumTest is Test {
 
   function test_BaddWhenPassingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
+    //     1.25 + 1.25 = 2.5
+    uint256 _a = 1.25e18;
+    uint256 _b = 1.25e18;
+
+    uint256 _result = bNum.call_badd(_a, _b);
+
+    assertEq(_result, 2.5e18);
   }
 
   function test_BsubRevertWhen_PassingALessThanB(uint256 _a, uint256 _b) external {
@@ -108,7 +125,13 @@ contract BNumTest is Test {
 
   function test_BsubWhenPassingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
+    //     5 - 4.01 = 0.99
+    uint256 _a = 5e18;
+    uint256 _b = 4.01e18;
+
+    uint256 _result = bNum.call_bsub(_a, _b);
+
+    assertEq(_result, 0.99e18);
   }
 
   function test_BsubSignWhenPassingZeroAndZero() external {
@@ -131,10 +154,10 @@ contract BNumTest is Test {
   }
 
   function test_BsubSignWhenPassingKnownValues() external {
-    (uint256 _result, bool _flag) = bNum.call_bsubSign(5 * BONE, 3 * BONE);
+    (uint256 _result, bool _flag) = bNum.call_bsubSign(5e18, 3e18);
 
     // it should return correct value
-    assertEq(_result, 2 * BONE);
+    assertEq(_result, 2e18);
     assertFalse(_flag);
   }
 
@@ -178,7 +201,14 @@ contract BNumTest is Test {
 
   function test_BmulWhenPassingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
+    //     1.25 * 4.75 = 5.9375
+
+    uint256 _a = 1.25e18;
+    uint256 _b = 4.75e18;
+
+    uint256 _result = bNum.call_bmul(_a, _b);
+
+    assertEq(_result, 5.9375e18);
   }
 
   function test_BdivRevertWhen_PassingBAsZero() external {
@@ -218,7 +248,13 @@ contract BNumTest is Test {
 
   function test_BdivWhenPassingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
+    //     5 / 2 = 2.5
+    uint256 _a = 5e18;
+    uint256 _b = 2e18;
+
+    uint256 _result = bNum.call_bdiv(_a, _b);
+
+    assertEq(_result, 2.5e18);
   }
 
   function test_BpowiWhenPassingAAsZero() external {
@@ -229,7 +265,7 @@ contract BNumTest is Test {
   }
 
   function test_BpowiWhenPassingBAsZero() external {
-    uint256 _result = bNum.call_bpowi(3 * BONE, 0);
+    uint256 _result = bNum.call_bpowi(3e18, 0);
 
     // it should return BONE
     assertEq(_result, BONE);
@@ -244,7 +280,13 @@ contract BNumTest is Test {
 
   function test_BpowiWhenPassingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
+    //     4. ^ 12 = 16777216
+    uint256 _a = 4e18;
+    uint256 _b = 12;
+
+    uint256 _result = bNum.call_bpowi(_a, _b);
+
+    assertEq(_result, 16777216e18);
   }
 
   function test_BpowWhenPassingExponentAsZero() external {
@@ -260,7 +302,7 @@ contract BNumTest is Test {
     // it should revert
     vm.expectRevert(BNum.BNum_BPowBaseTooLow.selector);
 
-    bNum.call_bpow(0, 3 * BONE);
+    bNum.call_bpow(0, 3e18);
   }
 
   function test_BpowRevertWhen_PassingBaseGteMAX_BPOW_BASE(uint256 _base) external {
@@ -269,11 +311,16 @@ contract BNumTest is Test {
     // it should revert
     vm.expectRevert(BNum.BNum_BPowBaseTooHigh.selector);
 
-    bNum.call_bpow(type(uint256).max, 3 * BONE);
+    bNum.call_bpow(type(uint256).max, 3e18);
   }
 
-  function test_BpowWhenPassingKnownValues() external {
+  function test_BpowWhenPassingKnownValues() external {    
     // it should return correct value
-    vm.skip(true);
+    //     1.01 ^ 3 = 1.030301
+    uint256 _a = 1.01e18;
+    uint256 _b = 3e18;
+
+    uint256 _result = bNum.call_bpow(_a, _b);
+    assertEq(_result, 1.030301e18);
   }
 }
