@@ -5,7 +5,7 @@ BNumTest::btoi
 │   └── it should return one
 ├── when passing a value less than BONE
 │   └── it should return zero
-└── when using known values // generic for some given values
+└── when using known values
     └── it should return correct value
 
 
@@ -14,7 +14,7 @@ BNumTest::bfloor
 │   └── it should return zero
 ├── when passing a value less than BONE
 │   └── it should return zero
-└── when using known values // generic for some given values
+└── when using known values
     └── it should return correct value
 
 
@@ -25,7 +25,7 @@ BNumTest::badd
 │   └── it should revert
 ├── when passing b as uint256 max and a non zero
 │   └── it should revert
-└── when passing known values // generic for some given values
+└── when passing known values
     └── it should return correct value
 
 
@@ -34,7 +34,7 @@ BNumTest::bsub
 │   └── it should return zero
 ├── when passing a less than b
 │   └── it should revert
-└── when passing known values // generic for some given values
+└── when passing known values
     └── it should return correct value
 
 
@@ -43,7 +43,7 @@ BNumTest::bsubSign
 │   └── it should return zero and false
 ├── when passing a less than b
 │   └── it should return correct value and true
-└── when passing known values // generic for some given values
+└── when passing known values
     └── it should return correct value
 
 
@@ -57,7 +57,7 @@ BNumTest::bmul
 ├── when passing a mul b too big
 │   └── it should revert
 │       └── a * b + BONE / 2 > uint256 max
-└── when passing known values // generic for some given values
+└── when passing known values
     └── it should return correct value
 
 
@@ -71,7 +71,7 @@ BNumTest::bdiv
 │       └── a*BONE/b + b/2 > uint256 max
 ├── when flooring to zero
 │   └── it should return 0
-└── when passing known values // generic for some given values
+└── when passing known values
     └── it should return correct value
 
 
@@ -82,7 +82,7 @@ BNumTest::bpowi
 │   └── it should return BONE
 ├── when passing a as one
 │   └── it should return BONE
-└── when passing known values // generic for some given values
+└── when passing known values
     └── it should return correct value
 
 
@@ -93,5 +93,5 @@ BNumTest::bpow
 │   └── it should revert
 ├── when passing base gte MAX_BPOW_BASE
 │   └── it should revert
-└── when passing known values // generic for some given values
+└── when passing known values
     └── it should return correct value
