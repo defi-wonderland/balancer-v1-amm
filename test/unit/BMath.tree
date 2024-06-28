@@ -1,74 +1,94 @@
 BMathTest::calcSpotPrice
 ├── when swapFee equals BONE
-│   └── it will revert (div by zero)
+│   └── it should revert
+│       └── division by zero
 ├── when token balance in too big
-│   └── it will revert (overflow)
-│       └── token balance in > uint max/BONE
+│   └── it should revert
+│       └── bi * BONE > uint256 max
 ├── when token balance out too big
-│   └── it will revert (overflow)
-│       └── token balance out > uint max/BONE
+│   └── it should revert
+│       └── bo * BONE > uint256 max
 ├── when weighted token balance in overflows
-│   └── it will revert (overflow)
-│       └── token balance in * BONE + (token weight in/2) > uint max
+│   └── it should revert
+│       └── bi * BONE + (wi / 2) > uint256 max
 ├── when weighted token balance out overflows
-│   └── it will revert (overflow)
-│       └── token balance out * BONE + (token weight out/2) > uint max
+│   └── it should revert
+│       └── bo * BONE + (wo / 2) > uint256 max
 ├── when using a swap fee of zero
-│   └── it should return bi/wi * wo/bo
-└── when using known values // generic for some given values
+│   └── it should return correct value
+│       └── bi/wi * wo/bo
+└── when using known values
     └── it should return correct value
+        └── (bi/wi * wo/bo) * (1 / (1 - sf))
 
 BMathTest::calcOutGivenIn
 ├── when token weight out is zero
-│   └── it revert (div by zero)
-├── when  token amount in is zero
-│   └── it revert (div by zero)
-├── when token balance In too small
-│   └── it revert (div by zero)
-│       └── token balance In + (BONE - swapFee) is zero
+│   └── it should revert
+│       └── division by zero
+├── when token amount in is zero
+│   └── it should revert
+│       └── TODO: why?
+├── when token balance in too small
+│   └── it should revert
+│       └── bi + (BONE - swapFee) = 0
 ├── when token weight in is zero
 │   └── it should return zero
 ├── when token weight in equals token weight out
-│   └── it should return bo * 1 - (bi/ bi+(ai*(1-sf))))
-└── when using known values // generic for some given values
+│   └── it should return correct value
+│       └── bo * (1 - (bi / (bi + (ai * (1-sf)))))
+└── when using known values
     └── it should return correct value
+        └── b0 * (1 - (bi / ((bi + (ai * (1 - sf))))^(wi/wo))
 
 BMathTest::calcInGivenOut
 ├── when token weight in is zero
-│   └── it revert (div by zero)
-├── when  token amount out equals token balance out
-│   └── it revert (div by zero)
+│   └── it should revert
+│       └── division by zero
+├── when token amount out equals token balance out
+│   └── it should revert
+│       └── division by zero
 ├── when token weight out is zero
 │   └── it should return zero
 ├── when token weight in equals token weight out
-│   └── it should return bi * ((bo/(bo-ao) - 1))) / (1 - sf)
-└── when using known values // generic for some given values
+│   ├── when swap fee is zero
+│   │   └── it should return correct value
+│   │       └── bi((bo/(bo-ao) - 1)))
+│   └── when swap fee is not zero
+│       └── it should return correct value
+│           └── bi((bo/(bo-ao) - 1))) / (1 - sf)
+└── when using known values
     └── it should return correct value
+        └── bi * ((bo/(bo-ao)^(wo/wi) - 1))) / (1 - sf)
 
 BMathTest::calcPoolOutGivenSingleIn
 ├── when token balance in is zero
-│   └── it revert (div by zero)
+│   └── it should revert
+│       └── TODO: why?
 ├── when token weight in is zero
 │   └── it should return zero
-└── when using known values // generic for some given values
+└── when using known values
     └── it should return correct value
 
 BMathTest::calcSingleInGivenPoolOut
 ├── when total weight is zero
-│   └── it revert (div by zero)
+│   └── it should revert
+│       └── TODO: why
 ├── when swap fee is zero
-│   └── it revert (div by zero)
-└── when using known values // generic for some given values
+│   └── it should revert
+│       └── TODO: why
+└── when using known values
     └── it should return correct value
 
 BMathTest::calcSingleOutGivenPoolIn
 ├── when pool supply is zero
-│   └── it revert (div by zero)
+│   └── it should revert
+│       └── TODO: why
 ├── when total weight is zero
-│   └── it revert (div by zero)
+│   └── it should revert
+│       └── TODO: why
 ├── when token balance out is zero
 │   └── it should return zero
-└── when using known values // generic for some given values
+└── when using known values
     └── it should return correct value
 
 BMathTest::calcPoolInGivenSingleOut
@@ -78,5 +98,5 @@ BMathTest::calcPoolInGivenSingleOut
 │   └── it should revert
 ├── when pool supply is zero
 │   └── it should revert
-└── when using known values // generic for some given values
+└── when using known values
     └── it should return correct value

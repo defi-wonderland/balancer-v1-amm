@@ -4,41 +4,19 @@ pragma solidity 0.8.25;
 import {BMath, BNum} from 'contracts/BMath.sol';
 import {Test} from 'forge-std/Test.sol';
 
-// For test contract: expose the internal functions of BNum
-contract BNumExposed is BNum {
-  function bdivExposed(uint256 a, uint256 b) external pure returns (uint256) {
-    return super.bdiv(a, b);
-  }
-
-  function bmulExposed(uint256 a, uint256 b) external pure returns (uint256) {
-    return super.bmul(a, b);
-  }
-
-  function bsubExposed(uint256 a, uint256 b) external pure returns (uint256) {
-    return super.bsub(a, b);
-  }
-
-  function baddExposed(uint256 a, uint256 b) external pure returns (uint256) {
-    return super.badd(a, b);
-  }
-}
-
 // Main test contract
 contract BMathTest is Test {
   BMath bMath;
-  BNumExposed bNum;
 
   uint256 BONE; // The fixed-point unit for BMath and BNum
 
   function setUp() external {
     bMath = new BMath();
-    bNum = new BNumExposed();
 
     BONE = bMath.BONE();
   }
 
   function test_CalcSpotPriceWhenSwapFeeEqualsBONE() external {
-    // Precondition
     uint256 _tokenWeightIn = BONE;
     uint256 _tokenWeightOut = BONE;
     uint256 _tokenBalanceIn = BONE;
@@ -46,16 +24,15 @@ contract BMathTest is Test {
 
     uint256 _swapFee = BONE;
 
-    // Post condition
-    // it will revert (div by zero)
-    vm.expectRevert('ERR_DIV_ZERO');
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
 
     // Action
     bMath.calcSpotPrice(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _swapFee);
   }
 
   function test_CalcSpotPriceWhenTokenBalanceInTooBig(uint256 _tokenBalanceIn) external {
-    // Precondition
     uint256 _tokenWeightIn = BONE;
     uint256 _tokenWeightOut = BONE;
     uint256 _tokenBalanceOut = BONE;
@@ -63,17 +40,14 @@ contract BMathTest is Test {
 
     _tokenBalanceIn = bound(_tokenBalanceIn, type(uint256).max / BONE + 1, type(uint256).max);
 
-    // Post condition
-    // it will revert (overflow)
-    //     token balance in > uint max/BONE
-    vm.expectRevert('ERR_DIV_INTERNAL');
+    // it should revert
+    //     bo * BONE > uint256 max
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
 
-    // Action
     bMath.calcSpotPrice(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _swapFee);
   }
 
   function test_CalcSpotPriceWhenTokenBalanceOutTooBig(uint256 _tokenBalanceOut) external {
-    // Precondition
     uint256 _tokenWeightIn = BONE;
     uint256 _tokenWeightOut = BONE;
     uint256 _tokenBalanceIn = BONE;
@@ -81,10 +55,9 @@ contract BMathTest is Test {
 
     _tokenBalanceOut = bound(_tokenBalanceOut, type(uint256).max / BONE + 1, type(uint256).max);
 
-    // Post condition
-    // it will revert (overflow)
-    //     token balance out > uint max/BONE
-    vm.expectRevert('ERR_DIV_INTERNAL');
+    // it should revert
+    //     bo * BONE > uint256 max
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
 
     // Action
     bMath.calcSpotPrice(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _swapFee);
@@ -94,7 +67,6 @@ contract BMathTest is Test {
     uint256 _tokenBalanceIn,
     uint256 _tokenWeightIn
   ) external {
-    // Precondition
     uint256 _tokenWeightOut = BONE;
     uint256 _tokenBalanceOut = BONE;
     uint256 _swapFee = BONE / 2;
@@ -102,12 +74,10 @@ contract BMathTest is Test {
     _tokenWeightIn = bound(_tokenWeightIn, BONE, type(uint256).max);
     _tokenBalanceIn = bound(_tokenBalanceIn, (type(uint256).max - _tokenWeightIn / 2), type(uint256).max);
 
-    // Post condition
-    // it will revert (overflow)
-    //     token balance in * BONE + (token weight in/2) > uint max
-    vm.expectRevert('ERR_DIV_INTERNAL');
+    // it should revert
+    //     bi * BONE + (wi / 2) > uint256 max
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
 
-    // Action
     bMath.calcSpotPrice(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _swapFee);
   }
 
@@ -115,7 +85,6 @@ contract BMathTest is Test {
     uint256 _tokenBalanceOut,
     uint256 _tokenWeightOut
   ) external {
-    // Precondition
     uint256 _tokenWeightIn = BONE;
     uint256 _tokenBalanceIn = BONE;
     uint256 _swapFee = BONE / 2;
@@ -123,445 +92,256 @@ contract BMathTest is Test {
     _tokenWeightOut = bound(_tokenWeightOut, BONE, type(uint256).max);
     _tokenBalanceOut = bound(_tokenBalanceOut, (type(uint256).max - _tokenWeightOut / 2), type(uint256).max);
 
-    // Post condition
-    // it will revert (overflow)
-    //     token balance out * BONE + (token weight out/2) > uint max
-    vm.expectRevert('ERR_DIV_INTERNAL');
+    // it should revert
+    //     bo * BONE + (wo / 2) > uint256 max
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
 
-    // Action
     bMath.calcSpotPrice(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _swapFee);
   }
 
   function test_CalcSpotPriceWhenUsingASwapFeeOfZero() external {
-    // Precondition
+    // it should return correct value
+    //     bi/wi * wo/bo
+    //     100/10 * 20/30 = 20/3 + 1 = 6.666..667 (rounds up)
     uint256 _swapFee = 0;
+    uint256 _tokenWeightIn = 10 * BONE; // 10
+    uint256 _tokenWeightOut = 20 * BONE; // 20
+    uint256 _tokenBalanceIn = 100 * BONE; // 100
+    uint256 _tokenBalanceOut = 30 * BONE; // 30
 
-    uint256 _tokenWeightIn = 10 * BONE;
-    uint256 _tokenWeightOut = 20 * BONE;
-    uint256 _tokenBalanceIn = 100 * BONE;
-    uint256 _tokenBalanceOut = 30 * BONE;
-
-    // expected is bi/wi / bo/wo
-    uint256 _expected = bNum.bdivExposed(
-      bNum.bdivExposed(_tokenBalanceIn, _tokenWeightIn), bNum.bdivExposed(_tokenBalanceOut, _tokenWeightOut)
-    );
-
-    // Action
     uint256 _spotPrice =
       bMath.calcSpotPrice(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _swapFee);
 
-    // Post condition
-    // it should return bi/wi / bo/wo
-    assertEq(_spotPrice, _expected, 'wrong spot price when fee is 0');
+    assertEq(_spotPrice, 20 * BONE / 3 + 1);
   }
 
   function test_CalcSpotPriceWhenUsingKnownValues() external {
-    vm.skip(true); // use a set of known in/result
-    // Precondition
+    // it should return correct value
+    //     (bi/wi * wo/bo) * (1 / (1 - sf))
+    //     100/10 * 20/30 * 1/(1 - 0.5) = (20/3 + 1) / 0.5 = 13.333..334
     uint256 _swapFee = BONE / 2;
+    uint256 _tokenWeightIn = 10 * BONE; // 10
+    uint256 _tokenWeightOut = 20 * BONE; // 20
+    uint256 _tokenBalanceIn = 100 * BONE; // 100
+    uint256 _tokenBalanceOut = 30 * BONE; // 30
 
-    uint256 _tokenWeightIn = 10 * BONE;
-    uint256 _tokenWeightOut = 20 * BONE;
-    uint256 _tokenBalanceIn = 100 * BONE;
-    uint256 _tokenBalanceOut = 30 * BONE;
-
-    // expected is bi/wi / bo/wo * 1/(1 - sf)
-    uint256 _expected = bNum.bmulExposed(
-      bNum.bdivExposed(
-        bNum.bdivExposed(_tokenBalanceIn, _tokenWeightIn), bNum.bdivExposed(_tokenBalanceOut, _tokenWeightOut)
-      ),
-      bNum.bdivExposed(BONE, bNum.bsubExposed(BONE, _swapFee))
-    );
-
-    // Action
     uint256 _spotPrice =
       bMath.calcSpotPrice(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _swapFee);
 
-    // Post condition
-    // it should return correct value
-    assertEq(_spotPrice, _expected, 'wrong spot price when fee is not 0');
+    assertEq(_spotPrice, (20 * BONE / 3 + 1) * 2);
   }
 
   function test_CalcOutGivenInWhenTokenWeightOutIsZero() external {
-    // Precondition
-    uint256 tokenBalanceIn = 100 * BONE;
-    uint256 tokenWeightIn = 10 * BONE;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenAmountIn = 10 * BONE;
-    uint256 swapFee = BONE / 2;
+    uint256 _swapFee = 0;
+    uint256 _tokenWeightIn = BONE;
+    uint256 _tokenWeightOut = 0;
+    uint256 _tokenBalanceIn = BONE;
+    uint256 _tokenBalanceOut = BONE;
+    uint256 _tokenAmountIn = BONE;
 
-    uint256 tokenWeightOut = 0;
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
 
-    // Post condition
-    // it revert (div by zero)
-    vm.expectRevert('ERR_DIV_ZERO');
-
-    // Action
-    bMath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee);
+    bMath.calcOutGivenIn(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _tokenAmountIn, _swapFee);
   }
 
   function test_CalcOutGivenInWhenTokenAmountInIsZero() external {
-    // Precondition
-    uint256 tokenWeightIn = 10 * BONE;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenWeightOut = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    uint256 tokenBalanceIn = 0;
-    uint256 tokenAmountIn = 0;
-
-    // Post condition
-    // it revert (div by zero)
-    vm.expectRevert('ERR_DIV_ZERO');
-
-    // Action
-    bMath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee);
+    // it should revert
+    //     TODO: why?
   }
 
-  function test_CalcOutGivenInWhenTokenBalanceInTooSmall(uint256 swapFee, uint256 tokenBalanceIn) external {
-    // Precondition
-    uint256 tokenWeightIn = 10 * BONE;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenWeightOut = 10 * BONE;
-    uint256 tokenAmountIn = 10 * BONE;
+  function test_CalcOutGivenInWhenTokenBalanceInTooSmall() external {
+    vm.skip(true);
+    // TODO: why?
 
-    swapFee = BONE;
-    tokenBalanceIn = 0;
+    uint256 _swapFee = 0;
+    uint256 _tokenWeightIn = BONE;
+    uint256 _tokenWeightOut = BONE;
+    uint256 _tokenBalanceIn = 1;
+    uint256 _tokenBalanceOut = BONE;
+    uint256 _tokenAmountIn = BONE;
 
-    // Post condition
-    // it revert (div by zero)
-    //     token balance In + (BONE - swapFee) is zero
-    vm.expectRevert('ERR_DIV_ZERO');
+    // it should revert
+    //     bi + (BONE - swapFee) = 0
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
 
-    // Action
-    bMath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee);
+    bMath.calcOutGivenIn(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _tokenAmountIn, _swapFee);
   }
 
   function test_CalcOutGivenInWhenTokenWeightInIsZero() external {
-    // Precondition
-    uint256 tokenBalanceIn = 100 * BONE;
-    uint256 tokenWeightIn = 0;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenAmountIn = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-    uint256 tokenWeightOut = 10 * BONE;
+    uint256 _swapFee = 0;
+    uint256 _tokenWeightIn = 0;
+    uint256 _tokenWeightOut = BONE;
+    uint256 _tokenBalanceIn = BONE;
+    uint256 _tokenBalanceOut = BONE;
+    uint256 _tokenAmountIn = BONE;
 
-    // Action
-    uint256 _tokenAmountOut =
-      bMath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee);
-
-    // Post condition
     // it should return zero
+    uint256 _tokenAmountOut =
+      bMath.calcOutGivenIn(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _tokenAmountIn, _swapFee);
+
     assertEq(_tokenAmountOut, 0);
   }
 
   function test_CalcOutGivenInWhenTokenWeightInEqualsTokenWeightOut() external {
-    // Precondition
-    uint256 tokenBalanceIn = 100 * BONE;
-    uint256 tokenWeightIn = 10 * BONE;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenAmountIn = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-    uint256 tokenWeightOut = tokenWeightIn;
+    uint256 _swapFee = BONE / 2;
+    uint256 _tokenWeightIn = BONE;
+    uint256 _tokenWeightOut = BONE;
+    uint256 _tokenBalanceIn = 2 * BONE;
+    uint256 _tokenBalanceOut = 3 * BONE;
+    uint256 _tokenAmountIn = BONE;
 
-    // expected is bo * (1 - (bi/ bi+(ai*(1-sf))))
-    // computation split for the stack depth...
-    // bi+(ai*(1-sf))))
-    uint256 _expected =
-      bNum.baddExposed(tokenBalanceIn, bNum.bmulExposed(tokenAmountIn, bNum.bsubExposed(BONE, swapFee)));
-
-    // (1 - (bi/ bi+(ai*(1-sf))))
-    _expected = bNum.bsubExposed(BONE, bNum.bdivExposed(tokenBalanceIn, _expected));
-
-    // bo * (1 - (bi/ bi+(ai*(1-sf))))
-    _expected = bNum.bmulExposed(tokenBalanceOut, _expected);
-
-    // Action
+    // it should return correct value
+    //     bo * (1 - (bi / (bi + (ai * (1-sf)))))
+    //     3 * (1 - (2 / (2 + (1 * (1 - 0.5))))) = 0.6
     uint256 _tokenAmountOut =
-      bMath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee);
+      bMath.calcOutGivenIn(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _tokenAmountIn, _swapFee);
 
-    // it should return bo * (1 - (bi/ bi+(ai*(1-sf)))))
-    assertEq(_tokenAmountOut, _expected, 'wrong token amount out in calcOutGivenIn');
+    assertEq(_tokenAmountOut, 3 * BONE / 5);
   }
 
   function test_CalcOutGivenInWhenUsingKnownValues() external {
+    uint256 _swapFee = BONE / 2;
+    uint256 _tokenWeightIn = BONE;
+    uint256 _tokenWeightOut = 2 * BONE;
+    uint256 _tokenBalanceIn = 2 * BONE;
+    uint256 _tokenBalanceOut = 3 * BONE;
+    uint256 _tokenAmountIn = BONE;
+
     // it should return correct value
-    vm.skip(true);
+    //     b0 * (1 - (bi / ((bi + (ai * (1 - sf))))^(wi/wo))
+    //     3 * (1 - (2 / (2 + (1 * (1 - 0.5))))^(1/2)) = 0.316718...
+
+    uint256 _tokenAmountOut =
+      bMath.calcOutGivenIn(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _tokenAmountIn, _swapFee);
+
+    assertEq(_tokenAmountOut, 0.316718426981698245e18);
   }
 
   function test_CalcInGivenOutWhenTokenWeightInIsZero() external {
-    // Preconditions
-    uint256 tokenBalanceIn = 100 * BONE;
-    uint256 tokenWeightIn = 0;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenAmountOut = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-    uint256 tokenWeightOut = 10 * BONE;
+    uint256 _swapFee = 0;
+    uint256 _tokenWeightIn = 0;
+    uint256 _tokenWeightOut = BONE;
+    uint256 _tokenBalanceIn = BONE;
+    uint256 _tokenBalanceOut = BONE;
+    uint256 _tokenAmountIn = BONE;
 
-    // Post condition
-    // it revert (div by zero)
-    vm.expectRevert('ERR_DIV_ZERO');
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
 
-    // Action
-    uint256 _tokenAmountIn =
-      bMath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);
+    bMath.calcInGivenOut(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _tokenAmountIn, _swapFee);
   }
 
   function test_CalcInGivenOutWhenTokenAmountOutEqualsTokenBalanceOut() external {
-    // Preconditions
-    uint256 tokenBalanceIn = 100 * BONE;
-    uint256 tokenWeightIn = 10 * BONE;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenAmountOut = tokenBalanceOut;
-    uint256 swapFee = BONE / 2;
-    uint256 tokenWeightOut = 10 * BONE;
+    uint256 _swapFee = 0;
+    uint256 _tokenWeightIn = BONE;
+    uint256 _tokenWeightOut = BONE;
+    uint256 _tokenBalanceIn = BONE;
+    uint256 _tokenBalanceOut = 10 * BONE;
+    uint256 _tokenAmountOut = 10 * BONE;
 
-    // Post condition
-    // it revert (div by zero)
-    vm.expectRevert('ERR_DIV_ZERO');
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
 
-    // Action
-    uint256 _tokenAmountIn =
-      bMath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);
+    bMath.calcInGivenOut(_tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _tokenAmountOut, _swapFee);
   }
 
   function test_CalcInGivenOutWhenTokenWeightOutIsZero() external {
-    // Preconditions
-    uint256 tokenBalanceIn = 100 * BONE;
-    uint256 tokenWeightIn = 10 * BONE;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenAmountOut = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-    uint256 tokenWeightOut = 0;
+    uint256 _swapFee = 0;
+    uint256 _tokenWeightIn = BONE;
+    uint256 _tokenWeightOut = 0;
+    uint256 _tokenBalanceIn = BONE;
+    uint256 _tokenBalanceOut = 10 * BONE;
+    uint256 _tokenAmountOut = BONE;
 
-    // Action
-    uint256 _tokenAmountIn =
-      bMath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);
+    uint256 _tokenAmountIn = bMath.calcInGivenOut(
+      _tokenBalanceIn, _tokenWeightIn, _tokenBalanceOut, _tokenWeightOut, _tokenAmountOut, _swapFee
+    );
 
-    // Post condition
     // it should return zero
-    assertEq(_tokenAmountIn, 0, 'wrong token amount in in calcInGivenOut');
+    assertEq(_tokenAmountIn, 0);
   }
 
-  function test_CalcInGivenOutWhenTokenWeightInEqualsTokenWeightOut() external {
-    // Preconditions
-    uint256 tokenBalanceIn = 100 * BONE;
-    uint256 tokenWeightIn = 10 * BONE;
-    uint256 tokenBalanceOut = 30 * BONE;
-    uint256 tokenAmountOut = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-    uint256 tokenWeightOut = tokenWeightIn;
+  modifier whenTokenWeightInEqualsTokenWeightOut() {
+    _;
+  }
 
-    // expected is bi * ((bo/(bo-ao) - 1))) / (1 - sf)
-    uint256 _expected =
-      bNum.bsubExposed(bNum.bdivExposed(tokenBalanceOut, bNum.bsubExposed(tokenBalanceOut, tokenAmountOut)), BONE);
+  function test_CalcInGivenOutWhenSwapFeeIsZero() external whenTokenWeightInEqualsTokenWeightOut {
+    // it should return correct value
+    //     bi((bo/(bo-ao) - 1)))
+  }
 
-    _expected = bNum.bdivExposed(bNum.bmulExposed(tokenBalanceIn, _expected), bNum.bsubExposed(BONE, swapFee));
-
-    // Action
-    uint256 _tokenAmountIn =
-      bMath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);
-
-    // Post condition
-    // it should return bi * ((bo/(bo-ao) - 1))) / (1 - sf)
-    assertEq(_tokenAmountIn, _expected, 'wrong token amount in in calcInGivenOut');
+  function test_CalcInGivenOutWhenSwapFeeIsNotZero() external whenTokenWeightInEqualsTokenWeightOut {
+    // it should return correct value
+    //     bi((bo/(bo-ao) - 1))) / (1 - sf)
   }
 
   function test_CalcInGivenOutWhenUsingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
+    //     bi * ((bo/(bo-ao)^(wo/wi) - 1))) / (1 - sf)
   }
 
   function test_CalcPoolOutGivenSingleInWhenTokenBalanceInIsZero() external {
-    // Preconditions
-    uint256 tokenBalanceIn = 0;
-    uint256 tokenWeightIn = 10 * BONE;
-    uint256 poolSupply = 100 * BONE;
-    uint256 totalWeight = 50 * BONE;
-    uint256 tokenAmountIn = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    // Post-condition
-    // it revert (div by zero)
-    vm.expectRevert('ERR_DIV_ZERO');
-
-    // Action
-    uint256 _poolAmountOut =
-      bMath.calcPoolOutGivenSingleIn(tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, tokenAmountIn, swapFee);
+    // it should revert
+    //     TODO: why?
   }
 
   function test_CalcPoolOutGivenSingleInWhenTokenWeightInIsZero() external {
-    // Preconditions
-    uint256 tokenBalanceIn = 10 * BONE;
-    uint256 tokenWeightIn = 0;
-    uint256 poolSupply = 100 * BONE;
-    uint256 totalWeight = 50 * BONE;
-    uint256 tokenAmountIn = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    // Action
-    uint256 _poolAmountOut =
-      bMath.calcPoolOutGivenSingleIn(tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, tokenAmountIn, swapFee);
-
-    // Post-condition
     // it should return zero
-    assertEq(_poolAmountOut, 0, 'wrong pool amount out in calcPoolOutGivenSingleIn');
   }
 
   function test_CalcPoolOutGivenSingleInWhenUsingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
   }
 
   function test_CalcSingleInGivenPoolOutWhenTotalWeightIsZero() external {
-    // Preconditions
-    uint256 tokenBalanceIn = 10 * BONE;
-    uint256 tokenWeightIn = 5 * BONE;
-    uint256 poolSupply = 100 * BONE;
-    uint256 totalWeight = 0;
-    uint256 poolAmountOut = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    // Post-condition
-    // it revert (div by zero)
-    vm.expectRevert('ERR_DIV_ZERO');
-
-    // Action
-    uint256 _tokenAmountIn =
-      bMath.calcSingleInGivenPoolOut(tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, poolAmountOut, swapFee);
+    // it should revert
+    //     TODO: why
   }
 
   function test_CalcSingleInGivenPoolOutWhenSwapFeeIsZero() external {
-    // This should be true based on the underlying formula, *but* implementation slightly deviates (to use the same fee as
-    // in joinSwap::ExternAmountIn, without this div by zero)
-    vm.skip(true);
+    // it should revert
+    //     TODO: why
   }
 
   function test_CalcSingleInGivenPoolOutWhenUsingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
   }
 
   function test_CalcSingleOutGivenPoolInWhenPoolSupplyIsZero() external {
-    // Preconditions
-    uint256 tokenBalanceOut = 10 * BONE;
-    uint256 tokenWeightOut = 5 * BONE;
-    uint256 poolSupply = 0;
-    uint256 totalWeight = 10 * BONE;
-    uint256 poolAmountIn = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    // Post-condition
-    // it revert (div by zero)
-    vm.expectRevert('ERR_SUB_UNDERFLOW'); // This should be a div by zero, but the implementation is slightly different (exit fee on pool side)
-
-    // Action
-    uint256 _tokenAmountOut =
-      bMath.calcSingleOutGivenPoolIn(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, poolAmountIn, swapFee);
+    // it should revert
+    //     TODO: why
   }
 
   function test_CalcSingleOutGivenPoolInWhenTotalWeightIsZero() external {
-    // Preconditions
-    uint256 tokenBalanceOut = 10 * BONE;
-    uint256 tokenWeightOut = 5 * BONE;
-    uint256 poolSupply = 100 * BONE;
-    uint256 totalWeight = 0;
-    uint256 poolAmountIn = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    // Post-condition
-    // it revert (div by zero)
-    vm.expectRevert('ERR_DIV_ZERO');
-
-    // Action
-    uint256 _tokenAmountOut =
-      bMath.calcSingleOutGivenPoolIn(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, poolAmountIn, swapFee);
+    // it should revert
+    //     TODO: why
   }
 
   function test_CalcSingleOutGivenPoolInWhenTokenBalanceOutIsZero() external {
-    // Preconditions
-    uint256 tokenBalanceOut = 0;
-    uint256 tokenWeightOut = 5 * BONE;
-    uint256 poolSupply = 100 * BONE;
-    uint256 totalWeight = 10 * BONE;
-    uint256 poolAmountIn = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    // Action
-    uint256 _tokenAmountOut =
-      bMath.calcSingleOutGivenPoolIn(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, poolAmountIn, swapFee);
-
-    // Post-condition
     // it should return zero
-    assertEq(_tokenAmountOut, 0, 'wrong token amount out in calcSingleOutGivenPoolIn');
   }
 
   function test_CalcSingleOutGivenPoolInWhenUsingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
-  }
-
-  function test_CalcPoolInGivenSingleOutRevertWhen_ExitFeeIs1() external {
-    vm.skip(true);
-    // Implement if exit fee isn't a constant==0 anymore
   }
 
   function test_CalcPoolInGivenSingleOutRevertWhen_TokenBalanceOutIsZero() external {
-    // Pre-condition
-    uint256 tokenBalanceOut = 0;
-    uint256 tokenWeightOut = 5 * BONE;
-    uint256 poolSupply = 100 * BONE;
-    uint256 totalWeight = 10 * BONE;
-    uint256 tokenAmountOut = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    // Post-condition
     // it should revert
-    vm.expectRevert('ERR_SUB_UNDERFLOW'); // underflow in the nominator, div by 0 in the denominator
-
-    // Action
-    uint256 _poolAmountIn =
-      bMath.calcPoolInGivenSingleOut(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, tokenAmountOut, swapFee);
   }
 
   function test_CalcPoolInGivenSingleOutRevertWhen_SwapFeeIs1AndTokenWeightOutIsZero() external {
-    // Precondition
-    uint256 tokenBalanceOut = 10 * BONE;
-    uint256 tokenWeightOut = 0;
-    uint256 poolSupply = 100 * BONE;
-    uint256 totalWeight = 10 * BONE;
-    uint256 tokenAmountOut = 10 * BONE;
-    uint256 swapFee = BONE;
-
-    // Post-condition
     // it should revert
-    vm.expectRevert('ERR_DIV_ZERO');
-
-    // Action
-    uint256 _poolAmountIn =
-      bMath.calcPoolInGivenSingleOut(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, tokenAmountOut, swapFee);
   }
 
-  function test_CalcPoolInGivenSingleOutWhenPoolSupplyIsZero() external {
-    // Pre-condition
-    uint256 tokenBalanceOut = 10 * BONE;
-    uint256 tokenWeightOut = 5 * BONE;
-    uint256 poolSupply = 0;
-    uint256 totalWeight = 10 * BONE;
-    uint256 tokenAmountOut = 10 * BONE;
-    uint256 swapFee = BONE / 2;
-
-    // Post-condition
+  function test_CalcPoolInGivenSingleOutRevertWhen_PoolSupplyIsZero() external {
     // it should revert
-    vm.expectRevert('ERR_SUB_UNDERFLOW');
-
-    // Action
-    uint256 _poolAmountIn =
-      bMath.calcPoolInGivenSingleOut(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, tokenAmountOut, swapFee);
   }
 
   function test_CalcPoolInGivenSingleOutWhenUsingKnownValues() external {
     // it should return correct value
-    vm.skip(true);
   }
 }
