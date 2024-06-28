@@ -35,13 +35,12 @@ contract BFactoryTest is Test {
     factory.mock_call__newBPool(IBPool(_newBPool));
     // it should call _newBPool
     factory.expectCall__newBPool();
-    // it should set the controller of the newBPool to the caller (post condition)
+    // it should set the controller of the newBPool to the caller
     vm.expectCall(_newBPool, abi.encodeCall(IBPool.setController, (_deployer)));
-    // it should emit a PoolCreated event (post condition)
+    // it should emit a PoolCreated event
     vm.expectEmit(address(factory));
     emit IBFactory.LOG_NEW_POOL(_deployer, _newBPool);
 
-    // Action
     vm.prank(_deployer);
     IBPool pool = factory.newBPool();
 
@@ -59,25 +58,21 @@ contract BFactoryTest is Test {
     assertEq(_newBPool.code, address(new BPool()).code);
   }
 
-  function test_SetBLabsRevertWhen_TheSenderIsNotTheCurrentSetBLabs(address _caller) external {
-    // Pre-condition
+  function test_SetBLabsRevertWhen_TheSenderIsNotTheCurrentBLabs(address _caller) external {
     vm.assume(_caller != factoryDeployer);
 
-    // Post-condition
     // it should revert
     vm.expectRevert(IBFactory.BFactory_NotBLabs.selector);
 
-    // Action
     vm.prank(_caller);
     factory.setBLabs(makeAddr('newBLabs'));
   }
 
   function test_SetBLabsWhenTheSenderIsTheCurrentSetBLabs(address _newBLabs) external {
-    // it should emit a BLabsSet event (post condition)
+    // it should emit a BLabsSet event
     vm.expectEmit(address(factory));
     emit IBFactory.LOG_BLABS(factoryDeployer, _newBLabs);
 
-    // Action
     vm.prank(factoryDeployer);
     factory.setBLabs(_newBLabs);
 
@@ -86,13 +81,11 @@ contract BFactoryTest is Test {
   }
 
   function test_CollectRevertWhen_TheSenderIsNotTheCurrentSetBLabs(address _caller) external {
-    // Pre-condition
     vm.assume(_caller != factoryDeployer);
 
-    // it should revert (post condition)
+    // it should revert
     vm.expectRevert(IBFactory.BFactory_NotBLabs.selector);
 
-    // Action
     vm.prank(_caller);
     factory.collect(IBPool(makeAddr('pool')));
   }
@@ -106,19 +99,16 @@ contract BFactoryTest is Test {
     external
     whenTheSenderIsTheCurrentSetBLabs
   {
-    // Pre-condition
     address _mockPool = makeAddr('pool');
     vm.mockCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)), abi.encode(_factoryBTBalance));
     vm.mockCall(_mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, _factoryBTBalance)), abi.encode(true));
 
-    // Post-condition
     // it should get the pool's btoken balance of the factory
     vm.expectCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)));
 
     // it should transfer the btoken balance of the factory to BLabs
     vm.expectCall(_mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, _factoryBTBalance)));
 
-    // Action
     factory.collect(IBPool(_mockPool));
   }
 
@@ -126,7 +116,6 @@ contract BFactoryTest is Test {
     external
     whenTheSenderIsTheCurrentSetBLabs
   {
-    // Pre-condition
     address _mockPool = makeAddr('pool');
     vm.mockCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)), abi.encode(_factoryBTBalance));
     vm.expectCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)));
@@ -136,7 +125,6 @@ contract BFactoryTest is Test {
     // it should revert
     vm.expectRevert(abi.encodeWithSelector(SafeERC20.SafeERC20FailedOperation.selector, _mockPool));
 
-    // Action
     factory.collect(IBPool(_mockPool));
   }
 }
