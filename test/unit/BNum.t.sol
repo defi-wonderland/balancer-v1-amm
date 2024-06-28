@@ -114,7 +114,10 @@ contract BNumTest is Test {
   }
 
   function test_BsubWhenPassingZeroAndZero() external {
+    uint256 _result = bNum.call_bsub(0, 0);
+
     // it should return zero
+    assertEq(_result, 0);
   }
 
   function test_BsubRevertWhen_PassingALessThanB(uint256 _a, uint256 _b) external {
