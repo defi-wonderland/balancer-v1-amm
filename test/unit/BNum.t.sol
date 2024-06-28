@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+import {BConst} from 'contracts/BConst.sol';
 import {BNum} from 'contracts/BNum.sol';
 import {Test} from 'forge-std/Test.sol';
 import {MockBNum} from 'test/manual-smock/MockBNum.sol';
 
-contract BNumTest is Test {
+contract BNumTest is Test, BConst {
   MockBNum bNum;
-
-  uint256 BONE;
 
   function setUp() public {
     bNum = new MockBNum();
-    BONE = bNum.BONE();
   }
 
   function test_BtoiWhenPassingZero() external {
