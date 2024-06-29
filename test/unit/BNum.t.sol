@@ -27,11 +27,7 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 1);
   }
 
-  function test_BtoiWhenPassingALessThanBONE() external {
-    // it should return zero
-  }
-
-  function test_BtoiWhenPassingAValueLessThanBONE(uint256 _a) external {
+  function test_BtoiWhenPassingALessThanBONE(uint256 _a) external {
     _a = bound(_a, 0, BONE - 1);
 
     uint256 _result = bNum.call_btoi(_a);
@@ -57,11 +53,7 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 0);
   }
 
-  function test_BfloorWhenPassingALessThanBONE() external {
-    // it should return zero
-  }
-
-  function test_BfloorWhenPassingAValueLessThanBONE(uint256 _a) external {
+  function test_BfloorWhenPassingALessThanBONE(uint256 _a) external {
     _a = bound(_a, 0, BONE - 1);
 
     uint256 _result = bNum.call_bfloor(_a);
