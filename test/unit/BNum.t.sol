@@ -27,6 +27,10 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 1);
   }
 
+  function test_BtoiWhenPassingALessThanBONE() external {
+    // it should return zero
+  }
+
   function test_BtoiWhenPassingAValueLessThanBONE(uint256 _a) external {
     _a = bound(_a, 0, BONE - 1);
 
@@ -51,6 +55,10 @@ contract BNumTest is Test, BConst {
 
     // it should return zero
     assertEq(_result, 0);
+  }
+
+  function test_BfloorWhenPassingALessThanBONE() external {
+    // it should return zero
   }
 
   function test_BfloorWhenPassingAValueLessThanBONE(uint256 _a) external {
@@ -85,6 +93,7 @@ contract BNumTest is Test, BConst {
     _b = bound(_b, type(uint256).max - _a + 1, type(uint256).max);
 
     // it should revert
+    //     a + b > uint256 max
     vm.expectRevert(BNum.BNum_AddOverflow.selector);
 
     bNum.call_badd(_a, _b);
@@ -248,7 +257,7 @@ contract BNumTest is Test, BConst {
   }
 
   function test_BdivWhenFlooringToZero() external {
-    // it should return 0
+    // it should return zero
     //     (1 * BONE) / 2 * BONE + 1 = 0.499..
     uint256 _a = 1;
     uint256 _b = 2e18 + 1;
@@ -264,7 +273,7 @@ contract BNumTest is Test, BConst {
 
     uint256 _result = bNum.call_bdiv(_a, _b);
 
-    // it should return 0
+    // it should return zero
     assertEq(_result, 0);
   }
 

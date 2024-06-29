@@ -3,7 +3,7 @@ BNumTest::btoi
 │   └── it should return zero
 ├── when passing BONE
 │   └── it should return one
-├── when passing a value less than BONE
+├── when passing a less than BONE
 │   └── it should return zero
 └── when using known values
     └── it should return correct value
@@ -12,7 +12,7 @@ BNumTest::btoi
 BNumTest::bfloor
 ├── when passing zero
 │   └── it should return zero
-├── when passing a value less than BONE
+├── when passing a less than BONE
 │   └── it should return zero
 └── when using known values
     └── it should return correct value
@@ -22,7 +22,7 @@ BNumTest::badd
 ├── when passing zero and zero
 │   └── it should return zero
 ├── when passing a and b too big
-│   └── it should revert
+│   └── it should revert // a+b > uint256 max
 └── when passing known values
     └── it should return correct value
 
@@ -49,9 +49,9 @@ BNumTest::bmul
 ├── when passing zero and zero
 │   └── it should return zero
 ├── when passing a and b too big
-│   └── it should revert
-├── when passing a mul b too big
 │   └── it should revert // a*b > uint256 max
+├── when passing a mul b too big
+│   └── it should revert // a*BONE + b/2 > uint256 max
 └── when passing known values
     └── it should return correct value
 
@@ -66,7 +66,7 @@ BNumTest::bdiv
 ├── when passing a and b too big
 │   └── it should revert // a*BONE + b/2 > uint256 max
 ├── when flooring to zero
-│   └── it should return 0
+│   └── it should return zero
 └── when passing known values
     └── it should return correct value
 
