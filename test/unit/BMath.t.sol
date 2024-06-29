@@ -75,7 +75,7 @@ contract BMathTest is Test, BConst {
     bMath.calcSpotPrice(balanceIn, weightIn, _balanceOut, _weightOut, swapFee);
   }
 
-  function test_CalcSpotPriceWhenUsingASwapFeeOfZero() external {
+  function test_CalcSpotPriceWhenSwapFeeIsZero() external {
     // it should return correct value
     //     bi/wi * wo/bo
     //     20/1 * 2/30 = 1.333333...

@@ -12,7 +12,7 @@ BMathTest::calcSpotPrice
 │   └── it should revert // bi * BONE + (wi / 2) > uint256 max
 ├── when weighted token balance out too big
 │   └── it should revert // bo * BONE + (wo / 2) > uint256 max
-├── when using a swap fee of zero
+├── when swap fee is zero
 │   └── it should return correct value
 │       └── bi/wi * wo/bo
 └── when using known values
