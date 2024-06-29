@@ -173,21 +173,12 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 0);
   }
 
-  function test_BmulRevertWhen_PassingAAsUint256MaxAndBNonZero(uint256 _b) external {
-    uint256 _a = type(uint256).max;
-    _b = bound(_b, 1, type(uint256).max);
-
-    // it should revert
-    vm.expectRevert(BNum.BNum_MulOverflow.selector);
-
-    bNum.call_bmul(_a, _b);
-  }
-
-  function test_BmulRevertWhen_PassingBAsUint256MaxAndANonZero(uint256 _a) external {
+  function test_BmulRevertWhen_PassingAAndBTooBig(uint256 _a, uint256 _b) external {
     _a = bound(_a, 1, type(uint256).max);
-    uint256 _b = type(uint256).max;
+    _b = bound(_b, _a == 1 ? type(uint256).max / _a : type(uint256).max / _a + 1, type(uint256).max);
 
     // it should revert
+    //     a * b + BONE / 2 > uint256 max
     vm.expectRevert(BNum.BNum_MulOverflow.selector);
 
     bNum.call_bmul(_a, _b);
@@ -216,26 +207,48 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 5.9375e18);
   }
 
-  function test_BdivRevertWhen_PassingBAsZero() external {
+  function test_BdivWhenPassingAAsZero(uint256 _a) external {
+    _a = bound(_a, 1, type(uint256).max);
+
+    // it should return zero
+    uint256 _result = bNum.call_bdiv(0, _a);
+
+    assertEq(_result, 0);
+  }
+
+  function test_BdivRevertWhen_PassingAAsZero(uint256 _b) external {
+    _b = bound(_b, 1, type(uint256).max);
+
+    // it should return zero
+    uint256 _result = bNum.call_bdiv(0, _b);
+
+    assertEq(_result, 0);
+  }
+
+  function test_BdivRevertWhen_PassingBAsZero(uint256 _a) external {
+    _a = bound(_a, 1, type(uint256).max);
+
     // it should revert
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
-    bNum.call_bdiv(1, 0);
+    bNum.call_bdiv(_a, 0);
   }
 
-  function test_BdivRevertWhen_PassingAAsUint256Max() external {
+  function test_BdivRevertWhen_PassingATooBig(uint256 _a) external {
+    _a = bound(_a, type(uint256).max / BONE + 1, type(uint256).max);
+
     // it should revert
     vm.expectRevert(BNum.BNum_DivInternal.selector);
 
-    bNum.call_bdiv(type(uint256).max, 1);
+    bNum.call_bdiv(_a, 1);
   }
 
-  function test_BdivWhenPassingAAndBTooBig() external {
-    uint256 _a = type(uint256).max;
-    uint256 _b = BONE;
+  function test_BdivWhenPassingAAndBTooBig(uint256 _a, uint256 _b) external {
+    _a = bound(_a, type(uint256).max / (2 * BONE) + 1, type(uint256).max / BONE);
+    _b = bound(_b, 2 * (type(uint256).max - (_a * BONE)) + 2, type(uint256).max);
 
     // it should revert
-    //     a*BONE/b + b/2 > uint256 max
+    //     a*BONE + b/2 > uint256 max
     vm.expectRevert(BNum.BNum_DivInternal.selector);
 
     bNum.call_bdiv(_a, _b);
@@ -305,8 +318,9 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 16_777_216e18);
   }
 
-  function test_BpowWhenPassingExponentAsZero() external {
-    uint256 _result = bNum.call_bpow(BONE, 0);
+  function test_BpowWhenPassingExponentAsZero(uint256 _base) external {
+    _base = bound(_base, MIN_BPOW_BASE, MAX_BPOW_BASE);
+    uint256 _result = bNum.call_bpow(_base, 0);
 
     // it should return BONE
     assertEq(_result, BONE);

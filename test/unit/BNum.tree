@@ -21,7 +21,7 @@ BNumTest::bfloor
 BNumTest::badd
 ├── when passing zero and zero
 │   └── it should return zero
-├── when passing a as uint256 max and b non zero
+├── when passing a and b too big
 │   └── it should revert
 ├── when passing b as uint256 max and a non zero
 │   └── it should revert
@@ -50,9 +50,7 @@ BNumTest::bsubSign
 BNumTest::bmul
 ├── when passing zero and zero
 │   └── it should return zero
-├── when passing a as uint256 max and b non zero
-│   └── it should revert
-├── when passing b as uint256 max and a non zero
+├── when passing a and b too big
 │   └── it should revert
 ├── when passing a mul b too big
 │   └── it should revert
@@ -62,13 +60,15 @@ BNumTest::bmul
 
 
 BNumTest::bdiv
+├── when passing a as zero
+│   └── it should return zero
 ├── when passing b as zero
 │   └── it should revert
-├── when passing a as uint256 max
+├── when passing a too big
 │   └── it should revert
 ├── when passing a and b too big
 │   └── it should revert
-│       └── a*BONE/b + b/2 > uint256 max
+│       └── a*BONE + b/2 > uint256 max
 ├── when flooring to zero
 │   └── it should return 0
 └── when passing known values
