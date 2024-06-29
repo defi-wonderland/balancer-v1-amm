@@ -198,16 +198,7 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 5.9375e18);
   }
 
-  function test_BdivWhenPassingAAsZero(uint256 _a) external {
-    _a = bound(_a, 1, type(uint256).max);
-
-    // it should return zero
-    uint256 _result = bNum.call_bdiv(0, _a);
-
-    assertEq(_result, 0);
-  }
-
-  function test_BdivRevertWhen_PassingAAsZero(uint256 _b) external {
+  function test_BdivWhenPassingAAsZero(uint256 _b) external {
     _b = bound(_b, 1, type(uint256).max);
 
     // it should return zero
@@ -217,7 +208,7 @@ contract BNumTest is Test, BConst {
   }
 
   function test_BdivRevertWhen_PassingBAsZero(uint256 _a) external {
-    _a = bound(_a, 1, type(uint256).max);
+    _a = bound(_a, 0, type(uint256).max);
 
     // it should revert
     vm.expectRevert(BNum.BNum_DivZero.selector);
