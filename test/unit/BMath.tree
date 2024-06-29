@@ -8,12 +8,10 @@ BMathTest::calcSpotPrice
 ├── when token balance out too big
 │   └── it should revert
 │       └── bo * BONE > uint256 max
-├── when weighted token balance in overflows
-│   └── it should revert
-│       └── bi * BONE + (wi / 2) > uint256 max
-├── when weighted token balance out overflows
-│   └── it should revert
-│       └── bo * BONE + (wo / 2) > uint256 max
+├── when weighted token balance in too big
+│   └── it should revert // bi * BONE + (wi / 2) > uint256 max
+├── when weighted token balance out too big
+│   └── it should revert // bo * BONE + (wo / 2) > uint256 max
 ├── when using a swap fee of zero
 │   └── it should return correct value
 │       └── bi/wi * wo/bo
@@ -26,11 +24,9 @@ BMathTest::calcOutGivenIn
 │   └── it should revert
 │       └── division by zero
 ├── when token amount in is zero
-│   └── it should revert
-│       └── TODO: why?
+│   └── it should revert // TODO: why?
 ├── when token balance in too small
-│   └── it should revert
-│       └── bi + (BONE - swapFee) = 0
+│   └── it should revert // bi + (BONE - swapFee) = 0
 ├── when token weight in is zero
 │   └── it should return zero
 ├── when token weight in equals token weight out
@@ -45,8 +41,7 @@ BMathTest::calcInGivenOut
 │   └── it should revert
 │       └── division by zero
 ├── when token amount out equals token balance out
-│   └── it should revert
-│       └── division by zero
+│   └── it should revert // division by zero
 ├── when token weight out is zero
 │   └── it should return zero
 ├── when token weight in equals token weight out
@@ -62,8 +57,7 @@ BMathTest::calcInGivenOut
 
 BMathTest::calcPoolOutGivenSingleIn
 ├── when token balance in is zero
-│   └── it should revert
-│       └── TODO: why?
+│   └── it should revert // TODO: why?
 ├── when token weight in is zero
 │   └── it should return zero
 └── when using known values
@@ -71,21 +65,17 @@ BMathTest::calcPoolOutGivenSingleIn
 
 BMathTest::calcSingleInGivenPoolOut
 ├── when total weight is zero
-│   └── it should revert
-│       └── TODO: why
+│   └── it should revert // TODO: why
 ├── when swap fee is zero
-│   └── it should revert
-│       └── TODO: why
+│   └── it should revert // TODO: why
 └── when using known values
     └── it should return correct value
 
 BMathTest::calcSingleOutGivenPoolIn
 ├── when pool supply is zero
-│   └── it should revert
-│       └── TODO: why
+│   └── it should revert // TODO: why
 ├── when total weight is zero
-│   └── it should revert
-│       └── TODO: why
+│   └── it should revert // TODO: why
 ├── when token balance out is zero
 │   └── it should return zero
 └── when using known values

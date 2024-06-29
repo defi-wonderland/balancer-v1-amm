@@ -53,7 +53,7 @@ contract BMathTest is Test, BConst {
     bMath.calcSpotPrice(balanceIn, weightIn, _balanceOut, weightOut, swapFee);
   }
 
-  function test_CalcSpotPriceWhenWeightedTokenBalanceInOverflows(uint256 _balanceIn, uint256 _weightIn) external {
+  function test_CalcSpotPriceRevertWhen_WeightedTokenBalanceInTooBig(uint256 _balanceIn, uint256 _weightIn) external {
     _weightIn = bound(_weightIn, BONE, type(uint256).max);
     _balanceIn = bound(_balanceIn, (type(uint256).max - weightIn / 2), type(uint256).max);
 
@@ -64,7 +64,7 @@ contract BMathTest is Test, BConst {
     bMath.calcSpotPrice(_balanceIn, _weightIn, balanceOut, weightOut, swapFee);
   }
 
-  function test_CalcSpotPriceWhenWeightedTokenBalanceOutOverflows(uint256 _balanceOut, uint256 _weightOut) external {
+  function test_CalcSpotPriceRevertWhen_WeightedTokenBalanceOutTooBig(uint256 _balanceOut, uint256 _weightOut) external {
     _weightOut = bound(_weightOut, BONE, type(uint256).max);
     _balanceOut = bound(_balanceOut, (type(uint256).max - weightOut / 2), type(uint256).max);
 
@@ -106,12 +106,13 @@ contract BMathTest is Test, BConst {
     bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, _weightOut, amountIn, swapFee);
   }
 
-  function test_CalcOutGivenInWhenTokenAmountInIsZero() external {
+  function test_CalcOutGivenInRevertWhen_TokenAmountInIsZero() external {
+    vm.skip(true);
     // it should revert
     //     TODO: why?
   }
 
-  function test_CalcOutGivenInWhenTokenBalanceInTooSmall() external {
+  function test_CalcOutGivenInRevertWhen_TokenBalanceInTooSmall() external {
     vm.skip(true);
     // TODO: how?
 
@@ -164,7 +165,7 @@ contract BMathTest is Test, BConst {
     bMath.calcInGivenOut(balanceIn, _weightIn, balanceOut, weightOut, amountIn, swapFee);
   }
 
-  function test_CalcInGivenOutWhenTokenAmountOutEqualsTokenBalanceOut(uint256 _amount) external {
+  function test_CalcInGivenOutRevertWhen_TokenAmountOutEqualsTokenBalanceOut(uint256 _amount) external {
     _amount = bound(_amount, 1, type(uint256).max / BONE);
 
     // it should revert
@@ -188,78 +189,95 @@ contract BMathTest is Test, BConst {
   }
 
   function test_CalcInGivenOutWhenSwapFeeIsZero() external whenTokenWeightInEqualsTokenWeightOut {
+    vm.skip(true);
     // it should return correct value
     //     bi((bo/(bo-ao) - 1)))
   }
 
   function test_CalcInGivenOutWhenSwapFeeIsNotZero() external whenTokenWeightInEqualsTokenWeightOut {
+    vm.skip(true);
     // it should return correct value
     //     bi((bo/(bo-ao) - 1))) / (1 - sf)
   }
 
   function test_CalcInGivenOutWhenUsingKnownValues() external {
+    vm.skip(true);
     // it should return correct value
     //     bi * ((bo/(bo-ao)^(wo/wi) - 1))) / (1 - sf)
   }
 
-  function test_CalcPoolOutGivenSingleInWhenTokenBalanceInIsZero() external {
+  function test_CalcPoolOutGivenSingleInRevertWhen_TokenBalanceInIsZero() external {
+    vm.skip(true);
     // it should revert
     //     TODO: why?
   }
 
   function test_CalcPoolOutGivenSingleInWhenTokenWeightInIsZero() external {
+    vm.skip(true);
     // it should return zero
   }
 
   function test_CalcPoolOutGivenSingleInWhenUsingKnownValues() external {
+    vm.skip(true);
     // it should return correct value
   }
 
-  function test_CalcSingleInGivenPoolOutWhenTotalWeightIsZero() external {
+  function test_CalcSingleInGivenPoolOutRevertWhen_TotalWeightIsZero() external {
+    vm.skip(true);
     // it should revert
     //     TODO: why
   }
 
-  function test_CalcSingleInGivenPoolOutWhenSwapFeeIsZero() external {
+  function test_CalcSingleInGivenPoolOutRevertWhen_SwapFeeIsZero() external {
+    vm.skip(true);
     // it should revert
     //     TODO: why
   }
 
   function test_CalcSingleInGivenPoolOutWhenUsingKnownValues() external {
+    vm.skip(true);
     // it should return correct value
   }
 
-  function test_CalcSingleOutGivenPoolInWhenPoolSupplyIsZero() external {
+  function test_CalcSingleOutGivenPoolInRevertWhen_PoolSupplyIsZero() external {
+    vm.skip(true);
     // it should revert
     //     TODO: why
   }
 
-  function test_CalcSingleOutGivenPoolInWhenTotalWeightIsZero() external {
+  function test_CalcSingleOutGivenPoolInRevertWhen_TotalWeightIsZero() external {
+    vm.skip(true);
     // it should revert
     //     TODO: why
   }
 
   function test_CalcSingleOutGivenPoolInWhenTokenBalanceOutIsZero() external {
+    vm.skip(true);
     // it should return zero
   }
 
   function test_CalcSingleOutGivenPoolInWhenUsingKnownValues() external {
+    vm.skip(true);
     // it should return correct value
   }
 
   function test_CalcPoolInGivenSingleOutRevertWhen_TokenBalanceOutIsZero() external {
+    vm.skip(true);
     // it should revert
   }
 
   function test_CalcPoolInGivenSingleOutRevertWhen_SwapFeeIs1AndTokenWeightOutIsZero() external {
+    vm.skip(true);
     // it should revert
   }
 
   function test_CalcPoolInGivenSingleOutRevertWhen_PoolSupplyIsZero() external {
+    vm.skip(true);
     // it should revert
   }
 
   function test_CalcPoolInGivenSingleOutWhenUsingKnownValues() external {
+    vm.skip(true);
     // it should return correct value
   }
 }
