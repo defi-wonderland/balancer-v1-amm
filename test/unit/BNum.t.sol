@@ -80,19 +80,9 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 0);
   }
 
-  function test_BaddRevertWhen_PassingAAsUint256MaxAndBNonZero(uint256 _b) external {
-    uint256 _a = type(uint256).max;
-    _b = bound(_b, 1, type(uint256).max);
-
-    // it should revert
-    vm.expectRevert(BNum.BNum_AddOverflow.selector);
-
-    bNum.call_badd(_a, _b);
-  }
-
-  function test_BaddRevertWhen_PassingBAsUint256MaxAndANonZero(uint256 _a) external {
+  function test_BaddRevertWhen_PassingAAndBTooBig(uint256 _a, uint256 _b) external {
     _a = bound(_a, 1, type(uint256).max);
-    uint256 _b = type(uint256).max;
+    _b = bound(_b, type(uint256).max - _a + 1, type(uint256).max);
 
     // it should revert
     vm.expectRevert(BNum.BNum_AddOverflow.selector);

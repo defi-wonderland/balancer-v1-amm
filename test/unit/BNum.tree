@@ -23,8 +23,6 @@ BNumTest::badd
 │   └── it should return zero
 ├── when passing a and b too big
 │   └── it should revert
-├── when passing b as uint256 max and a non zero
-│   └── it should revert
 └── when passing known values
     └── it should return correct value
 
