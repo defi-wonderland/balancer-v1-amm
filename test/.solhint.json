@@ -11,7 +11,8 @@
       "ignorePublicFunctions": true,
       "ignoreStructs": true,
       "ignoreExternalFunctions": true,
-      "ignoreContracts": true, "ignoreConstants": true
+      "ignoreContracts": true, 
+      "ignoreConstants": true
       }]
   }
 }
