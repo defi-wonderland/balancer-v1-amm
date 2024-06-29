@@ -198,15 +198,6 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 5.9375e18);
   }
 
-  function test_BdivWhenPassingAAsZero(uint256 _b) external {
-    _b = bound(_b, 1, type(uint256).max);
-
-    // it should return zero
-    uint256 _result = bNum.call_bdiv(0, _b);
-
-    assertEq(_result, 0);
-  }
-
   function test_BdivRevertWhen_PassingBAsZero(uint256 _a) external {
     _a = bound(_a, 0, type(uint256).max);
 
@@ -214,6 +205,15 @@ contract BNumTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
     bNum.call_bdiv(_a, 0);
+  }
+
+  function test_BdivWhenPassingAAsZero(uint256 _b) external {
+    _b = bound(_b, 1, type(uint256).max);
+
+    // it should return zero
+    uint256 _result = bNum.call_bdiv(0, _b);
+
+    assertEq(_result, 0);
   }
 
   function test_BdivRevertWhen_PassingATooBig(uint256 _a) external {
@@ -269,22 +269,28 @@ contract BNumTest is Test, BConst {
     assertEq(_result, 2.5e18);
   }
 
-  function test_BpowiWhenPassingBaseAsZero() external {
-    uint256 _result = bNum.call_bpowi(0, 3);
+  function test_BpowiWhenPassingExponentAsZero(uint256 _base) external {
+    _base = bound(_base, 0, type(uint256).max);
 
-    // it should return zero
-    assertEq(_result, 0);
-  }
-
-  function test_BpowiWhenPassingExponentAsZero() external {
-    uint256 _result = bNum.call_bpowi(3e18, 0);
+    uint256 _result = bNum.call_bpowi(_base, 0);
 
     // it should return BONE
     assertEq(_result, BONE);
   }
 
-  function test_BpowiWhenPassingBaseAsOne() external {
-    uint256 _result = bNum.call_bpowi(BONE, 3);
+  function test_BpowiWhenPassingBaseAsZero(uint256 _exponent) external {
+    _exponent = bound(_exponent, 1, type(uint256).max);
+
+    uint256 _result = bNum.call_bpowi(0, _exponent);
+
+    // it should return zero
+    assertEq(_result, 0);
+  }
+
+  function test_BpowiWhenPassingBaseAsBONE(uint256 _exponent) external {
+    _exponent = bound(_exponent, 0, type(uint256).max);
+
+    uint256 _result = bNum.call_bpowi(BONE, _exponent);
 
     // it should return BONE
     assertEq(_result, BONE);

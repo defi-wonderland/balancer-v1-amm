@@ -57,10 +57,10 @@ BNumTest::bmul
 
 
 BNumTest::bdiv
-├── when passing a as zero
-│   └── it should return zero
 ├── when passing b as zero
 │   └── it should revert
+├── when passing a as zero
+│   └── it should return zero
 ├── when passing a too big
 │   └── it should revert  // a*BONE > uint256 max
 ├── when passing a and b too big
@@ -72,11 +72,11 @@ BNumTest::bdiv
 
 
 BNumTest::bpowi
-├── when passing base as zero
-│   └── it should return zero
 ├── when passing exponent as zero
 │   └── it should return BONE
-├── when passing base as one
+├── when passing base as zero
+│   └── it should return zero
+├── when passing base as BONE
 │   └── it should return BONE
 └── when passing known values
     └── it should return correct value
