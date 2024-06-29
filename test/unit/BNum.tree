@@ -51,8 +51,7 @@ BNumTest::bmul
 ├── when passing a and b too big
 │   └── it should revert
 ├── when passing a mul b too big
-│   └── it should revert
-│       └── a * b + BONE / 2 > uint256 max
+│   └── it should revert // a*b > uint256 max
 └── when passing known values
     └── it should return correct value
 
@@ -63,10 +62,9 @@ BNumTest::bdiv
 ├── when passing b as zero
 │   └── it should revert
 ├── when passing a too big
-│   └── it should revert
+│   └── it should revert  // a*BONE > uint256 max
 ├── when passing a and b too big
-│   └── it should revert
-│       └── a*BONE + b/2 > uint256 max
+│   └── it should revert // a*BONE + b/2 > uint256 max
 ├── when flooring to zero
 │   └── it should return 0
 └── when passing known values

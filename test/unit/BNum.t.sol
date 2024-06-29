@@ -165,18 +165,20 @@ contract BNumTest is Test, BConst {
 
   function test_BmulRevertWhen_PassingAAndBTooBig(uint256 _a, uint256 _b) external {
     _a = bound(_a, 1, type(uint256).max);
-    _b = bound(_b, _a == 1 ? type(uint256).max / _a : type(uint256).max / _a + 1, type(uint256).max);
+    _b = bound(_b, _a == 1 ? type(uint256).max : type(uint256).max / _a + 1, type(uint256).max);
 
     // it should revert
-    //     a * b + BONE / 2 > uint256 max
+    //     a * b > uint256 max
     vm.expectRevert(BNum.BNum_MulOverflow.selector);
 
     bNum.call_bmul(_a, _b);
   }
 
-  function test_BmulWhenPassingAMulBTooBig(uint256 _a, uint256 _b) external {
-    _a = bound(_a, type(uint256).max / 2, type(uint256).max);
-    _b = bound(_b, type(uint256).max / 2, type(uint256).max);
+  function test_BmulRevertWhen_PassingAMulBTooBig(uint256 _a, uint256 _b) external {
+    _a = bound(_a, 1, type(uint256).max);
+    _b = bound(
+      _b, _a == 1 ? type(uint256).max - (BONE / 2) + 1 : (type(uint256).max - (BONE / 2)) / _a + 1, type(uint256).max
+    );
 
     // it should revert
     //     a * b + BONE / 2 > uint256 max
@@ -228,34 +230,35 @@ contract BNumTest is Test, BConst {
     _a = bound(_a, type(uint256).max / BONE + 1, type(uint256).max);
 
     // it should revert
+    //     a*BONE > uint256 max
     vm.expectRevert(BNum.BNum_DivInternal.selector);
 
     bNum.call_bdiv(_a, 1);
   }
 
-  function test_BdivWhenPassingAAndBTooBig(uint256 _a, uint256 _b) external {
+  function test_BdivRevertWhen_PassingAAndBTooBig(uint256 _a, uint256 _b) external {
     _a = bound(_a, type(uint256).max / (2 * BONE) + 1, type(uint256).max / BONE);
     _b = bound(_b, 2 * (type(uint256).max - (_a * BONE)) + 2, type(uint256).max);
 
     // it should revert
-    //     a*BONE + b/2 > uint256 max
+    //      a*BONE + b/2 > uint256 max
     vm.expectRevert(BNum.BNum_DivInternal.selector);
 
     bNum.call_bdiv(_a, _b);
   }
 
   function test_BdivWhenFlooringToZero() external {
+    // it should return 0
     //     (1 * BONE) / 2 * BONE + 1 = 0.499..
     uint256 _a = 1;
     uint256 _b = 2e18 + 1;
 
     uint256 _result = bNum.call_bdiv(_a, _b);
 
-    // it should return 0
     assertEq(_result, 0);
   }
 
-  function test_BDivWhenFlooringToZero(uint256 _a, uint256 _b) external {
+  function test_BdivWhenFlooringToZero(uint256 _a, uint256 _b) external {
     _a = bound(_a, 1, (type(uint256).max / (BONE * 2)) - 1);
     _b = bound(_b, (2 * BONE * _a) + 1, type(uint256).max);
 
