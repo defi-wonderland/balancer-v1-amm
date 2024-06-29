@@ -31,10 +31,10 @@ BMathTest::calcOutGivenIn
 │   └── it should return zero
 ├── when token weight in equals token weight out
 │   └── it should return correct value
-│       └── bo * (1 - (bi / (bi + (ai * (1-sf)))))
+│       └── bo * (1 - (bi / (bi + (ai * (1-sf))))
 └── when using known values
     └── it should return correct value
-        └── b0 * (1 - (bi / ((bi + (ai * (1 - sf))))^(wi/wo))
+        └── b0 * (1 - (bi / ((bi + (ai * (1 - sf)))))^(wi/wo))
 
 BMathTest::calcInGivenOut
 ├── when token weight in is zero

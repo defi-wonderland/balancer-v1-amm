@@ -138,7 +138,7 @@ contract BMathTest is Test, BConst {
     _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
 
     // it should return correct value
-    //     bo * (1 - (bi / (bi + (ai * (1-sf)))))
+    //     bo * (1 - (bi / (bi + (ai * (1-sf))))
     //     30 * (1 - (20 / (20 + (5 * (1 - 0.1)))) = 5.5102040816...
     uint256 _amountOut = bMath.calcOutGivenIn(balanceIn, _weight, balanceOut, _weight, amountIn, swapFee);
 
