@@ -20,7 +20,7 @@ BMathTest::calcSpotPrice
 ├── when swap fee is zero
 │   └── it should return correct value
 │       └── bi/wi * wo/bo
-└── when using known values
+└── when swap fee is non zero
     └── it should return correct value
         └── (bi/wi * wo/bo) * (1 / (1 - sf))
 
@@ -41,31 +41,48 @@ BMathTest::calcOutGivenIn
 │   └── it should revert // bi + (ai * (1 - swapFee)) = 0
 ├── when token weight in is zero
 │   └── it should return zero
-├── when token weight in equals token weight out
-│   └── it should return correct value
-│       └── bo * (1 - (bi / (bi + (ai * (1-sf))))
-└── when using known values
-    └── it should return correct value
-        └── b0 * (1 - (bi / ((bi + (ai * (1 - sf)))))^(wi/wo))
+├── when token weights are equal
+│   ├── when equal weights and swap fee is zero
+│   │   └── it should return correct value
+│   │       └── bo * (1 - (bi / (bi + ai))
+│   └── when equal weights and swap fee is non zero
+│       └── it should return correct value
+│           └── bo * (1 - (bi / (bi + (ai * (1-sf))))
+└── when token weights are unequal
+    ├── when unequal weights and swap fee is zero
+    │   └── it should return correct value
+    │       └── b0 * (1 - (bi / ((bi + ai)))^(wi/wo))
+    └── when unequal weights and swap fee is non zero
+        └── it should return correct value
+            └── b0 * (1 - (bi / ((bi + (ai * (1 - sf)))))^(wi/wo))
 
 BMathTest::calcInGivenOut
 ├── when token weight in is zero
-│   └── it should revert
-│       └── division by zero
+│   └── it should revert // division by zero
+├── when token weight out too big
+│   └── it should revert // wo * BONE > uint256 max
+├── when weighted ratio too big
+│   └── it should revert // wo * BONE + (wi / 2) > uint256 max
+├── when token amount out greater than token balance out
+│   └── it should revert // subtraction underflow
 ├── when token amount out equals token balance out
 │   └── it should revert // division by zero
 ├── when token weight out is zero
 │   └── it should return zero
-├── when token weight in equals token weight out
-│   ├── when swap fee is zero
+├── when token weights are equal
+│   ├── when equal weights and swap fee is zero
 │   │   └── it should return correct value
-│   │       └── bi((bo/(bo-ao) - 1)))
-│   └── when swap fee is not zero
+│   │       └── bi * ((bo/(bo-ao) - 1)))
+│   └── when equal weights and swap fee is non zero
 │       └── it should return correct value
-│           └── bi((bo/(bo-ao) - 1))) / (1 - sf)
-└── when using known values
-    └── it should return correct value
-        └── bi * ((bo/(bo-ao)^(wo/wi) - 1))) / (1 - sf)
+│           └── bi * ((bo/(bo-ao) - 1))) / (1 - sf)
+└── when token weights are unequal
+    ├── when unequal weights and swap fee is zero
+    │   └── it should return correct value
+    │       └── bi * (((bo/(bo-ao))^(wo/wi) - 1)))
+    └── when unequal weights and swap fee is non zero
+        └── it should return correct value
+            └── bi * (((bo/(bo-ao))^(wo/wi) - 1))) / (1 - sf)
 
 BMathTest::calcPoolOutGivenSingleIn
 ├── when token balance in is zero

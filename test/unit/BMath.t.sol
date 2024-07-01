@@ -8,11 +8,13 @@ import {Test} from 'forge-std/Test.sol';
 // Main test contract
 contract BMathTest is Test, BConst {
   function test_CalcSpotPriceRevertWhen_TokenWeightInIsZero() external {
+    uint256 _weightIn = 0;
+
     // it should revert
     //     division by zero
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
-    bMath.calcSpotPrice(balanceIn, 0, balanceOut, weightOut, swapFee);
+    bMath.calcSpotPrice(balanceIn, _weightIn, balanceOut, weightOut, swapFee);
   }
 
   function test_CalcSpotPriceRevertWhen_TokenBalanceInTooBig(uint256 _balanceIn) external {
@@ -37,11 +39,13 @@ contract BMathTest is Test, BConst {
   }
 
   function test_CalcSpotPriceRevertWhen_TokenWeightOutIsZero() external {
+    uint256 _weightOut = 0;
+
     // it should revert
     //     division by zero
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
-    bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, 0, swapFee);
+    bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, _weightOut, swapFee);
   }
 
   function test_CalcSpotPriceRevertWhen_TokenBalanceOutTooBig(uint256 _balanceOut) external {
@@ -100,18 +104,15 @@ contract BMathTest is Test, BConst {
     // it should return correct value
     //     bi/wi * wo/bo
     //     20/1 * 2/30 = 1.333333...
-    uint256 _swapFee = 0;
-
-    uint256 _spotPrice = bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
+    uint256 _spotPrice = bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, 0);
 
     assertEq(_spotPrice, 1.333333333333333333e18);
   }
 
-  function test_CalcSpotPriceWhenUsingKnownValues() external {
+  function test_CalcSpotPriceWhenSwapFeeIsNonZero() external {
     // it should return correct value
     //     (bi/wi * wo/bo) * (1 / (1 - sf))
     //     (20/1 * 2/30) * (1 / (1 - 0.1)) = 1.481481481...
-
     uint256 _spotPrice = bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, swapFee);
 
     assertEq(_spotPrice, 1.481481481481481481e18);
@@ -197,7 +198,22 @@ contract BMathTest is Test, BConst {
     assertEq(_amountOut, 0);
   }
 
-  function test_CalcOutGivenInWhenTokenWeightInEqualsTokenWeightOut(uint256 _weight) external {
+  modifier whenTokenWeightsAreEqual() {
+    _;
+  }
+
+  function test_CalcOutGivenInWhenEqualWeightsAndSwapFeeIsZero(uint256 _weight) external whenTokenWeightsAreEqual {
+    _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
+
+    // it should return correct value
+    //     bo * (1 - (bi / (bi + ai))
+    //     30 * (1 - (20 / (20 + 5))) = 6
+    uint256 _amountOut = bMath.calcOutGivenIn(balanceIn, _weight, balanceOut, _weight, amountIn, 0);
+
+    assertEq(_amountOut, 6e18);
+  }
+
+  function test_CalcOutGivenInWhenEqualWeightsAndSwapFeeIsNonZero(uint256 _weight) external whenTokenWeightsAreEqual {
     _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
 
     // it should return correct value
@@ -208,17 +224,29 @@ contract BMathTest is Test, BConst {
     assertEq(_amountOut, 5.51020408163265306e18);
   }
 
-  function test_CalcOutGivenInWhenUsingKnownValues() external {
+  modifier whenTokenWeightsAreUnequal() {
+    _;
+  }
+
+  function test_CalcOutGivenInWhenUnequalWeightsAndSwapFeeIsZero() external whenTokenWeightsAreUnequal {
+    // it should return correct value
+    //     b0 * (1 - (bi / ((bi + ai)))^(wi/wo))
+    //     30 * (1 - (20 / ((20 + 5)))^(1/2)) = 3.16718427...
+    uint256 _amountOut = bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, 0);
+
+    assertEq(_amountOut, 3.16718426981698245e18);
+  }
+
+  function test_CalcOutGivenInWhenUnequalWeightsAndSwapFeeIsNonZero() external whenTokenWeightsAreUnequal {
     // it should return correct value
     //     b0 * (1 - (bi / ((bi + (ai * (1 - sf)))))^(wi/wo))
     //     30 * (1 - (20 / ((20 + (5 * (1 - 0.1)))))^(1/2)) = 2.8947629128...
-
     uint256 _amountOut = bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, swapFee);
 
     assertEq(_amountOut, 2.89476291247227984e18);
   }
 
-  function test_CalcInGivenOutWhenTokenWeightInIsZero() external {
+  function test_CalcInGivenOutRevertWhen_TokenWeightInIsZero() external {
     uint256 _weightIn = 0;
 
     // it should revert
@@ -226,6 +254,40 @@ contract BMathTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
     bMath.calcInGivenOut(balanceIn, _weightIn, balanceOut, weightOut, amountIn, swapFee);
+  }
+
+  function test_CalcInGivenOutRevertWhen_TokenWeightOutTooBig(uint256 _weightOut) external {
+    _weightOut = bound(_weightOut, type(uint256).max / BONE + 1, type(uint256).max);
+
+    // it should revert
+    //     wo * BONE > uint256 max
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
+
+    bMath.calcInGivenOut(balanceIn, weightIn, balanceOut, _weightOut, amountOut, swapFee);
+  }
+
+  function test_CalcInGivenOutRevertWhen_WeightedRatioTooBig(uint256 _weightIn, uint256 _weightOut) external {
+    _weightIn = bound(_weightIn, MIN_WEIGHT, MAX_WEIGHT);
+    _weightOut = bound(_weightOut, (type(uint256).max - weightIn / 2), type(uint256).max);
+
+    // it should revert
+    //     wo * BONE + (wi / 2) > uint256 max
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
+
+    bMath.calcInGivenOut(balanceIn, _weightIn, balanceOut, _weightOut, amountOut, swapFee);
+  }
+
+  function test_CalcInGivenOutRevertWhen_TokenAmountOutGreaterThanTokenBalanceOut(
+    uint256 _balanceOut,
+    uint256 _amountOut
+  ) external {
+    _balanceOut = bound(_balanceOut, 1, type(uint256).max / BONE);
+    _amountOut = bound(_amountOut, _balanceOut + 1, type(uint256).max);
+    // it should revert
+    //     subtraction underflow
+    vm.expectRevert(BNum.BNum_SubUnderflow.selector);
+
+    bMath.calcInGivenOut(balanceIn, weightIn, _balanceOut, weightOut, _amountOut, swapFee);
   }
 
   function test_CalcInGivenOutRevertWhen_TokenAmountOutEqualsTokenBalanceOut(uint256 _amount) external {
@@ -247,26 +309,43 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 0);
   }
 
-  modifier whenTokenWeightInEqualsTokenWeightOut() {
-    _;
+  function test_CalcInGivenOutWhenEqualWeightsAndSwapFeeIsZero(uint256 _weights) external whenTokenWeightsAreEqual {
+    _weights = bound(_weights, MIN_WEIGHT, MAX_WEIGHT);
+
+    // it should return correct value
+    //     bi * ((bo/(bo-ao) - 1)))
+    //     20 * ((30/(30-7) - 1)) = 6.08695652174...
+    uint256 _amountIn = bMath.calcInGivenOut(balanceIn, _weights, balanceOut, _weights, amountOut, 0);
+
+    assertEq(_amountIn, 6.08695652173913044e18);
   }
 
-  function test_CalcInGivenOutWhenSwapFeeIsZero() external whenTokenWeightInEqualsTokenWeightOut {
-    vm.skip(true);
+  function test_CalcInGivenOutWhenEqualWeightsAndSwapFeeIsNonZero(uint256 _weights) external whenTokenWeightsAreEqual {
+    _weights = bound(_weights, MIN_WEIGHT, MAX_WEIGHT);
     // it should return correct value
-    //     bi((bo/(bo-ao) - 1)))
+    //     bi * ((bo/(bo-ao) - 1))) / (1 - sf)
+    //     20 * ((30/(30-7) - 1)) / (1 - 0.1) = 6.7632850242...
+    uint256 _amountIn = bMath.calcInGivenOut(balanceIn, _weights, balanceOut, _weights, amountOut, swapFee);
+
+    assertEq(_amountIn, 6.763285024154589378e18);
   }
 
-  function test_CalcInGivenOutWhenSwapFeeIsNotZero() external whenTokenWeightInEqualsTokenWeightOut {
-    vm.skip(true);
+  function test_CalcInGivenOutWhenUnequalWeightsAndSwapFeeIsZero() external whenTokenWeightsAreUnequal {
     // it should return correct value
-    //     bi((bo/(bo-ao) - 1))) / (1 - sf)
+    //     bi * (((bo/(bo-ao))^(wo/wi) - 1)))
+    //     20 * (((30/(30-7))^(2/1) - 1)) = 14.02646502836...
+    uint256 _amountIn = bMath.calcInGivenOut(balanceIn, weightIn, balanceOut, weightOut, amountOut, 0);
+
+    assertEq(_amountIn, 14.02646502835538754e18);
   }
 
-  function test_CalcInGivenOutWhenUsingKnownValues() external {
-    vm.skip(true);
+  function test_CalcInGivenOutWhenUnequalWeightsAndSwapFeeIsNonZero() external whenTokenWeightsAreUnequal {
     // it should return correct value
-    //     bi * ((bo/(bo-ao)^(wo/wi) - 1))) / (1 - sf)
+    //     bi * (((bo/(bo-ao))^(wo/wi) - 1))) / (1 - sf)
+    //     20 * (((30/(30-7))^(2/1) - 1)) / (1 - 0.1) = 15.5849611426...
+    uint256 _amountIn = bMath.calcInGivenOut(balanceIn, weightIn, balanceOut, weightOut, amountOut, swapFee);
+
+    assertEq(_amountIn, 15.584961142617097267e18);
   }
 
   function test_CalcPoolOutGivenSingleInRevertWhen_TokenBalanceInIsZero() external {
