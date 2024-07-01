@@ -83,7 +83,6 @@ contract BMathTest is Test, BConst {
     //     division by zero
     vm.expectRevert(BNum.BNum_SubUnderflow.selector);
 
-    // Action
     bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
   }
 
@@ -94,7 +93,6 @@ contract BMathTest is Test, BConst {
     //     division by zero
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
-    // Action
     bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
   }
 
@@ -129,17 +127,65 @@ contract BMathTest is Test, BConst {
     bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, _weightOut, amountIn, swapFee);
   }
 
-  function test_CalcOutGivenInRevertWhen_TokenBalanceInTooSmall() external {
-    vm.skip(true);
-    // TODO: how?
-
-    uint256 _balanceIn = 1;
+  function test_CalcOutGivenInRevertWhen_TokenWeightInTooBig(uint256 _weightIn) external {
+    _weightIn = bound(_weightIn, type(uint256).max / BONE + 1, type(uint256).max);
 
     // it should revert
-    //     bi + (BONE - swapFee) = 0
+    //     wi * BONE > uint256 max
     vm.expectRevert(BNum.BNum_DivInternal.selector);
 
-    bMath.calcOutGivenIn(_balanceIn, weightIn, balanceOut, weightOut, amountIn, swapFee);
+    bMath.calcOutGivenIn(balanceIn, _weightIn, balanceOut, weightOut, amountIn, swapFee);
+  }
+
+  function test_CalcOutGivenInRevertWhen_WeightedRatioTooBig(uint256 _weightIn, uint256 _weightOut) external {
+    _weightOut = bound(_weightOut, BONE, type(uint256).max);
+    _weightIn = bound(_weightIn, (type(uint256).max - weightOut / 2), type(uint256).max);
+
+    // it should revert
+    //     wi * BONE + (wo / 2) > uint256 max
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
+
+    bMath.calcOutGivenIn(balanceIn, _weightIn, balanceOut, _weightOut, amountIn, swapFee);
+  }
+
+  function test_CalcOutGivenInRevertWhen_SwapFeeGreaterThanBONE(uint256 _swapFee) external {
+    _swapFee = bound(_swapFee, BONE + 1, type(uint256).max);
+
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_SubUnderflow.selector);
+
+    bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, _swapFee);
+  }
+
+  function test_CalcOutGivenInWhenSwapFeeEqualsBONE() external {
+    uint256 _swapFee = BONE;
+
+    // it should return zero
+    uint256 _amountOut = bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, _swapFee);
+
+    assertEq(_amountOut, 0);
+  }
+
+  function test_CalcOutGivenInRevertWhen_TokenAmountInTooBig(uint256 _amountIn) external {
+    _amountIn = bound(_amountIn, type(uint256).max / (BONE - swapFee) + 1, type(uint256).max);
+
+    // it should revert
+    //     ai * (1 - sf) > uint256 max
+    vm.expectRevert(BNum.BNum_MulOverflow.selector);
+
+    bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, weightOut, _amountIn, swapFee);
+  }
+
+  function test_CalcOutGivenInRevertWhen_TokenBalanceInAndAmountInTooSmall() external {
+    uint256 _balanceIn = 0;
+    uint256 _amountIn = 0;
+
+    // it should revert
+    //     bi + (ai * (1 - swapFee)) = 0
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcOutGivenIn(_balanceIn, weightIn, balanceOut, weightOut, _amountIn, swapFee);
   }
 
   function test_CalcOutGivenInWhenTokenWeightInIsZero() external {
