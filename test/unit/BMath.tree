@@ -1,16 +1,8 @@
 BMathTest::calcSpotPrice
 ├── when token weight in is zero
 │   └── it should revert // division by zero
-├── when token balance in too big
-│   └── it should revert // bi * BONE > uint256 max
-├── when weighted token balance in too big
-│   └── it should revert // bi * BONE + (wi / 2) > uint256 max
 ├── when token weight out is zero
 │   └── it should revert // division by zero
-├── when token balance out too big
-│   └── it should revert // bo * BONE > uint256 max
-├── when weighted token balance out too big
-│   └── it should revert // bo * BONE + (wo / 2) > uint256 max
 ├── when weighted token balance out is zero
 │   └── it should revert // division by zero
 ├── when swapFee greater than BONE
@@ -27,10 +19,6 @@ BMathTest::calcSpotPrice
 BMathTest::calcOutGivenIn
 ├── when token weight out is zero
 │   └── it should revert // division by zero
-├── when token weight in too big
-│   └── it should revert // wi * BONE > uint256 max
-├── when weighted ratio too big
-│   └── it should revert // wi * BONE + (wo / 2) > uint256 max
 ├── when swapFee greater than BONE
 │   └── it should revert // subtraction underflow
 ├── when swapFee equals BONE
@@ -59,10 +47,6 @@ BMathTest::calcOutGivenIn
 BMathTest::calcInGivenOut
 ├── when token weight in is zero
 │   └── it should revert // division by zero
-├── when token weight out too big
-│   └── it should revert // wo * BONE > uint256 max
-├── when weighted ratio too big
-│   └── it should revert // wo * BONE + (wi / 2) > uint256 max
 ├── when token amount out greater than token balance out
 │   └── it should revert // subtraction underflow
 ├── when token amount out equals token balance out

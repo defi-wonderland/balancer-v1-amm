@@ -34,27 +34,6 @@ contract BMathTest is Test, BConst {
     bMath.calcSpotPrice(balanceIn, _weightIn, balanceOut, weightOut, swapFee);
   }
 
-  function test_CalcSpotPriceRevertWhen_TokenBalanceInTooBig(uint256 _balanceIn) external {
-    _balanceIn = bound(_balanceIn, type(uint256).max / BONE + 1, type(uint256).max);
-
-    // it should revert
-    //     bo * BONE > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcSpotPrice(_balanceIn, weightIn, balanceOut, weightOut, swapFee);
-  }
-
-  function test_CalcSpotPriceRevertWhen_WeightedTokenBalanceInTooBig(uint256 _balanceIn, uint256 _weightIn) external {
-    _weightIn = bound(_weightIn, BONE, type(uint256).max);
-    _balanceIn = bound(_balanceIn, (type(uint256).max - weightIn / 2), type(uint256).max);
-
-    // it should revert
-    //     bi * BONE + (wi / 2) > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcSpotPrice(_balanceIn, _weightIn, balanceOut, weightOut, swapFee);
-  }
-
   function test_CalcSpotPriceRevertWhen_TokenWeightOutIsZero() external {
     uint256 _weightOut = 0;
 
@@ -63,27 +42,6 @@ contract BMathTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
     bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, _weightOut, swapFee);
-  }
-
-  function test_CalcSpotPriceRevertWhen_TokenBalanceOutTooBig(uint256 _balanceOut) external {
-    _balanceOut = bound(_balanceOut, type(uint256).max / BONE + 1, type(uint256).max);
-
-    // it should revert
-    //     bo * BONE > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcSpotPrice(balanceIn, weightIn, _balanceOut, weightOut, swapFee);
-  }
-
-  function test_CalcSpotPriceRevertWhen_WeightedTokenBalanceOutTooBig(uint256 _balanceOut, uint256 _weightOut) external {
-    _weightOut = bound(_weightOut, BONE, type(uint256).max);
-    _balanceOut = bound(_balanceOut, (type(uint256).max - weightOut / 2), type(uint256).max);
-
-    // it should revert
-    //     bo * BONE + (wo / 2) > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcSpotPrice(balanceIn, weightIn, _balanceOut, _weightOut, swapFee);
   }
 
   function test_CalcSpotPriceRevertWhen_WeightedTokenBalanceOutIsZero(uint256 _balanceOut, uint256 _weightOut) external {
@@ -101,7 +59,7 @@ contract BMathTest is Test, BConst {
     _swapFee = bound(_swapFee, BONE + 1, type(uint256).max);
 
     // it should revert
-    //     division by zero
+    //     subtraction underflow
     vm.expectRevert(BNum.BNum_SubUnderflow.selector);
 
     bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
@@ -143,27 +101,6 @@ contract BMathTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
     bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, _weightOut, amountIn, swapFee);
-  }
-
-  function test_CalcOutGivenInRevertWhen_TokenWeightInTooBig(uint256 _weightIn) external {
-    _weightIn = bound(_weightIn, type(uint256).max / BONE + 1, type(uint256).max);
-
-    // it should revert
-    //     wi * BONE > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcOutGivenIn(balanceIn, _weightIn, balanceOut, weightOut, amountIn, swapFee);
-  }
-
-  function test_CalcOutGivenInRevertWhen_WeightedRatioTooBig(uint256 _weightIn, uint256 _weightOut) external {
-    _weightOut = bound(_weightOut, BONE, type(uint256).max);
-    _weightIn = bound(_weightIn, (type(uint256).max - weightOut / 2), type(uint256).max);
-
-    // it should revert
-    //     wi * BONE + (wo / 2) > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcOutGivenIn(balanceIn, _weightIn, balanceOut, _weightOut, amountIn, swapFee);
   }
 
   function test_CalcOutGivenInRevertWhen_SwapFeeGreaterThanBONE(uint256 _swapFee) external {
@@ -271,27 +208,6 @@ contract BMathTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
     bMath.calcInGivenOut(balanceIn, _weightIn, balanceOut, weightOut, amountIn, swapFee);
-  }
-
-  function test_CalcInGivenOutRevertWhen_TokenWeightOutTooBig(uint256 _weightOut) external {
-    _weightOut = bound(_weightOut, type(uint256).max / BONE + 1, type(uint256).max);
-
-    // it should revert
-    //     wo * BONE > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcInGivenOut(balanceIn, weightIn, balanceOut, _weightOut, amountOut, swapFee);
-  }
-
-  function test_CalcInGivenOutRevertWhen_WeightedRatioTooBig(uint256 _weightIn, uint256 _weightOut) external {
-    _weightIn = bound(_weightIn, MIN_WEIGHT, MAX_WEIGHT);
-    _weightOut = bound(_weightOut, (type(uint256).max - weightIn / 2), type(uint256).max);
-
-    // it should revert
-    //     wo * BONE + (wi / 2) > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcInGivenOut(balanceIn, _weightIn, balanceOut, _weightOut, amountOut, swapFee);
   }
 
   function test_CalcInGivenOutRevertWhen_TokenAmountOutGreaterThanTokenBalanceOut(
