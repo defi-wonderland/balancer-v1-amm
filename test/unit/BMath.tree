@@ -98,7 +98,7 @@ BMathTest::calcPoolOutGivenSingleIn
 
 BMathTest::calcSingleInGivenPoolOut
 ├── when total weight is zero
-│   └── it should revert // TODO: why
+│   └── it should revert // division by zero
 ├── when swap fee is zero
 │   └── it should return correct value
 │       └── (((pS + ao) / pS) ^ (wT/wi))*bi - bi
@@ -108,9 +108,9 @@ BMathTest::calcSingleInGivenPoolOut
 
 BMathTest::calcSingleOutGivenPoolIn
 ├── when pool supply is zero
-│   └── it should revert // TODO: why
+│   └── it should revert // division by zero
 ├── when total weight is zero
-│   └── it should revert // TODO: why
+│   └── it should revert // division by zero
 ├── when token balance out is zero
 │   └── it should return zero
 ├── when swap fee and exit fee are zero

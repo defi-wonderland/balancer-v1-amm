@@ -349,14 +349,22 @@ contract BMathTest is Test, BConst {
   }
 
   function test_CalcPoolOutGivenSingleInRevertWhen_TokenBalanceInIsZero() external {
-    vm.skip(true);
+    uint256 _balanceIn = 0;
+
     // it should revert
-    //     TODO: why?
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcPoolOutGivenSingleIn(_balanceIn, weightIn, poolSupply, totalWeight, amountIn, swapFee);
   }
 
   function test_CalcPoolOutGivenSingleInWhenTokenWeightInIsZero() external {
-    vm.skip(true);
+    uint256 _weightIn = 0;
+
     // it should return zero
+    uint256 _poolOut = bMath.calcPoolOutGivenSingleIn(balanceIn, _weightIn, poolSupply, totalWeight, amountIn, swapFee);
+
+    assertEq(_poolOut, 0);
   }
 
   function test_CalcPoolOutGivenSingleInWhenSwapFeeIsZero() external {
@@ -378,9 +386,13 @@ contract BMathTest is Test, BConst {
   }
 
   function test_CalcSingleInGivenPoolOutRevertWhen_TotalWeightIsZero() external {
-    vm.skip(true);
+    uint256 _totalWeight = 0;
+
     // it should revert
-    //     TODO: why
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcSingleInGivenPoolOut(balanceIn, weightIn, poolSupply, _totalWeight, amountOut, swapFee);
   }
 
   function test_CalcSingleInGivenPoolOutWhenSwapFeeIsZero() external {
@@ -401,32 +413,34 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 21.256073786583853231e18);
   }
 
-  function test_CalcSingleInGivenPoolOutRevertWhen_SwapFeeIsZero() external {
-    vm.skip(true);
-    // it should revert
-    //     TODO: why
-  }
-
-  function test_CalcSingleInGivenPoolOutWhenUsingKnownValues() external {
-    vm.skip(true);
-    // it should return correct value
-  }
-
   function test_CalcSingleOutGivenPoolInRevertWhen_PoolSupplyIsZero() external {
-    vm.skip(true);
+    uint256 _poolSupply = 0;
+
     // it should revert
-    //     TODO: why
+    //     division by zero
+    vm.expectRevert(BNum.BNum_SubUnderflow.selector);
+
+    bMath.calcSingleOutGivenPoolIn(balanceOut, weightOut, _poolSupply, totalWeight, amountIn, swapFee);
   }
 
   function test_CalcSingleOutGivenPoolInRevertWhen_TotalWeightIsZero() external {
-    vm.skip(true);
+    uint256 _totalWeight = 0;
+
     // it should revert
-    //     TODO: why
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcSingleOutGivenPoolIn(balanceOut, weightOut, poolSupply, _totalWeight, amountIn, swapFee);
   }
 
   function test_CalcSingleOutGivenPoolInWhenTokenBalanceOutIsZero() external {
-    vm.skip(true);
+    uint256 _balanceOut = 0;
+
     // it should return zero
+    uint256 _amountOut =
+      bMath.calcSingleOutGivenPoolIn(_balanceOut, weightOut, poolSupply, totalWeight, amountIn, swapFee);
+
+    assertEq(_amountOut, 0);
   }
 
   function test_CalcSingleOutGivenPoolInWhenSwapFeeAndExitFeeAreZero() external {
