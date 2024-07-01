@@ -133,5 +133,15 @@ BMathTest::calcPoolInGivenSingleOut
 │   └── it should revert
 ├── when pool supply is zero
 │   └── it should revert
-└── when using known values
+├── when swap fee and exit fee are zero
+│   └── it should return correct value
+│       └── pS - (( (bo - ao) / bo ) ^ (wo/wT)) * pS
+├── when swap fee is zero and exit fee is non zero
+│   └── it should return correct value
+│       └── (pS - (( (bo - ao) / bo ) ^ (wo/wT)) * pS) / (1 - ef)
+├── when swap fee is non zero and exit fee is zero
+│   └── it should return correct value
+│       └── pS - (( (bo - (ao / ( 1 - ((1 - (wo/wT)) * sf) ))) / bo ) ^ (wo/wT)) * pS
+└── when swap fee and exit fee are non zero
     └── it should return correct value
+        └── (pS - (( (bo - (ao / ( 1 - ((1 - (wo/wT)) * sf) ))) / bo ) ^ (wo/wT)) * pS) / (1 - ef)

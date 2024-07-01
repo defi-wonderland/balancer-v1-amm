@@ -440,28 +440,24 @@ contract BMathTest is Test, BConst {
 
   function test_CalcSingleOutGivenPoolInWhenSwapFeeIsZeroAndExitFeeIsNonZero() external {
     vm.skip(true); // NOTE: EXIT_FEE is hardcoded to 0
-    // it should return correct value
-    //     bo - ((pS - (ai * (1 - ef))/pS)^(wT/wo) * bo
+      // it should return correct value
+      //     bo - ((pS - (ai * (1 - ef))/pS)^(wT/wo) * bo
   }
 
   function test_CalcSingleOutGivenPoolInWhenSwapFeeIsNonZeroAndExitFeeIsZero() external {
     // it should return correct value
     //     (bo - ((pS - ai/pS)^(wT/wo) * bo) * (1 - ((1 - (wo/wT)) * sf))
     //     (30 - ((100 - 5)/100)^(10/2) * 30) * (1 - ((1 - (2/10)) * 0.1)) = 6.243646125...
-    uint256 _amountOut = bMath.calcSingleOutGivenPoolIn(balanceOut, weightOut, poolSupply, totalWeight, amountIn, swapFee);
+    uint256 _amountOut =
+      bMath.calcSingleOutGivenPoolIn(balanceOut, weightOut, poolSupply, totalWeight, amountIn, swapFee);
 
     assertEq(_amountOut, 6.243646125e18);
   }
 
   function test_CalcSingleOutGivenPoolInWhenSwapFeeAndExitFeeAreNonZero() external {
     vm.skip(true); // NOTE: EXIT_FEE is hardcoded to 0
-    // it should return correct value
-    //     (bo - ((pS - (ai * (1 - ef))/pS)^(wT/wo) * bo) * (1 - ((1 - (wo/wT)) * sf))
-  }
-
-  function test_CalcSingleOutGivenPoolInWhenUsingKnownValues() external {
-    vm.skip(true);
-    // it should return correct value
+      // it should return correct value
+      //     (bo - ((pS - (ai * (1 - ef))/pS)^(wT/wo) * bo) * (1 - ((1 - (wo/wT)) * sf))
   }
 
   function test_CalcPoolInGivenSingleOutRevertWhen_TokenBalanceOutIsZero() external {
@@ -479,9 +475,35 @@ contract BMathTest is Test, BConst {
     // it should revert
   }
 
-  function test_CalcPoolInGivenSingleOutWhenUsingKnownValues() external {
-    vm.skip(true);
+  function test_CalcPoolInGivenSingleOutWhenSwapFeeAndExitFeeAreZero() external {
     // it should return correct value
+    //     pS - (( (bo - ao) / bo ) ^ (wo/wT)) * pS
+    //     100 - (( (30 - 7) / 30 ) ^ (2/10)) * 100 = 5.1753351805...
+    uint256 _amountIn = bMath.calcPoolInGivenSingleOut(balanceOut, weightOut, poolSupply, totalWeight, amountOut, 0);
+
+    assertEq(_amountIn, 5.1753351791902224e18);
+  }
+
+  function test_CalcPoolInGivenSingleOutWhenSwapFeeIsZeroAndExitFeeIsNonZero() external {
+    vm.skip(true); // NOTE: EXIT_FEE is hardcoded to 0
+      // it should return correct value
+      //     (pS - (( (bo - ao) / bo ) ^ (wo/wT)) * pS) / (1 - ef)
+  }
+
+  function test_CalcPoolInGivenSingleOutWhenSwapFeeIsNonZeroAndExitFeeIsZero() external {
+    // it should return correct value
+    //     pS - (( (bo - (ao / ( 1 - ((1 - (wo/wT)) * sf) ))) / bo ) ^ (wo/wT)) * pS
+    //     100 - (( (30 - (7 / ( 1 - ((1 - (2/10)) * 0.1) ))) / 30 ) ^ (2/10)) * 100 = 5.682641831...
+    uint256 _amountIn =
+      bMath.calcPoolInGivenSingleOut(balanceOut, weightOut, poolSupply, totalWeight, amountOut, swapFee);
+
+    assertEq(_amountIn, 5.6826418299618119e18);
+  }
+
+  function test_CalcPoolInGivenSingleOutWhenSwapFeeAndExitFeeAreNonZero() external {
+    vm.skip(true); // NOTE: EXIT_FEE is hardcoded to 0
+      // it should return correct value
+      //     (pS - (( (bo - (ao / ( 1 - ((1 - (wo/wT)) * sf) ))) / bo ) ^ (wo/wT)) * pS) / (1 - ef)
   }
 
   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

@@ -263,7 +263,7 @@ contract BMath is BConst, BNum {
    * @dev Formula:
    * pAi = poolAmountIn               // /               tAo             \\     / wO \     \
    * bO = tokenBalanceOut            // | bO - -------------------------- |\   | ---- |     \
-   * tAo = tokenAmountOut      pS - ||   \     1 - ((1 - (w0 / tW)) * sF)/  | ^ \ tW /  * pS |
+   * tAo = tokenAmountOut      pS - ||   \     1 - ((1 - (wO / tW)) * sF)/  | ^ \ tW /  * pS |
    * ps = poolSupply                 \\ -----------------------------------/                /
    * wO = tokenWeightOut  pAi =       \\               bO                 /                /
    * tW = totalWeight           -------------------------------------------------------------
