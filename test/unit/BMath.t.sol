@@ -7,30 +7,12 @@ import {Test} from 'forge-std/Test.sol';
 
 // Main test contract
 contract BMathTest is Test, BConst {
-  BMath bMath;
-
-  // valid scenario
-  uint256 constant weightIn = BONE;
-  uint256 constant weightOut = 2 * BONE;
-  uint256 constant balanceIn = 20 * BONE;
-  uint256 constant balanceOut = 30 * BONE;
-  uint256 constant swapFee = BONE / 10;
-  uint256 constant amountIn = 5 * BONE;
-  uint256 constant amountOut = 7 * BONE;
-
-  function setUp() external {
-    bMath = new BMath();
-  }
-
-  function test_CalcSpotPriceWhenSwapFeeEqualsBONE() external {
-    uint256 _swapFee = BONE;
-
+  function test_CalcSpotPriceRevertWhen_TokenWeightInIsZero() external {
     // it should revert
     //     division by zero
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
-    // Action
-    bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
+    bMath.calcSpotPrice(balanceIn, 0, balanceOut, weightOut, swapFee);
   }
 
   function test_CalcSpotPriceRevertWhen_TokenBalanceInTooBig(uint256 _balanceIn) external {
@@ -41,16 +23,6 @@ contract BMathTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivInternal.selector);
 
     bMath.calcSpotPrice(_balanceIn, weightIn, balanceOut, weightOut, swapFee);
-  }
-
-  function test_CalcSpotPriceRevertWhen_TokenBalanceOutTooBig(uint256 _balanceOut) external {
-    _balanceOut = bound(_balanceOut, type(uint256).max / BONE + 1, type(uint256).max);
-
-    // it should revert
-    //     bo * BONE > uint256 max
-    vm.expectRevert(BNum.BNum_DivInternal.selector);
-
-    bMath.calcSpotPrice(balanceIn, weightIn, _balanceOut, weightOut, swapFee);
   }
 
   function test_CalcSpotPriceRevertWhen_WeightedTokenBalanceInTooBig(uint256 _balanceIn, uint256 _weightIn) external {
@@ -64,6 +36,24 @@ contract BMathTest is Test, BConst {
     bMath.calcSpotPrice(_balanceIn, _weightIn, balanceOut, weightOut, swapFee);
   }
 
+  function test_CalcSpotPriceRevertWhen_TokenWeightOutIsZero() external {
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, 0, swapFee);
+  }
+
+  function test_CalcSpotPriceRevertWhen_TokenBalanceOutTooBig(uint256 _balanceOut) external {
+    _balanceOut = bound(_balanceOut, type(uint256).max / BONE + 1, type(uint256).max);
+
+    // it should revert
+    //     bo * BONE > uint256 max
+    vm.expectRevert(BNum.BNum_DivInternal.selector);
+
+    bMath.calcSpotPrice(balanceIn, weightIn, _balanceOut, weightOut, swapFee);
+  }
+
   function test_CalcSpotPriceRevertWhen_WeightedTokenBalanceOutTooBig(uint256 _balanceOut, uint256 _weightOut) external {
     _weightOut = bound(_weightOut, BONE, type(uint256).max);
     _balanceOut = bound(_balanceOut, (type(uint256).max - weightOut / 2), type(uint256).max);
@@ -73,6 +63,39 @@ contract BMathTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivInternal.selector);
 
     bMath.calcSpotPrice(balanceIn, weightIn, _balanceOut, _weightOut, swapFee);
+  }
+
+  function test_CalcSpotPriceRevertWhen_WeightedTokenBalanceOutIsZero(uint256 _balanceOut, uint256 _weightOut) external {
+    _weightOut = bound(_weightOut, MIN_WEIGHT, MAX_WEIGHT);
+    _balanceOut = bound(_balanceOut, 0, _weightOut / (2 * BONE + 1)); // floors to zero
+
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcSpotPrice(balanceIn, weightIn, _balanceOut, _weightOut, swapFee);
+  }
+
+  function test_CalcSpotPriceRevertWhen_SwapFeeGreaterThanBONE(uint256 _swapFee) external {
+    _swapFee = bound(_swapFee, BONE + 1, type(uint256).max);
+
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_SubUnderflow.selector);
+
+    // Action
+    bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
+  }
+
+  function test_CalcSpotPriceRevertWhen_SwapFeeEqualsBONE() external {
+    uint256 _swapFee = BONE;
+
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    // Action
+    bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
   }
 
   function test_CalcSpotPriceWhenSwapFeeIsZero() external {
@@ -96,7 +119,7 @@ contract BMathTest is Test, BConst {
     assertEq(_spotPrice, 1.481481481481481481e18);
   }
 
-  function test_CalcOutGivenInWhenTokenWeightOutIsZero() external {
+  function test_CalcOutGivenInRevertWhen_TokenWeightOutIsZero() external {
     uint256 _weightOut = 0;
 
     // it should revert
@@ -104,12 +127,6 @@ contract BMathTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
     bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, _weightOut, amountIn, swapFee);
-  }
-
-  function test_CalcOutGivenInRevertWhen_TokenAmountInIsZero() external {
-    vm.skip(true);
-    // it should revert
-    //     TODO: why?
   }
 
   function test_CalcOutGivenInRevertWhen_TokenBalanceInTooSmall() external {
@@ -279,5 +296,26 @@ contract BMathTest is Test, BConst {
   function test_CalcPoolInGivenSingleOutWhenUsingKnownValues() external {
     vm.skip(true);
     // it should return correct value
+  }
+
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  // ==================== BULLOAK AUTOGENERATED SEPARATOR ====================
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  //    Code below this section could not be automatically moved by bulloak
+  // =========================================================================
+
+  BMath bMath;
+
+  // valid scenario
+  uint256 constant weightIn = BONE;
+  uint256 constant weightOut = 2 * BONE;
+  uint256 constant balanceIn = 20 * BONE;
+  uint256 constant balanceOut = 30 * BONE;
+  uint256 constant swapFee = BONE / 10;
+  uint256 constant amountIn = 5 * BONE;
+  uint256 constant amountOut = 7 * BONE;
+
+  function setUp() external {
+    bMath = new BMath();
   }
 }
