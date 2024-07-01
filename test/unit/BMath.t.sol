@@ -107,7 +107,7 @@ contract BMathTest is Test, BConst {
     _swapFee = bound(_swapFee, BONE + 1, type(uint256).max);
 
     // it should revert
-    //     division by zero
+    //     subtraction underflow
     vm.expectRevert(BNum.BNum_SubUnderflow.selector);
 
     bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, _swapFee);
@@ -235,6 +235,7 @@ contract BMathTest is Test, BConst {
   ) external {
     _balanceOut = bound(_balanceOut, 1, type(uint256).max / BONE);
     _amountOut = bound(_amountOut, _balanceOut + 1, type(uint256).max);
+
     // it should revert
     //     subtraction underflow
     vm.expectRevert(BNum.BNum_SubUnderflow.selector);
@@ -499,6 +500,7 @@ contract BMathTest is Test, BConst {
 
   function test_CalcPoolInGivenSingleOutWhenPoolSupplyIsZero() external virtual {
     uint256 _poolSupply = 0;
+
     // it should return zero
     uint256 _amountIn =
       bMath.calcPoolInGivenSingleOut(balanceOut, weightOut, _poolSupply, totalWeight, amountOut, swapFee);
