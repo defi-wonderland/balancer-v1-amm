@@ -1,6 +1,6 @@
 BFactoryTest::constructor
 └── when called
-    └── it should set the deployer as blabs
+    └── it should set the deployer as BLabs
 
 BFactoryTest::newBPool
 └── when called

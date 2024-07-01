@@ -29,7 +29,6 @@ contract BFactoryTest is Test {
   }
 
   function test_NewBPoolWhenCalled(address _deployer, address _newBPool) external {
-    assumeNotForgeAddress(_deployer);
     assumeNotForgeAddress(_newBPool);
     vm.mockCall(_newBPool, abi.encodePacked(IBPool.setController.selector), abi.encode());
     factory.mock_call__newBPool(IBPool(_newBPool));
