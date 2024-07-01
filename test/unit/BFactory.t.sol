@@ -13,116 +13,139 @@ import {MockBFactory} from 'test/smock/MockBFactory.sol';
 
 contract BFactoryTest_Base is Test {
   address factoryDeployer = makeAddr('factoryDeployer');
-
   MockBFactory factory;
 
-  function setUp() external {
+  function setUp() public virtual {
     vm.prank(factoryDeployer);
     factory = new MockBFactory();
   }
 }
 
-contract BFactoryTest_Constructor is BFactoryTest_Base {
-  function test_WhenCalled(address _blabs) external {
+contract BFactoryTest_Constructor_WHEN_Called is BFactoryTest_Base {
+  function test_THEN_setsDeployerAsBLabs(address _blabs) external {
     vm.prank(_blabs);
     MockBFactory newFactory = new MockBFactory();
-    // it should set BLabs
     assertEq(newFactory.getBLabs(), _blabs);
   }
 }
 
-contract BFactoryTest_NewBPool is BFactoryTest_Base {
-  function test_WhenCalled(address _deployer, address _newBPool) external {
-    assumeNotForgeAddress(_deployer);
-    assumeNotForgeAddress(_newBPool);
-    vm.mockCall(_newBPool, abi.encodePacked(IBPool.setController.selector), abi.encode());
-    factory.mock_call__newBPool(IBPool(_newBPool));
-    // it should call _newBPool
+contract BFactoryTest_NewBPool_WHEN_Called is BFactoryTest_Base {
+  address public newBPool = makeAddr('newBPool');
+  address public deployer = makeAddr('deployer');
+
+  function setUp() public virtual override {
+    super.setUp();
+    vm.mockCall(newBPool, abi.encodePacked(IBPool.setController.selector), abi.encode());
+    factory.mock_call__newBPool(IBPool(newBPool));
+  }
+
+  function test_THEN_itCalls_newBPool() external {
     factory.expectCall__newBPool();
-    // it should set the controller of the newBPool to the caller
-    vm.expectCall(_newBPool, abi.encodeCall(IBPool.setController, (_deployer)));
-    // it should emit a PoolCreated event
+    factory.newBPool();
+  }
+
+  function test_THEN_setsControllerAsCaller() external {
+    vm.expectCall(newBPool, abi.encodeCall(IBPool.setController, (deployer)));
+    vm.prank(deployer);
+    factory.newBPool();
+  }
+
+  function test_THEN_EmitsPoolCreatedEvent() external {
     vm.expectEmit(address(factory));
-    emit IBFactory.LOG_NEW_POOL(_deployer, _newBPool);
+    emit IBFactory.LOG_NEW_POOL(deployer, newBPool);
+    vm.prank(deployer);
+    factory.newBPool();
+  }
 
-    vm.prank(_deployer);
+  function test_THEN_addsPoolToIsBPoolMapping() external {
+    vm.prank(deployer);
+    factory.newBPool();
+    assertTrue(factory.isBPool(address(newBPool)));
+  }
+
+  function test_THEN_returnsTheAddressOfTheNewBPool() public {
+    vm.prank(deployer);
     IBPool pool = factory.newBPool();
-
-    // it should add the newBPool to the list of pools
-    assertTrue(factory.isBPool(address(_newBPool)));
-    // it should return the address of the new BPool
-    assertEq(address(pool), _newBPool);
+    assertEq(address(pool), newBPool);
   }
 }
 
-contract BFactoryTest__newBPool is BFactoryTest_Base {
-  function test_WhenCalled() external {
+contract BFactoryTest__newBPool_WHEN_called is BFactoryTest_Base {
+  function test_THEN_itDeploysABPool() external {
     address _futurePool = vm.computeCreateAddress(address(factory), 1);
     address _newBPool = address(factory.call__newBPool());
     assertEq(_newBPool, _futurePool);
-    // it should deploy a new BPool
     assertEq(_newBPool.code, address(new BPool()).code);
   }
 }
 
-contract BFactoryTest_SetBLabs is BFactoryTest_Base {
-  function test_RevertWhen_TheSenderIsNotTheCurrentBLabs(address _caller) external {
+contract BFactoryTest_SetBLabs_WHEN_CallerIs_NOT_BLabs is BFactoryTest_Base {
+  function test_THEN_itReverts(address _caller) external {
     vm.assume(_caller != factoryDeployer);
-
-    // it should revert
     vm.expectRevert(IBFactory.BFactory_NotBLabs.selector);
     vm.prank(_caller);
     factory.setBLabs(makeAddr('newBLabs'));
   }
+}
 
-  function test_WhenTheSenderIsTheCurrentBLabs(address _newBLabs) external {
-    // it should emit a BLabsSet event
+contract BFactoryTest_SetBLabs_WHEN_CallerIsBLabs is BFactoryTest_Base {
+  function test_THEN_itEmitsALOG_BLABSEvent(address _newBLabs) external {
     vm.expectEmit(address(factory));
     emit IBFactory.LOG_BLABS(factoryDeployer, _newBLabs);
-
     vm.prank(factoryDeployer);
     factory.setBLabs(_newBLabs);
+  }
 
-    // it should set the new setBLabs address
+  function test_THEN_itSetsBLabs(address _newBLabs) external {
+    vm.prank(factoryDeployer);
+    factory.setBLabs(_newBLabs);
     assertEq(factory.getBLabs(), _newBLabs);
   }
 }
 
-contract BFactoryTest_Collect is BFactoryTest_Base {
-  function test_RevertWhen_TheSenderIsNotTheCurrentBLabs(address _caller) external {
+contract BFactoryTest_Collect_WHEN_SenderIs_NOT_BLabs is BFactoryTest_Base {
+  function test_THEN_itReverts(address _caller) external {
     vm.assume(_caller != factoryDeployer);
-    // it should revert
     vm.expectRevert(IBFactory.BFactory_NotBLabs.selector);
     vm.prank(_caller);
     factory.collect(IBPool(makeAddr('pool')));
   }
+}
 
-  modifier whenTheSenderIsTheCurrentBLabs() {
-    vm.startPrank(factoryDeployer);
-    _;
+contract BFactoryTest_Collect_WHEN_SenderIsBLabs_Base is BFactoryTest_Base {
+  address public mockPool = makeAddr('pool');
+  uint256 public factoryBalance = 10e18;
+
+  function setUp() public virtual override {
+    super.setUp();
+    vm.mockCall(mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)), abi.encode(factoryBalance));
+    vm.mockCall(mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, factoryBalance)), abi.encode(true));
+  }
+}
+
+contract BFactoryTest_Collect_WHEN_SenderIsBLabs is BFactoryTest_Collect_WHEN_SenderIsBLabs_Base {
+  function test_THEN_BTokenBalanceOfIsCalled() external {
+    vm.expectCall(mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)));
+    vm.prank(factoryDeployer);
+    factory.collect(IBPool(mockPool));
   }
 
-  function test_WhenTheSenderIsTheCurrentBLabs(uint256 _factoryBTBalance) external whenTheSenderIsTheCurrentBLabs {
-    address _mockPool = makeAddr('pool');
-    vm.mockCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)), abi.encode(_factoryBTBalance));
-    vm.mockCall(_mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, _factoryBTBalance)), abi.encode(true));
+  function test_THEN_BTokenIsTransferred() external {
+    vm.expectCall(mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, factoryBalance)));
+    vm.prank(factoryDeployer);
+    factory.collect(IBPool(mockPool));
+  }
+}
 
-    // it should get the pool's btoken balance of the factory
-    vm.expectCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)));
-    // it should transfer the btoken balance of the factory to BLabs
-    vm.expectCall(_mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, _factoryBTBalance)));
-    factory.collect(IBPool(_mockPool));
+contract BFactoryTest_Collect_WHEN_ERC20TransferFails is BFactoryTest_Collect_WHEN_SenderIsBLabs_Base {
+  function setUp() public virtual override {
+    super.setUp();
+    vm.mockCall(mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, factoryBalance)), abi.encode(false));
   }
 
-  function test_RevertWhen_TheBtokenTransferFails(uint256 _factoryBTBalance) external whenTheSenderIsTheCurrentBLabs {
-    address _mockPool = makeAddr('pool');
-    vm.mockCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)), abi.encode(_factoryBTBalance));
-    vm.expectCall(_mockPool, abi.encodeCall(IERC20.balanceOf, address(factory)));
-    vm.mockCall(_mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, _factoryBTBalance)), abi.encode(false));
-    vm.expectCall(_mockPool, abi.encodeCall(IERC20.transfer, (factoryDeployer, _factoryBTBalance)));
-
-    // it should revert
-    vm.expectRevert(abi.encodeWithSelector(SafeERC20.SafeERC20FailedOperation.selector, _mockPool));
-    factory.collect(IBPool(_mockPool));
+  function test_THEN_ItReverts() external {
+    vm.expectRevert(abi.encodeWithSelector(SafeERC20.SafeERC20FailedOperation.selector, mockPool));
+    vm.prank(factoryDeployer);
+    factory.collect(IBPool(mockPool));
   }
 }
