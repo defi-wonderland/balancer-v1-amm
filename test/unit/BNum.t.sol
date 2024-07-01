@@ -166,7 +166,7 @@ contract BNumTest is Test, BConst {
 
   function test_BmulRevertWhen_PassingAAndBTooBig(uint256 _a, uint256 _b) external {
     _a = bound(_a, 1, type(uint256).max);
-    _b = bound(_b, _a == 1 ? type(uint256).max : type(uint256).max / _a + 1, type(uint256).max);
+    _b = bound(_b, type(uint256).max / _a + 1, type(uint256).max);
 
     // it should revert
     //     a * b > uint256 max
