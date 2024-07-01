@@ -383,6 +383,25 @@ contract BMathTest is Test, BConst {
     //     TODO: why
   }
 
+  function test_CalcSingleInGivenPoolOutWhenSwapFeeIsZero() external {
+    // it should return correct value
+    //     (((pS + ao) / pS) ^ (wT / wi)) * bi - bi
+    //     (((100 + 7) / 100) ^ (10 / 1)) * 20 - 20 = 19.3430271458...
+    uint256 _amountIn = bMath.calcSingleInGivenPoolOut(balanceIn, weightIn, poolSupply, totalWeight, amountOut, 0);
+
+    assertEq(_amountIn, 19.34302714579130644e18);
+  }
+
+  function test_CalcSingleInGivenPoolOutWhenSwapFeeIsNonZero() external {
+    // it should return correct value
+    //     ((((pS + ao) / pS) ^ (wT/wi)) * bi - bi) / (1 - (1 - (wi/wT)) * sf)
+    //     ((((100 + 7) / 100) ^ (10/1)) * 20 - 20) / (1 - (1 - (1/10)) * 0.1) = 21.2560737866...
+    uint256 _amountIn = bMath.calcSingleInGivenPoolOut(balanceIn, weightIn, poolSupply, totalWeight, amountOut, swapFee);
+
+    assertEq(_amountIn, 21.256073786583853231e18);
+
+  }
+
   function test_CalcSingleInGivenPoolOutRevertWhen_SwapFeeIsZero() external {
     vm.skip(true);
     // it should revert
