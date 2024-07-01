@@ -19,13 +19,15 @@ BMathTest::calcSpotPrice
 BMathTest::calcOutGivenIn
 ├── when token weight out is zero
 │   └── it should revert // division by zero
-├── when swapFee greater than BONE
+├── when swap fee greater than BONE
 │   └── it should revert // subtraction underflow
-├── when swapFee equals BONE
+├── when swap fee equals BONE
 │   └── it should return zero
 ├── when token amount in too big
 │   └── it should revert // ai * (1 - sf) > uint256 max
-├── when token balance in and amount in too small
+├── when token balance in and amount in are zero
+│   └── it should revert // bi + (ai * (1 - swapFee)) = 0
+├── when token balance in is zero and swap fee equals BONE
 │   └── it should revert // bi + (ai * (1 - swapFee)) = 0
 ├── when token weight in is zero
 │   └── it should return zero
@@ -51,6 +53,10 @@ BMathTest::calcInGivenOut
 │   └── it should revert // subtraction underflow
 ├── when token amount out equals token balance out
 │   └── it should revert // division by zero
+├── when swapFee greater than BONE
+│   └── it should revert // subtraction underflow
+├── when swapFee equals BONE
+│   └── it should revert // division by zero
 ├── when token weight out is zero
 │   └── it should return zero
 ├── when token weights are equal
@@ -73,6 +79,8 @@ BMathTest::calcPoolOutGivenSingleIn
 │   └── it should revert // division by zero
 ├── when token weight in is zero
 │   └── it should return zero
+├── when total weight is zero
+│   └── it should revert // division by zero
 ├── when swap fee is zero
 │   └── it should return correct value
 │       └── ((( ai + bi ) / bi ) ^ (wi/wT)) * pS - pS

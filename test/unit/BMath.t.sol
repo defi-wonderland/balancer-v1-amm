@@ -132,7 +132,7 @@ contract BMathTest is Test, BConst {
     bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, weightOut, _amountIn, swapFee);
   }
 
-  function test_CalcOutGivenInRevertWhen_TokenBalanceInAndAmountInTooSmall() external {
+  function test_CalcOutGivenInRevertWhen_TokenBalanceInAndAmountInAreZero() external {
     uint256 _balanceIn = 0;
     uint256 _amountIn = 0;
 
@@ -141,6 +141,17 @@ contract BMathTest is Test, BConst {
     vm.expectRevert(BNum.BNum_DivZero.selector);
 
     bMath.calcOutGivenIn(_balanceIn, weightIn, balanceOut, weightOut, _amountIn, swapFee);
+  }
+
+  function test_CalcOutGivenInRevertWhen_TokenBalanceInIsZeroAndSwapFeeEqualsBONE() external {
+    uint256 _balanceIn = 0;
+    uint256 _swapFee = BONE;
+
+    // it should revert
+    //     bi + (ai * (1 - swapFee)) = 0
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcOutGivenIn(_balanceIn, weightIn, balanceOut, weightOut, amountIn, _swapFee);
   }
 
   function test_CalcOutGivenInWhenTokenWeightInIsZero() external virtual {
@@ -241,6 +252,26 @@ contract BMathTest is Test, BConst {
     bMath.calcInGivenOut(balanceIn, weightIn, _amount, weightOut, _amount, swapFee);
   }
 
+  function test_CalcInGivenOutRevertWhen_SwapFeeGreaterThanBONE(uint256 _swapFee) external {
+    _swapFee = bound(_swapFee, BONE + 1, type(uint256).max);
+
+    // it should revert
+    //     subtraction underflow
+    vm.expectRevert(BNum.BNum_SubUnderflow.selector);
+
+    bMath.calcInGivenOut(balanceIn, weightIn, balanceOut, weightOut, amountOut, _swapFee);
+  }
+
+  function test_CalcInGivenOutRevertWhen_SwapFeeEqualsBONE() external {
+    uint256 _swapFee = BONE;
+
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcInGivenOut(balanceIn, weightIn, balanceOut, weightOut, amountOut, _swapFee);
+  }
+
   function test_CalcInGivenOutWhenTokenWeightOutIsZero() external virtual {
     uint256 _weightOut = 0;
 
@@ -312,6 +343,18 @@ contract BMathTest is Test, BConst {
 
     // it should return zero
     uint256 _poolOut = bMath.calcPoolOutGivenSingleIn(balanceIn, _weightIn, poolSupply, totalWeight, amountIn, swapFee);
+
+    assertEq(_poolOut, 0);
+  }
+
+  function test_CalcPoolOutGivenSingleInRevertWhen_TotalWeightIsZero() external virtual {
+    uint256 _totalWeight = 0;
+
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    uint256 _poolOut = bMath.calcPoolOutGivenSingleIn(balanceIn, weightIn, poolSupply, _totalWeight, amountIn, swapFee);
 
     assertEq(_poolOut, 0);
   }
