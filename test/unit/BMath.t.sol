@@ -75,7 +75,7 @@ contract BMathTest is Test, BConst {
     bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
   }
 
-  function test_CalcSpotPriceWhenSwapFeeIsZero() external {
+  function test_CalcSpotPriceWhenSwapFeeIsZero() external virtual {
     // it should return correct value
     //     bi/wi * wo/bo
     //     20/1 * 2/30 = 1.333333...
@@ -84,7 +84,7 @@ contract BMathTest is Test, BConst {
     assertEq(_spotPrice, 1.333333333333333333e18);
   }
 
-  function test_CalcSpotPriceWhenSwapFeeIsNonZero() external {
+  function test_CalcSpotPriceWhenSwapFeeIsNonZero() external virtual {
     // it should return correct value
     //     (bi/wi * wo/bo) * (1 / (1 - sf))
     //     (20/1 * 2/30) * (1 / (1 - 0.1)) = 1.481481481...
@@ -113,7 +113,7 @@ contract BMathTest is Test, BConst {
     bMath.calcOutGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, _swapFee);
   }
 
-  function test_CalcOutGivenInWhenSwapFeeEqualsBONE() external {
+  function test_CalcOutGivenInWhenSwapFeeEqualsBONE() external virtual {
     uint256 _swapFee = BONE;
 
     // it should return zero
@@ -143,7 +143,7 @@ contract BMathTest is Test, BConst {
     bMath.calcOutGivenIn(_balanceIn, weightIn, balanceOut, weightOut, _amountIn, swapFee);
   }
 
-  function test_CalcOutGivenInWhenTokenWeightInIsZero() external {
+  function test_CalcOutGivenInWhenTokenWeightInIsZero() external virtual {
     uint256 _weightIn = 0;
 
     // it should return zero
@@ -156,7 +156,11 @@ contract BMathTest is Test, BConst {
     _;
   }
 
-  function test_CalcOutGivenInWhenEqualWeightsAndSwapFeeIsZero(uint256 _weight) external whenTokenWeightsAreEqual {
+  function test_CalcOutGivenInWhenEqualWeightsAndSwapFeeIsZero(uint256 _weight)
+    external
+    virtual
+    whenTokenWeightsAreEqual
+  {
     _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
 
     // it should return correct value
@@ -167,7 +171,11 @@ contract BMathTest is Test, BConst {
     assertEq(_amountOut, 6e18);
   }
 
-  function test_CalcOutGivenInWhenEqualWeightsAndSwapFeeIsNonZero(uint256 _weight) external whenTokenWeightsAreEqual {
+  function test_CalcOutGivenInWhenEqualWeightsAndSwapFeeIsNonZero(uint256 _weight)
+    external
+    virtual
+    whenTokenWeightsAreEqual
+  {
     _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
 
     // it should return correct value
@@ -182,7 +190,7 @@ contract BMathTest is Test, BConst {
     _;
   }
 
-  function test_CalcOutGivenInWhenUnequalWeightsAndSwapFeeIsZero() external whenTokenWeightsAreUnequal {
+  function test_CalcOutGivenInWhenUnequalWeightsAndSwapFeeIsZero() external virtual whenTokenWeightsAreUnequal {
     // it should return correct value
     //     b0 * (1 - (bi / ((bi + ai)))^(wi/wo))
     //     30 * (1 - (20 / ((20 + 5)))^(1/2)) = 3.16718427...
@@ -191,7 +199,7 @@ contract BMathTest is Test, BConst {
     assertEq(_amountOut, 3.16718426981698245e18);
   }
 
-  function test_CalcOutGivenInWhenUnequalWeightsAndSwapFeeIsNonZero() external whenTokenWeightsAreUnequal {
+  function test_CalcOutGivenInWhenUnequalWeightsAndSwapFeeIsNonZero() external virtual whenTokenWeightsAreUnequal {
     // it should return correct value
     //     b0 * (1 - (bi / ((bi + (ai * (1 - sf)))))^(wi/wo))
     //     30 * (1 - (20 / ((20 + (5 * (1 - 0.1)))))^(1/2)) = 2.8947629128...
@@ -233,7 +241,7 @@ contract BMathTest is Test, BConst {
     bMath.calcInGivenOut(balanceIn, weightIn, _amount, weightOut, _amount, swapFee);
   }
 
-  function test_CalcInGivenOutWhenTokenWeightOutIsZero() external {
+  function test_CalcInGivenOutWhenTokenWeightOutIsZero() external virtual {
     uint256 _weightOut = 0;
 
     uint256 _amountIn = bMath.calcInGivenOut(balanceIn, weightIn, balanceOut, _weightOut, amountOut, swapFee);
@@ -242,7 +250,11 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 0);
   }
 
-  function test_CalcInGivenOutWhenEqualWeightsAndSwapFeeIsZero(uint256 _weights) external whenTokenWeightsAreEqual {
+  function test_CalcInGivenOutWhenEqualWeightsAndSwapFeeIsZero(uint256 _weights)
+    external
+    virtual
+    whenTokenWeightsAreEqual
+  {
     _weights = bound(_weights, MIN_WEIGHT, MAX_WEIGHT);
 
     // it should return correct value
@@ -253,7 +265,11 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 6.08695652173913044e18);
   }
 
-  function test_CalcInGivenOutWhenEqualWeightsAndSwapFeeIsNonZero(uint256 _weights) external whenTokenWeightsAreEqual {
+  function test_CalcInGivenOutWhenEqualWeightsAndSwapFeeIsNonZero(uint256 _weights)
+    external
+    virtual
+    whenTokenWeightsAreEqual
+  {
     _weights = bound(_weights, MIN_WEIGHT, MAX_WEIGHT);
     // it should return correct value
     //     bi * ((bo/(bo-ao) - 1))) / (1 - sf)
@@ -263,7 +279,7 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 6.763285024154589378e18);
   }
 
-  function test_CalcInGivenOutWhenUnequalWeightsAndSwapFeeIsZero() external whenTokenWeightsAreUnequal {
+  function test_CalcInGivenOutWhenUnequalWeightsAndSwapFeeIsZero() external virtual whenTokenWeightsAreUnequal {
     // it should return correct value
     //     bi * (((bo/(bo-ao))^(wo/wi) - 1)))
     //     20 * (((30/(30-7))^(2/1) - 1)) = 14.02646502836...
@@ -272,7 +288,7 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 14.02646502835538754e18);
   }
 
-  function test_CalcInGivenOutWhenUnequalWeightsAndSwapFeeIsNonZero() external whenTokenWeightsAreUnequal {
+  function test_CalcInGivenOutWhenUnequalWeightsAndSwapFeeIsNonZero() external virtual whenTokenWeightsAreUnequal {
     // it should return correct value
     //     bi * (((bo/(bo-ao))^(wo/wi) - 1))) / (1 - sf)
     //     20 * (((30/(30-7))^(2/1) - 1)) / (1 - 0.1) = 15.5849611426...
@@ -291,7 +307,7 @@ contract BMathTest is Test, BConst {
     bMath.calcPoolOutGivenSingleIn(_balanceIn, weightIn, poolSupply, totalWeight, amountIn, swapFee);
   }
 
-  function test_CalcPoolOutGivenSingleInWhenTokenWeightInIsZero() external {
+  function test_CalcPoolOutGivenSingleInWhenTokenWeightInIsZero() external virtual {
     uint256 _weightIn = 0;
 
     // it should return zero
@@ -300,7 +316,7 @@ contract BMathTest is Test, BConst {
     assertEq(_poolOut, 0);
   }
 
-  function test_CalcPoolOutGivenSingleInWhenSwapFeeIsZero() external {
+  function test_CalcPoolOutGivenSingleInWhenSwapFeeIsZero() external virtual {
     // it should return correct value
     //     ((( ai + bi ) / bi ) ^ (wi/wT)) * pS - pS
     //     ((( 5 + 20 ) / 20 ) ^ (1/10)) * 100 - 100 = 2.2565182564...
@@ -309,7 +325,7 @@ contract BMathTest is Test, BConst {
     assertEq(_poolOut, 2.2565182579165133e18);
   }
 
-  function test_CalcPoolOutGivenSingleInWhenSwapFeeIsNonZero() external {
+  function test_CalcPoolOutGivenSingleInWhenSwapFeeIsNonZero() external virtual {
     // it should return correct value
     //     ((( ai * (1 - ((1-(wi/wT))*sf)) + bi) / bi ) ^ (wi/wT)) * pS - pS
     //     ((( 5 * (1 - ((1-(1/10))*0.1)) + 20) / 20 ) ^ (1/10)) * 100 - 100 = 2.07094840224...
@@ -328,7 +344,7 @@ contract BMathTest is Test, BConst {
     bMath.calcSingleInGivenPoolOut(balanceIn, weightIn, poolSupply, _totalWeight, amountOut, swapFee);
   }
 
-  function test_CalcSingleInGivenPoolOutWhenSwapFeeIsZero() external {
+  function test_CalcSingleInGivenPoolOutWhenSwapFeeIsZero() external virtual {
     // it should return correct value
     //     (((pS + ao) / pS) ^ (wT / wi)) * bi - bi
     //     (((100 + 7) / 100) ^ (10 / 1)) * 20 - 20 = 19.3430271458...
@@ -337,7 +353,7 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 19.34302714579130644e18);
   }
 
-  function test_CalcSingleInGivenPoolOutWhenSwapFeeIsNonZero() external {
+  function test_CalcSingleInGivenPoolOutWhenSwapFeeIsNonZero() external virtual {
     // it should return correct value
     //     ((((pS + ao) / pS) ^ (wT/wi)) * bi - bi) / (1 - (1 - (wi/wT)) * sf)
     //     ((((100 + 7) / 100) ^ (10/1)) * 20 - 20) / (1 - (1 - (1/10)) * 0.1) = 21.2560737866...
@@ -366,7 +382,7 @@ contract BMathTest is Test, BConst {
     bMath.calcSingleOutGivenPoolIn(balanceOut, weightOut, poolSupply, _totalWeight, amountIn, swapFee);
   }
 
-  function test_CalcSingleOutGivenPoolInWhenTokenBalanceOutIsZero() external {
+  function test_CalcSingleOutGivenPoolInWhenTokenBalanceOutIsZero() external virtual {
     uint256 _balanceOut = 0;
 
     // it should return zero
@@ -376,7 +392,7 @@ contract BMathTest is Test, BConst {
     assertEq(_amountOut, 0);
   }
 
-  function test_CalcSingleOutGivenPoolInWhenSwapFeeAndExitFeeAreZero() external {
+  function test_CalcSingleOutGivenPoolInWhenSwapFeeAndExitFeeAreZero() external virtual {
     // it should return correct value
     //     bo - ((pS - ai)/pS)^(wT/wo) * bo
     //     30 - ((100 - 5)/100)^(10/2) * 30 = 6.786571875
@@ -391,7 +407,7 @@ contract BMathTest is Test, BConst {
       //     bo - ((pS - (ai * (1 - ef))/pS)^(wT/wo) * bo
   }
 
-  function test_CalcSingleOutGivenPoolInWhenSwapFeeIsNonZeroAndExitFeeIsZero() external {
+  function test_CalcSingleOutGivenPoolInWhenSwapFeeIsNonZeroAndExitFeeIsZero() external virtual {
     // it should return correct value
     //     (bo - ((pS - ai/pS)^(wT/wo) * bo) * (1 - ((1 - (wo/wT)) * sf))
     //     (30 - ((100 - 5)/100)^(10/2) * 30) * (1 - ((1 - (2/10)) * 0.1)) = 6.243646125...
@@ -428,7 +444,7 @@ contract BMathTest is Test, BConst {
     bMath.calcPoolInGivenSingleOut(balanceOut, _weightOut, poolSupply, totalWeight, amountOut, _swapFee);
   }
 
-  function test_CalcPoolInGivenSingleOutWhenTokenAmountOutIsZero() external {
+  function test_CalcPoolInGivenSingleOutWhenTokenAmountOutIsZero() external virtual {
     uint256 _amountOut = 0;
 
     // it should return zero
@@ -438,7 +454,7 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 0);
   }
 
-  function test_CalcPoolInGivenSingleOutWhenPoolSupplyIsZero() external {
+  function test_CalcPoolInGivenSingleOutWhenPoolSupplyIsZero() external virtual {
     uint256 _poolSupply = 0;
     // it should return zero
     uint256 _amountIn =
@@ -447,7 +463,7 @@ contract BMathTest is Test, BConst {
     assertEq(_amountIn, 0);
   }
 
-  function test_CalcPoolInGivenSingleOutWhenSwapFeeAndExitFeeAreZero() external {
+  function test_CalcPoolInGivenSingleOutWhenSwapFeeAndExitFeeAreZero() external virtual {
     // it should return correct value
     //     pS - (( (bo - ao) / bo ) ^ (wo/wT)) * pS
     //     100 - (( (30 - 7) / 30 ) ^ (2/10)) * 100 = 5.1753351805...
@@ -462,7 +478,7 @@ contract BMathTest is Test, BConst {
       //     (pS - (( (bo - ao) / bo ) ^ (wo/wT)) * pS) / (1 - ef)
   }
 
-  function test_CalcPoolInGivenSingleOutWhenSwapFeeIsNonZeroAndExitFeeIsZero() external {
+  function test_CalcPoolInGivenSingleOutWhenSwapFeeIsNonZeroAndExitFeeIsZero() external virtual {
     // it should return correct value
     //     pS - (( (bo - (ao / ( 1 - ((1 - (wo/wT)) * sf) ))) / bo ) ^ (wo/wT)) * pS
     //     100 - (( (30 - (7 / ( 1 - ((1 - (2/10)) * 0.1) ))) / 30 ) ^ (2/10)) * 100 = 5.682641831...
