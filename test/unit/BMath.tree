@@ -127,12 +127,14 @@ BMathTest::calcSingleOutGivenPoolIn
         └── (bo - ((pS - (ai * (1 - ef))/pS)^(wT/wo) * bo) * (1 - ((1 - (wo/wT)) * sf))
 
 BMathTest::calcPoolInGivenSingleOut
-├── when tokenBalanceOut is zero
-│   └── it should revert
+├── when token balance out is zero
+│   └── it should revert // subtraction underflow
 ├── when swap fee is 1 and token weight out is zero
-│   └── it should revert
+│   └── it should revert // division by zero
+├── when token amount out is zero
+│   └── it should return zero
 ├── when pool supply is zero
-│   └── it should revert
+│   └── it should return zero
 ├── when swap fee and exit fee are zero
 │   └── it should return correct value
 │       └── pS - (( (bo - ao) / bo ) ^ (wo/wT)) * pS

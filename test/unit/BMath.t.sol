@@ -461,18 +461,43 @@ contract BMathTest is Test, BConst {
   }
 
   function test_CalcPoolInGivenSingleOutRevertWhen_TokenBalanceOutIsZero() external {
-    vm.skip(true);
+    uint256 _balanceOut = 0;
+
     // it should revert
+    //     subtraction underflow
+    vm.expectRevert(BNum.BNum_SubUnderflow.selector);
+
+    bMath.calcPoolInGivenSingleOut(_balanceOut, weightOut, poolSupply, totalWeight, amountOut, swapFee);
   }
 
   function test_CalcPoolInGivenSingleOutRevertWhen_SwapFeeIs1AndTokenWeightOutIsZero() external {
-    vm.skip(true);
+    uint256 _swapFee = BONE;
+    uint256 _weightOut = 0;
+
     // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+
+    bMath.calcPoolInGivenSingleOut(balanceOut, _weightOut, poolSupply, totalWeight, amountOut, _swapFee);
   }
 
-  function test_CalcPoolInGivenSingleOutRevertWhen_PoolSupplyIsZero() external {
-    vm.skip(true);
-    // it should revert
+  function test_CalcPoolInGivenSingleOutWhenTokenAmountOutIsZero() external {
+    uint256 _amountOut = 0;
+
+    // it should return zero
+    uint256 _amountIn =
+      bMath.calcPoolInGivenSingleOut(balanceOut, weightOut, poolSupply, totalWeight, _amountOut, swapFee);
+
+    assertEq(_amountIn, 0);
+  }
+
+  function test_CalcPoolInGivenSingleOutWhenPoolSupplyIsZero() external {
+    uint256 _poolSupply = 0;
+    // it should return zero
+    uint256 _amountIn =
+      bMath.calcPoolInGivenSingleOut(balanceOut, weightOut, _poolSupply, totalWeight, amountOut, swapFee);
+
+    assertEq(_amountIn, 0);
   }
 
   function test_CalcPoolInGivenSingleOutWhenSwapFeeAndExitFeeAreZero() external {
