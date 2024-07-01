@@ -239,7 +239,7 @@ contract BNumTest is Test, BConst {
 
   function test_BdivWhenFlooringToZero() external {
     // it should return zero
-    //     (1 * BONE) / 2 * BONE + 1 = 0.499..
+    //     (1 * BONE) / (2 * BONE + 1) = 0.499..
     uint256 _a = 1;
     uint256 _b = 2e18 + 1;
 
