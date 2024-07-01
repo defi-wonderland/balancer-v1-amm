@@ -86,11 +86,15 @@ BMathTest::calcInGivenOut
 
 BMathTest::calcPoolOutGivenSingleIn
 ├── when token balance in is zero
-│   └── it should revert // TODO: why?
+│   └── it should revert // division by zero
 ├── when token weight in is zero
 │   └── it should return zero
-└── when using known values
+├── when swap fee is zero
+│   └── it should return correct value
+│       └── ((( ai + bi ) / bi ) ^ (wi/wT)) * pS - pS
+└── when swap fee is non zero
     └── it should return correct value
+        └── ((( ai * (1 - ((1-(wi/wT))*sf)) + bi) / bi ) ^ (wi/wT)) * pS - pS
 
 BMathTest::calcSingleInGivenPoolOut
 ├── when total weight is zero

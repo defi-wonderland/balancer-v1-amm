@@ -359,9 +359,22 @@ contract BMathTest is Test, BConst {
     // it should return zero
   }
 
-  function test_CalcPoolOutGivenSingleInWhenUsingKnownValues() external {
-    vm.skip(true);
+  function test_CalcPoolOutGivenSingleInWhenSwapFeeIsZero() external {
     // it should return correct value
+    //     ((( ai + bi ) / bi ) ^ (wi/wT)) * pS - pS
+    //     ((( 5 + 20 ) / 20 ) ^ (1/10)) * 100 - 100 = 2.2565182564...
+    uint256 _poolOut = bMath.calcPoolOutGivenSingleIn(balanceIn, weightIn, poolSupply, totalWeight, amountIn, 0);
+
+    assertEq(_poolOut, 2.2565182579165133e18);
+  }
+
+  function test_CalcPoolOutGivenSingleInWhenSwapFeeIsNonZero() external {
+    // it should return correct value
+    //     ((( ai * (1 - ((1-(wi/wT))*sf)) + bi) / bi ) ^ (wi/wT)) * pS - pS
+    //     ((( 5 * (1 - ((1-(1/10))*0.1)) + 20) / 20 ) ^ (1/10)) * 100 - 100 = 2.07094840224...
+    uint256 _poolOut = bMath.calcPoolOutGivenSingleIn(balanceIn, weightIn, poolSupply, totalWeight, amountIn, swapFee);
+
+    assertEq(_poolOut, 2.0709484026610259e18);
   }
 
   function test_CalcSingleInGivenPoolOutRevertWhen_TotalWeightIsZero() external {
@@ -439,6 +452,8 @@ contract BMathTest is Test, BConst {
   uint256 constant swapFee = BONE / 10;
   uint256 constant amountIn = 5 * BONE;
   uint256 constant amountOut = 7 * BONE;
+  uint256 constant totalWeight = 10 * BONE;
+  uint256 constant poolSupply = 100 * BONE;
 
   function setUp() external {
     bMath = new BMath();
