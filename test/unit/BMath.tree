@@ -3,11 +3,9 @@ BMathTest::calcSpotPrice
 │   └── it should revert
 │       └── division by zero
 ├── when token balance in too big
-│   └── it should revert
-│       └── bi * BONE > uint256 max
+│   └── it should revert // bi * BONE > uint256 max
 ├── when token balance out too big
-│   └── it should revert
-│       └── bo * BONE > uint256 max
+│   └── it should revert // bo * BONE > uint256 max
 ├── when weighted token balance in too big
 │   └── it should revert // bi * BONE + (wi / 2) > uint256 max
 ├── when weighted token balance out too big

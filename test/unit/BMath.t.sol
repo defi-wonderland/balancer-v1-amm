@@ -33,7 +33,7 @@ contract BMathTest is Test, BConst {
     bMath.calcSpotPrice(balanceIn, weightIn, balanceOut, weightOut, _swapFee);
   }
 
-  function test_CalcSpotPriceWhenTokenBalanceInTooBig(uint256 _balanceIn) external {
+  function test_CalcSpotPriceRevertWhen_TokenBalanceInTooBig(uint256 _balanceIn) external {
     _balanceIn = bound(_balanceIn, type(uint256).max / BONE + 1, type(uint256).max);
 
     // it should revert
@@ -43,7 +43,7 @@ contract BMathTest is Test, BConst {
     bMath.calcSpotPrice(_balanceIn, weightIn, balanceOut, weightOut, swapFee);
   }
 
-  function test_CalcSpotPriceWhenTokenBalanceOutTooBig(uint256 _balanceOut) external {
+  function test_CalcSpotPriceRevertWhen_TokenBalanceOutTooBig(uint256 _balanceOut) external {
     _balanceOut = bound(_balanceOut, type(uint256).max / BONE + 1, type(uint256).max);
 
     // it should revert
