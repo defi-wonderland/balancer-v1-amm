@@ -15,6 +15,11 @@ import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
+import {BPool} from 'contracts/BPool.sol';
+// TODO: add interface of BMath to IBPool
+import {GetTradeableOrder} from 'contracts/GetTradeableOrder.sol';
+import {console} from 'forge-std/console.sol';
+
 contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
   using GPv2Order for GPv2Order.Data;
 
@@ -26,6 +31,60 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
 
   function _deployFactory() internal override returns (IBFactory) {
     return new BCoWFactory(address(settlement), APP_DATA);
+  }
+
+  function testGetTradeableOrder() public {
+    uint256 initialSpotPrice = BPool(address(pool)).calcSpotPrice({
+      tokenBalanceIn: weth.balanceOf(address(pool)), // 1 WETH
+      tokenWeightIn: 2e18,
+      tokenBalanceOut: dai.balanceOf(address(pool)), // 4000 DAI
+      tokenWeightOut: 8e18,
+      swapFee: 0
+    });
+    console.log(initialSpotPrice);
+    // 0.0001 (1 DAI in WETH terms)
+    // notice the weight distribution of 80% DAI and 20% WETH
+
+    GPv2Order.Data memory order = GetTradeableOrder.getTradeableOrder(
+      GetTradeableOrder.GetTradeableOrderParams({
+        pool: address(pool),
+        token0: weth,
+        token1: dai,
+        token0Weight: 2e18,
+        token1Weight: 8e18,
+        priceNumerator: 1e18,
+        priceDenominator: 2000e18, // reach 0.0005
+        appData: APP_DATA
+      })
+    );
+
+    console.log(order.sellAmount);
+    // sell 0.25 WETH
+    console.log(order.buyAmount);
+    // buy 1500 DAI
+
+    // execute the transfers
+    vm.startPrank(settlement.vaultRelayer());
+    order.sellToken.transferFrom(address(pool), address(this), order.sellAmount);
+    deal(address(order.buyToken), address(settlement.vaultRelayer()), order.buyAmount);
+    order.buyToken.transfer(address(pool), order.buyAmount);
+    vm.stopPrank();
+
+    // final balances
+    // 0.75 WETH
+    // 5500 DAI
+
+    uint256 finalSpotPrice = BPool(address(pool)).calcSpotPrice({
+      tokenBalanceIn: weth.balanceOf(address(pool)),
+      tokenWeightIn: 2e18,
+      tokenBalanceOut: dai.balanceOf(address(pool)),
+      tokenWeightOut: 8e18,
+      swapFee: 0
+    });
+
+    console.log(finalSpotPrice);
+    // 0.00054 (1 DAI in WETH terms)
+    // doesn't reach 0.0005 but doesn't overshoot
   }
 
   function _makeSwap() internal override {
