@@ -9,8 +9,10 @@ import {Utils} from 'test/utils/Utils.sol';
 
 contract BPoolBase is Test, BConst, Utils {
   MockBPool public bPool;
+  address public deployer = makeAddr('deployer');
 
-  function setUp() external {
+  function setUp() public virtual {
+    vm.prank(deployer);
     bPool = new MockBPool();
   }
 
