@@ -174,7 +174,8 @@ contract BPool is BToken, BMath, IBPool {
       revert BPool_InvalidPoolRatio();
     }
 
-    for (uint256 i = 0; i < _tokens.length; i++) {
+    uint256 _tokensLength = _tokens.length;
+    for (uint256 i = 0; i < _tokensLength; i++) {
       address t = _tokens[i];
       uint256 bal = IERC20(t).balanceOf(address(this));
       uint256 tokenAmountIn = bmul(ratio, bal);
@@ -209,7 +210,8 @@ contract BPool is BToken, BMath, IBPool {
     _pushPoolShare(_factory, exitFee);
     _burnPoolShare(pAiAfterExitFee);
 
-    for (uint256 i = 0; i < _tokens.length; i++) {
+    uint256 _tokensLength = _tokens.length;
+    for (uint256 i = 0; i < _tokensLength; i++) {
       address t = _tokens[i];
       uint256 bal = IERC20(t).balanceOf(address(this));
       uint256 tokenAmountOut = bmul(ratio, bal);
