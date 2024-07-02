@@ -8,12 +8,16 @@ import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BPool is BPoolBase {
   address public token = makeAddr('token');
+  address public secondToken = makeAddr('secondToken');
   uint256 public tokenBindBalance = 100e18;
   uint256 public tokenWeight = 1e18;
 
   function setUp() public virtual override {
     super.setUp();
+    vm.mockCall(secondToken, abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
     vm.mockCall(token, abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
+    vm.mockCall(token, abi.encodePacked(IERC20.transfer.selector), abi.encode());
+    vm.mockCall(token, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(tokenBindBalance));
   }
 
   modifier whenReentrancyLockIsNOTSet() {
@@ -88,6 +92,10 @@ contract BPool is BPoolBase {
     bPool.bind(token, tokenBindBalance, MAX_TOTAL_WEIGHT / 2);
   }
 
+  modifier whenPoolIsNOTFinalized() {
+    _;
+  }
+
   function test_BindWhenItIsNOTFinalized() external whenReentrancyLockIsNOTSet whenCalledByController {
     // it calls _pullUnderlying
     bPool.expectCall__pullUnderlying(token, deployer, tokenBindBalance);
@@ -110,5 +118,90 @@ contract BPool is BPoolBase {
     vm.expectRevert(IBPool.BPool_Reentrancy.selector);
     // it should revert
     bPool.bind(token, tokenBindBalance, tokenWeight);
+  }
+
+  function test_UnbindRevertWhen_CalledNOTByController(address _caller) external whenReentrancyLockIsNOTSet {
+    // it should revert
+    vm.assume(_caller != deployer);
+    vm.prank(_caller);
+    vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
+    bPool.unbind(token);
+  }
+
+  function test_UnbindRevertWhen_TokenIsNotBound() external whenReentrancyLockIsNOTSet whenCalledByController {
+    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    // it should revert
+    bPool.unbind(token);
+  }
+
+  modifier whenTokenIsBound() {
+    // note: it depends on the `startPrank` of whenCalledByController
+    bPool.bind(token, tokenBindBalance, tokenWeight);
+    _;
+  }
+
+  function test_UnbindRevertWhen_PoolIsFinalized()
+    external
+    whenReentrancyLockIsNOTSet
+    whenCalledByController
+    whenTokenIsBound
+  {
+    bPool.set__finalized(true);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
+    bPool.unbind(token);
+  }
+
+  function test_UnbindWhenTokenIsLastOnTheTokensArray()
+    external
+    whenReentrancyLockIsNOTSet
+    whenCalledByController
+    whenPoolIsNOTFinalized
+    whenTokenIsBound
+  {
+    // it sets reentrancy lock
+    bPool.expectCall__setLock(_MUTEX_TAKEN);
+    // it calls _pushUnderlying
+    bPool.expectCall__pushUnderlying(token, deployer, tokenBindBalance);
+
+    // it emits LOG_CALL event
+    vm.expectEmit();
+    bytes memory _data = abi.encodeWithSelector(IBPool.unbind.selector, token);
+    emit IBPool.LOG_CALL(IBPool.unbind.selector, deployer, _data);
+    bPool.unbind(token);
+
+    // it removes the token record
+    assertFalse(bPool.call__records(token).bound);
+    // it pops from the array
+    assertEq(bPool.getNumTokens(), 0);
+    // it decreases the total weight
+    assertEq(bPool.call__totalWeight(), 0);
+  }
+
+  function test_UnbindWhenTokenIsNOTLastOneInTheArray()
+    external
+    whenReentrancyLockIsNOTSet
+    whenCalledByController
+    whenPoolIsNOTFinalized
+    whenTokenIsBound
+  {
+    bPool.bind(secondToken, tokenBindBalance, tokenWeight);
+    bPool.unbind(token);
+    // it swaps token with last one
+    // it pops from the array
+    assertEq(bPool.getNumTokens(), 1);
+    assertEq(bPool.call__tokens()[0], secondToken);
+    assertFalse(bPool.call__records(token).bound);
+    assertTrue(bPool.call__records(secondToken).bound);
+    // it updates the swapped record index
+    assertEq(bPool.call__records(secondToken).index, 0);
+  }
+
+  function test_UnbindRevertWhen_ReentrancyLockIsSet() external {
+    // it should revert
+    bPool.call__setLock(_MUTEX_TAKEN);
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
+    // it should revert
+    bPool.unbind(token);
   }
 }
