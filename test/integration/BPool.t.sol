@@ -8,7 +8,7 @@ import {Test, Vm} from 'forge-std/Test.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
-abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
+abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   IBPool public pool;
   IBFactory public factory;
 
@@ -19,6 +19,8 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
   Vm.Wallet swapper = vm.createWallet('swapper');
   Vm.Wallet swapperInverse = vm.createWallet('swapperInverse');
+  Vm.Wallet joiner = vm.createWallet('joiner');
+  Vm.Wallet exiter = vm.createWallet('exiter');
 
   /**
    * For the simplicity of this test, a 1000 DAI:1 ETH reference quote is used.
@@ -53,14 +55,18 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
 
     factory = _deployFactory();
 
+    vm.startPrank(lp);
+    pool = factory.newBPool();
+
     deal(address(dai), lp, DAI_LP_AMOUNT);
     deal(address(weth), lp, WETH_LP_AMOUNT);
 
     deal(address(dai), swapper.addr, DAI_AMOUNT);
     deal(address(weth), swapperInverse.addr, WETH_AMOUNT_INVERSE);
 
-    vm.startPrank(lp);
-    pool = factory.newBPool();
+    deal(address(dai), joiner.addr, DAI_LP_AMOUNT);
+    deal(address(weth), joiner.addr, WETH_LP_AMOUNT);
+    deal(address(pool), exiter.addr, ONE_UNIT, false);
 
     dai.approve(address(pool), type(uint256).max);
     weth.approve(address(pool), type(uint256).max);
@@ -98,14 +104,30 @@ abstract contract PoolSwapIntegrationTest is Test, GasSnapshot {
     assertEq(weth.balanceOf(address(lp)), WETH_LP_AMOUNT + WETH_AMOUNT_INVERSE); // initial 1 + 0.1 eth
   }
 
+  function testSimpleJoin() public {
+    _makeJoin();
+    assertEq(dai.balanceOf(joiner.addr), 0);
+    assertEq(weth.balanceOf(joiner.addr), 0);
+  }
+
+  function testSimpleExit() public {
+    _makeExit();
+    assertEq(dai.balanceOf(exiter.addr), DAI_LP_AMOUNT / 100);
+    assertEq(weth.balanceOf(exiter.addr), WETH_LP_AMOUNT / 100);
+  }
+
   function _deployFactory() internal virtual returns (IBFactory);
 
   function _makeSwap() internal virtual;
 
   function _makeSwapInverse() internal virtual;
+
+  function _makeJoin() internal virtual;
+
+  function _makeExit() internal virtual;
 }
 
-contract DirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
+contract DirectBPoolIntegrationTest is BPoolIntegrationTest {
   function _deployFactory() internal override returns (IBFactory) {
     return new BFactory();
   }
@@ -129,6 +151,34 @@ contract DirectPoolSwapIntegrationTest is PoolSwapIntegrationTest {
     // swap 0.1 weth for dai
     snapStart('swapExactAmountInInverse');
     pool.swapExactAmountIn(address(weth), WETH_AMOUNT_INVERSE, address(dai), 0, type(uint256).max);
+    snapEnd();
+
+    vm.stopPrank();
+  }
+
+  function _makeJoin() internal override {
+    vm.startPrank(joiner.addr);
+    dai.approve(address(pool), type(uint256).max);
+    weth.approve(address(pool), type(uint256).max);
+
+    uint256[] memory maxAmountsIn = new uint256[](2);
+    maxAmountsIn[0] = type(uint256).max;
+    maxAmountsIn[1] = type(uint256).max;
+
+    snapStart('joinPool');
+    pool.joinPool(pool.totalSupply(), maxAmountsIn);
+    snapEnd();
+
+    vm.stopPrank();
+  }
+
+  function _makeExit() internal override {
+    vm.startPrank(exiter.addr);
+
+    uint256[] memory minAmountsOut = new uint256[](2);
+
+    snapStart('exitPool');
+    pool.exitPool(ONE_UNIT, minAmountsOut);
     snapEnd();
 
     vm.stopPrank();
