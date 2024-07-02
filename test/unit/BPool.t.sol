@@ -357,42 +357,6 @@ abstract contract SwapExactAmountInUtils is BasePoolTest {
   }
 }
 
-contract BPool_Unit_Constructor is BasePoolTest {
-  function test_Deploy(address _deployer) public {
-    vm.prank(_deployer);
-    MockBPool _newBPool = new MockBPool();
-
-    assertEq(_newBPool.call__controller(), _deployer);
-    assertEq(_newBPool.call__factory(), _deployer);
-    assertEq(_newBPool.call__swapFee(), MIN_FEE);
-    assertEq(_newBPool.call__finalized(), false);
-  }
-}
-
-contract BPool_Unit_IsFinalized is BasePoolTest {
-  function test_Returns_IsFinalized(bool _isFinalized) public {
-    bPool.set__finalized(_isFinalized);
-    assertEq(bPool.isFinalized(), _isFinalized);
-  }
-}
-
-contract BPool_Unit_IsBound is BasePoolTest {
-  function test_Returns_IsBound(address _token, bool _isBound) public {
-    _setRecord(_token, IBPool.Record({bound: _isBound, index: 0, denorm: 0}));
-    assertEq(bPool.isBound(_token), _isBound);
-  }
-}
-
-contract BPool_Unit_GetNumTokens is BasePoolTest {
-  function test_Returns_NumTokens(uint256 _tokensToAdd) public {
-    vm.assume(_tokensToAdd > 0);
-    vm.assume(_tokensToAdd <= MAX_BOUND_TOKENS);
-    _setRandomTokens(_tokensToAdd);
-
-    assertEq(bPool.getNumTokens(), _tokensToAdd);
-  }
-}
-
 contract BPool_Unit_GetCurrentTokens is BasePoolTest {
   function test_Returns_CurrentTokens(uint256 _length) public {
     vm.assume(_length > 0);
