@@ -8,22 +8,22 @@ import {ISettlement} from 'interfaces/ISettlement.sol';
 
 interface IBCoWPool is IERC1271, IBPool {
   /**
-   * @notice thrown when a CoW order has a non-zero fee
+   * @notice Thrown when a CoW order has a non-zero fee
    */
   error BCoWPool_FeeMustBeZero();
 
   /**
-   * @notice thrown when a CoW order is executed after its deadline
+   * @notice Thrown when a CoW order is executed after its deadline
    */
   error BCoWPool_OrderValidityTooLong();
 
   /**
-   * @notice thrown when a CoW order has an unkown type (must be GPv2Order.KIND_SELL)
+   * @notice Thrown when a CoW order has an unknown type (must be GPv2Order.KIND_SELL)
    */
   error BCoWPool_InvalidOperation();
 
   /**
-   * @notice thrown when a CoW order has an invalid balance marker. BCoWPool
+   * @notice Thrown when a CoW order has an invalid balance marker. BCoWPool
    * only supports BALANCE_ERC20, instructing to use the underlying ERC20
    * balance directly instead of balancer's internal accounting
    */
