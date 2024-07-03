@@ -88,7 +88,7 @@ contract BFactoryTest is Test {
 
     factory.setBLabs(_newBLabs);
 
-    // it should emit a BLabsSet event
+    // it should set the new bLabs address
     assertEq(factory.getBLabs(), _newBLabs);
   }
 
