@@ -1,11 +1,11 @@
 BPool::bind
 ├── when reentrancy lock is NOT set
-│   ├── when called NOT by controller
+│   ├── when caller is NOT controller
 │   │   └── it should revert
-│   └── when called by controller
-│       ├── when pool is finalized
-│       │   └── it should revert
+│   └── when caller is controller
 │       ├── when token is already bound
+│       │   └── it should revert
+│       ├── when pool is finalized
 │       │   └── it should revert
 │       ├── when MAX_BOUND_TOKENS tokens are already bound
 │       │   └── it should revert
@@ -17,7 +17,7 @@ BPool::bind
 │       │   └── it should revert
 │       ├── when weight sum exceeds MAX_TOTAL_WEIGHT
 │       │   └── it should revert
-│       └── when it is NOT finalized
+│       └── when token can be bound
 │           ├── it sets reentrancy lock
 │           ├── it increments _totalWeight
 │           ├── it calls _pullUnderlying
@@ -28,9 +28,9 @@ BPool::bind
 
 BPool::unbind
 ├── when reentrancy lock is NOT set
-│   ├── when called NOT by controller
+│   ├── when caller is NOT controller
 │   │   └── it should revert
-│   └── when called by controller
+│   └── when caller is controller
 │       ├── when token is not bound
 │       │   └── it should revert
 │       └── when token is bound
@@ -44,8 +44,9 @@ BPool::unbind
 │           │   ├── it decreases the total weight
 │           │   └── it pops from the array
 │           └── when token is NOT last one in the array
-│               ├── it swaps token with last one
-│               ├── it updates the swapped record index
-│               └── it pops from the array
+│               ├── it removes the token record
+│               ├── it removes the token from the array
+│               ├── it keeps other tokens in the array
+│               └── it updates records to point to the correct indices
 └── when reentrancy lock is set
     └── it should revert

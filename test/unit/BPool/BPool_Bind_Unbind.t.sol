@@ -24,7 +24,7 @@ contract BPool is BPoolBase {
     _;
   }
 
-  function test_BindRevertWhen_CalledNOTByController(address _caller) external whenReentrancyLockIsNOTSet {
+  function test_BindRevertWhen_CallerIsNOTController(address _caller) external whenReentrancyLockIsNOTSet {
     // it should revert
     vm.assume(_caller != deployer);
     vm.prank(_caller);
@@ -32,19 +32,12 @@ contract BPool is BPoolBase {
     bPool.bind(token, tokenBindBalance, tokenWeight);
   }
 
-  modifier whenCalledByController() {
+  modifier whenCallerIsController() {
     vm.startPrank(deployer);
     _;
   }
 
-  function test_BindRevertWhen_PoolIsFinalized() external whenReentrancyLockIsNOTSet whenCalledByController {
-    bPool.set__finalized(true);
-    // it should revert
-    vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
-    bPool.bind(token, tokenBindBalance, tokenWeight);
-  }
-
-  function test_BindRevertWhen_TokenIsAlreadyBound() external whenReentrancyLockIsNOTSet whenCalledByController {
+  function test_BindRevertWhen_TokenIsAlreadyBound() external whenReentrancyLockIsNOTSet whenCallerIsController {
     _setRecord(token, IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
 
     // it should revert
@@ -52,10 +45,17 @@ contract BPool is BPoolBase {
     bPool.bind(token, tokenBindBalance, tokenWeight);
   }
 
+  function test_BindRevertWhen_PoolIsFinalized() external whenReentrancyLockIsNOTSet whenCallerIsController {
+    bPool.set__finalized(true);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
+    bPool.bind(token, tokenBindBalance, tokenWeight);
+  }
+
   function test_BindRevertWhen_MAX_BOUND_TOKENSTokensAreAlreadyBound()
     external
     whenReentrancyLockIsNOTSet
-    whenCalledByController
+    whenCallerIsController
   {
     _setRandomTokens(MAX_BOUND_TOKENS);
     // it should revert
@@ -63,19 +63,19 @@ contract BPool is BPoolBase {
     bPool.bind(token, tokenBindBalance, tokenWeight);
   }
 
-  function test_BindRevertWhen_TokenWeightIsTooLow() external whenReentrancyLockIsNOTSet whenCalledByController {
+  function test_BindRevertWhen_TokenWeightIsTooLow() external whenReentrancyLockIsNOTSet whenCallerIsController {
     // it should revert
     vm.expectRevert(IBPool.BPool_WeightBelowMinimum.selector);
     bPool.bind(token, tokenBindBalance, MIN_WEIGHT - 1);
   }
 
-  function test_BindRevertWhen_TokenWeightIsTooHigh() external whenReentrancyLockIsNOTSet whenCalledByController {
+  function test_BindRevertWhen_TokenWeightIsTooHigh() external whenReentrancyLockIsNOTSet whenCallerIsController {
     // it should revert
     vm.expectRevert(IBPool.BPool_WeightAboveMaximum.selector);
     bPool.bind(token, tokenBindBalance, MAX_WEIGHT + 1);
   }
 
-  function test_BindRevertWhen_TooLittleBalanceIsProvided() external whenReentrancyLockIsNOTSet whenCalledByController {
+  function test_BindRevertWhen_TooLittleBalanceIsProvided() external whenReentrancyLockIsNOTSet whenCallerIsController {
     // it should revert
     vm.expectRevert(IBPool.BPool_BalanceBelowMinimum.selector);
     bPool.bind(token, MIN_BALANCE - 1, tokenWeight);
@@ -84,7 +84,7 @@ contract BPool is BPoolBase {
   function test_BindRevertWhen_WeightSumExceedsMAX_TOTAL_WEIGHT()
     external
     whenReentrancyLockIsNOTSet
-    whenCalledByController
+    whenCallerIsController
   {
     bPool.set__totalWeight(2 * MAX_TOTAL_WEIGHT / 3);
     // it should revert
@@ -92,11 +92,11 @@ contract BPool is BPoolBase {
     bPool.bind(token, tokenBindBalance, MAX_TOTAL_WEIGHT / 2);
   }
 
-  modifier whenPoolIsNOTFinalized() {
+  modifier whenTokenCanBeBound() {
     _;
   }
 
-  function test_BindWhenItIsNOTFinalized() external whenReentrancyLockIsNOTSet whenCalledByController {
+  function test_BindWhenTokenCanBeBound() external whenReentrancyLockIsNOTSet whenCallerIsController {
     // it calls _pullUnderlying
     bPool.expectCall__pullUnderlying(token, deployer, tokenBindBalance);
     // it sets reentrancy lock
@@ -120,7 +120,7 @@ contract BPool is BPoolBase {
     bPool.bind(token, tokenBindBalance, tokenWeight);
   }
 
-  function test_UnbindRevertWhen_CalledNOTByController(address _caller) external whenReentrancyLockIsNOTSet {
+  function test_UnbindRevertWhen_CallerIsNOTController(address _caller) external whenReentrancyLockIsNOTSet {
     // it should revert
     vm.assume(_caller != deployer);
     vm.prank(_caller);
@@ -128,7 +128,7 @@ contract BPool is BPoolBase {
     bPool.unbind(token);
   }
 
-  function test_UnbindRevertWhen_TokenIsNotBound() external whenReentrancyLockIsNOTSet whenCalledByController {
+  function test_UnbindRevertWhen_TokenIsNotBound() external whenReentrancyLockIsNOTSet whenCallerIsController {
     vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
     // it should revert
     bPool.unbind(token);
@@ -146,7 +146,7 @@ contract BPool is BPoolBase {
   function test_UnbindRevertWhen_PoolIsFinalized()
     external
     whenReentrancyLockIsNOTSet
-    whenCalledByController
+    whenCallerIsController
     whenTokenIsBound
   {
     bPool.set__finalized(true);
@@ -158,8 +158,8 @@ contract BPool is BPoolBase {
   function test_UnbindWhenTokenIsLastOnTheTokensArray()
     external
     whenReentrancyLockIsNOTSet
-    whenCalledByController
-    whenPoolIsNOTFinalized
+    whenCallerIsController
+    whenTokenCanBeBound
     whenTokenIsBound
   {
     // it sets reentrancy lock
@@ -184,19 +184,20 @@ contract BPool is BPoolBase {
   function test_UnbindWhenTokenIsNOTLastOneInTheArray()
     external
     whenReentrancyLockIsNOTSet
-    whenCalledByController
-    whenPoolIsNOTFinalized
+    whenCallerIsController
+    whenTokenCanBeBound
     whenTokenIsBound
   {
     bPool.bind(secondToken, tokenBindBalance, tokenWeight);
     bPool.unbind(token);
-    // it swaps token with last one
-    // it pops from the array
-    assertEq(bPool.getNumTokens(), 1);
-    assertEq(bPool.call__tokens()[0], secondToken);
+    // it removes the token record
     assertFalse(bPool.call__records(token).bound);
+    // it removes the token from the array
+    assertEq(bPool.getNumTokens(), 1);
+    // it keeps other tokens in the array
+    assertEq(bPool.call__tokens()[0], secondToken);
     assertTrue(bPool.call__records(secondToken).bound);
-    // it updates the swapped record index
+    // it updates records to point to the new indices
     assertEq(bPool.call__records(secondToken).index, 0);
   }
 
