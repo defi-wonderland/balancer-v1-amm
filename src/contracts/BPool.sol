@@ -15,7 +15,7 @@ contract BPool is BToken, BMath, IBPool {
   using SafeERC20 for IERC20;
   /// @dev BFactory address to push token exitFee to
 
-  address internal _factory;
+  address internal immutable _FACTORY;
   /// @dev Has CONTROL role
   address internal _controller;
   /// @dev Fee for swapping
@@ -65,7 +65,7 @@ contract BPool is BToken, BMath, IBPool {
 
   constructor() {
     _controller = msg.sender;
-    _factory = msg.sender;
+    _FACTORY = msg.sender;
     _swapFee = MIN_FEE;
     _finalized = false;
   }
@@ -207,7 +207,7 @@ contract BPool is BToken, BMath, IBPool {
     }
 
     _pullPoolShare(msg.sender, poolAmountIn);
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(_FACTORY, exitFee);
     _burnPoolShare(pAiAfterExitFee);
 
     uint256 _tokensLength = _tokens.length;
@@ -454,7 +454,7 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullPoolShare(msg.sender, poolAmountIn);
     _burnPoolShare(bsub(poolAmountIn, exitFee));
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(_FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
     return tokenAmountOut;
@@ -494,7 +494,7 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullPoolShare(msg.sender, poolAmountIn);
     _burnPoolShare(bsub(poolAmountIn, exitFee));
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(_FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
     return poolAmountIn;
