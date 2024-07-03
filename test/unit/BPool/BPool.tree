@@ -3,7 +3,7 @@ BPool::constructor
     ├── it sets caller as controller
     ├── it sets caller as factory
     ├── it sets swap fee to MIN_FEE
-    └── it is NOT finalized
+    └── it does NOT finalize the pool
 
 BPool::isFinalized
 ├── when pool is finalized

@@ -16,7 +16,7 @@ contract BPool is BPoolBase {
     assertEq(_newBPool.call__factory(), _deployer);
     // it sets swap fee to MIN_FEE
     assertEq(_newBPool.call__swapFee(), MIN_FEE);
-    // it is NOT finalized
+    // it does NOT finalize the pool
     assertEq(_newBPool.call__finalized(), false);
   }
 
