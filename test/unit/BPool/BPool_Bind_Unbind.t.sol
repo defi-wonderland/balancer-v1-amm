@@ -135,8 +135,11 @@ contract BPool is BPoolBase {
   }
 
   modifier whenTokenIsBound() {
-    // note: it depends on the `startPrank` of whenCalledByController
-    bPool.bind(token, tokenBindBalance, tokenWeight);
+    _setRecord(token, IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
+    bPool.set__totalWeight(tokenWeight);
+    address[] memory tokens = new address[](1);
+    tokens[0] = token;
+    bPool.set__tokens(tokens);
     _;
   }
 
