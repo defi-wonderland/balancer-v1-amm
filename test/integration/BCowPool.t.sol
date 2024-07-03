@@ -245,6 +245,7 @@ contract BCowPoolIntegrationTest is BPoolIntegrationTest, BCoWConst {
     vm.skip(true);
   }
 
+  // NOTE: not implemented in Balancer CoW flow
   function _makeExit() internal override {
     vm.skip(true);
   }
