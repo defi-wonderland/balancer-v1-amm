@@ -514,7 +514,8 @@ contract BPool is BToken, BMath, IBPool {
     }
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
-    return calcSpotPrice(
+
+    spotPrice = calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
       IERC20(tokenOut).balanceOf(address(this)),
@@ -533,7 +534,8 @@ contract BPool is BToken, BMath, IBPool {
     }
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
-    return calcSpotPrice(
+
+    spotPrice = calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
       IERC20(tokenOut).balanceOf(address(this)),
@@ -571,7 +573,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getDenormalizedWeight(address token) external view _viewlock_ returns (uint256 denormalizedWeight) {
+  function getDenormalizedWeight(address token) external view _viewlock_ returns (uint256) {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
     }
@@ -579,12 +581,12 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getTotalDenormalizedWeight() external view _viewlock_ returns (uint256 totalWeight) {
+  function getTotalDenormalizedWeight() external view _viewlock_ returns (uint256) {
     return _totalWeight;
   }
 
   /// @inheritdoc IBPool
-  function getNormalizedWeight(address token) external view _viewlock_ returns (uint256 normalizedWeight) {
+  function getNormalizedWeight(address token) external view _viewlock_ returns (uint256) {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
     }
@@ -593,7 +595,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getBalance(address token) external view _viewlock_ returns (uint256 balance) {
+  function getBalance(address token) external view _viewlock_ returns (uint256) {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
     }
@@ -601,12 +603,12 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getSwapFee() external view _viewlock_ returns (uint256 swapFee) {
+  function getSwapFee() external view _viewlock_ returns (uint256) {
     return _swapFee;
   }
 
   /// @inheritdoc IBPool
-  function getController() external view _viewlock_ returns (address controller) {
+  function getController() external view _viewlock_ returns (address) {
     return _controller;
   }
 

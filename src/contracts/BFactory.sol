@@ -51,12 +51,12 @@ contract BFactory is IBFactory {
   }
 
   /// @inheritdoc IBFactory
-  function isBPool(address b) external view returns (bool __isBPool) {
+  function isBPool(address b) external view returns (bool) {
     return _isBPool[b];
   }
 
   /// @inheritdoc IBFactory
-  function getBLabs() external view returns (address bLabs) {
+  function getBLabs() external view returns (address) {
     return _bLabs;
   }
 
