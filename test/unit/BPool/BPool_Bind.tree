@@ -20,7 +20,8 @@ BPool::Bind
     │   └── it should revert
     └── when token can be bound
         ├── it sets reentrancy lock
+        ├── it emits LOG_CALL event
         ├── it increments _totalWeight
         ├── it calls _pullUnderlying
-        ├── it adds token to the list
+        ├── it adds token to the tokens array
         └── it sets the token record

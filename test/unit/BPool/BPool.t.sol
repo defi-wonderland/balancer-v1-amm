@@ -21,8 +21,8 @@ contract BPool is BPoolBase {
   }
 
   function test_IsFinalizedWhenPoolIsFinalized() external {
-    // it returns true
     bPool.set__finalized(true);
+    // it returns true
     assertTrue(bPool.isFinalized());
   }
 

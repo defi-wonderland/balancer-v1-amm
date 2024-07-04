@@ -78,10 +78,14 @@ contract BPoolBind is BPoolBase {
     bPool.expectCall__pullUnderlying(token, deployer, tokenBindBalance);
     // it sets reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
+    // it emits LOG_CALL event
+    vm.expectEmit();
+    bytes memory _data = abi.encodeWithSelector(IBPool.bind.selector, token, tokenBindBalance, tokenWeight);
+    emit IBPool.LOG_CALL(IBPool.bind.selector, deployer, _data);
 
     bPool.bind(token, tokenBindBalance, tokenWeight);
 
-    // it adds token to the list
+    // it adds token to the tokens array
     assertEq(bPool.call__tokens()[0], token);
     // it sets the token record
     assertEq(bPool.call__records(token).bound, true);
