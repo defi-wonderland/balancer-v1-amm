@@ -6,7 +6,7 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {BPool} from 'contracts/BPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
-import {MockBPool} from 'test/smock/MockBPool.sol';
+import {MockBPool} from 'test/manual-smock/MockBPool.sol';
 
 import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
@@ -363,7 +363,7 @@ contract BPool_Unit_Constructor is BasePoolTest {
     MockBPool _newBPool = new MockBPool();
 
     assertEq(_newBPool.call__controller(), _deployer);
-    assertEq(_newBPool.call__factory(), _deployer);
+    assertEq(_newBPool.call__FACTORY(), _deployer);
     assertEq(_newBPool.call__swapFee(), MIN_FEE);
     assertEq(_newBPool.call__finalized(), false);
   }
@@ -598,6 +598,7 @@ contract BPool_Unit_SetSwapFee is BasePoolTest {
 
 contract BPool_Unit_SetController is BasePoolTest {
   function test_Revert_NotController(address _controller, address _caller, address _newController) public {
+    vm.assume(_newController != address(0));
     vm.assume(_controller != _caller);
     bPool.set__controller(_controller);
 
@@ -611,13 +612,21 @@ contract BPool_Unit_SetController is BasePoolTest {
     bPool.setController(_controller);
   }
 
+  function test_Revert_AddressZero() public {
+    vm.expectRevert(IBPool.BPool_AddressZero.selector);
+
+    bPool.setController(address(0));
+  }
+
   function test_Set_Controller(address _controller) public {
+    vm.assume(_controller != address(0));
     bPool.setController(_controller);
 
     assertEq(bPool.call__controller(), _controller);
   }
 
   function test_Emit_LogCall(address _controller) public {
+    vm.assume(_controller != address(0));
     vm.expectEmit();
     bytes memory _data = abi.encodeWithSelector(BPool.setController.selector, _controller);
     emit IBPool.LOG_CALL(BPool.setController.selector, address(this), _data);
@@ -1395,7 +1404,7 @@ contract BPool_Unit_ExitPool is BasePoolTest {
   }
 
   function test_Push_PoolShare(ExitPool_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    address _factoryAddress = bPool.call__factory();
+    address _factoryAddress = bPool.call__FACTORY();
     uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
     uint256 _balanceBefore = bPool.balanceOf(_factoryAddress);
 
@@ -2684,7 +2693,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
   }
 
   function test_Push_PoolShare(ExitswapPoolAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    address _factoryAddress = bPool.call__factory();
+    address _factoryAddress = bPool.call__FACTORY();
     uint256 _balanceBefore = bPool.balanceOf(_factoryAddress);
     uint256 _exitFee = bmul(_fuzz.poolAmountIn, EXIT_FEE);
 
@@ -2932,7 +2941,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
   }
 
   function test_Push_PoolShare(ExitswapExternAmountOut_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
-    address _factoryAddress = bPool.call__factory();
+    address _factoryAddress = bPool.call__FACTORY();
     uint256 _balanceBefore = bPool.balanceOf(_factoryAddress);
     uint256 _poolAmountIn = calcPoolInGivenSingleOut(
       _fuzz.tokenOutBalance,
