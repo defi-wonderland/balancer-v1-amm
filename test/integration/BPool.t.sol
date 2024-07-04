@@ -35,13 +35,14 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   // unit amounts
   uint256 public constant ONE_TENTH_UNIT = 0.1 ether;
   uint256 public constant ONE_UNIT = 1 ether;
+  uint256 public constant ONE_UNIT_8_DECIMALS = 1e8;
   uint256 public constant HUNDRED_UNITS = 100 ether;
   uint256 public constant FOUR_THOUSAND_UNITS = 4000 ether;
 
   // pool amounts
   uint256 public constant DAI_LP_AMOUNT = FOUR_THOUSAND_UNITS;
   uint256 public constant WETH_LP_AMOUNT = ONE_UNIT;
-  uint256 public constant WBTC_LP_AMOUNT = ONE_TENTH_UNIT;
+  uint256 public constant WBTC_LP_AMOUNT = ONE_UNIT_8_DECIMALS;
 
   // swap amounts IN
   uint256 public constant DAI_AMOUNT = HUNDRED_UNITS;
@@ -94,7 +95,7 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
 
     assertEq(dai.balanceOf(lp), DAI_LP_AMOUNT + DAI_AMOUNT); // initial 4k + 100 dai
     assertEq(weth.balanceOf(lp), WETH_LP_AMOUNT - WETH_OUT_AMOUNT); // initial 1 - ~0.09 weth
-    assertEq(wbtc.balanceOf(lp), WBTC_LP_AMOUNT); // initial 0.1 wbtc
+    assertEq(wbtc.balanceOf(lp), WBTC_LP_AMOUNT); // initial 1 wbtc
   }
 
   function testSimpleSwapInverse() public {
@@ -109,7 +110,7 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
 
     assertEq(dai.balanceOf(address(lp)), DAI_LP_AMOUNT - DAI_OUT_AMOUNT_INVERSE); // initial 4k - ~100 dai
     assertEq(weth.balanceOf(address(lp)), WETH_LP_AMOUNT + WETH_AMOUNT_INVERSE); // initial 1 + 0.1 eth
-    assertEq(wbtc.balanceOf(lp), WBTC_LP_AMOUNT); // initial 0.1 wbtc
+    assertEq(wbtc.balanceOf(lp), WBTC_LP_AMOUNT); // initial 1 wbtc
   }
 
   function testSimpleJoin() public {
