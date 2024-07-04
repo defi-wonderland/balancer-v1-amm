@@ -6,7 +6,7 @@ import {BPoolBase} from './BPoolBase.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
-contract BPool_Unbind is BPoolBase {
+contract BPoolUnbind is BPoolBase {
   address public secondToken = makeAddr('secondToken');
 
   function setUp() public virtual override {
@@ -14,7 +14,14 @@ contract BPool_Unbind is BPoolBase {
     vm.mockCall(secondToken, abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
   }
 
-  function test_WhenReentrancyLockIsNOTSetRevertWhen_CallerIsNOTController(address _caller) external {
+  function test_RevertWhen_ReentrancyLockIsSet() external {
+    bPool.call__setLock(_MUTEX_TAKEN);
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
+    // it should revert
+    bPool.unbind(token);
+  }
+
+  function test_RevertWhen_CallerIsNOTController(address _caller) external {
     // it should revert
     vm.assume(_caller != deployer);
     vm.prank(_caller);
@@ -27,7 +34,7 @@ contract BPool_Unbind is BPoolBase {
     _;
   }
 
-  function test_WhenReentrancyLockIsNOTSetRevertWhen_TokenIsNotBound() external whenCallerIsController {
+  function test_RevertWhen_TokenIsNotBound() external whenCallerIsController {
     vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
     // it should revert
     bPool.unbind(token);
@@ -42,18 +49,14 @@ contract BPool_Unbind is BPoolBase {
     _;
   }
 
-  function test_WhenReentrancyLockIsNOTSetRevertWhen_PoolIsFinalized() external whenCallerIsController whenTokenIsBound {
+  function test_RevertWhen_PoolIsFinalized() external whenCallerIsController whenTokenIsBound {
     bPool.set__finalized(true);
     // it should revert
     vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
     bPool.unbind(token);
   }
 
-  function test_WhenReentrancyLockIsNOTSetWhenTokenIsLastOnTheTokensArray()
-    external
-    whenCallerIsController
-    whenTokenIsBound
-  {
+  function test_WhenTokenIsLastOnTheTokensArray() external whenCallerIsController whenTokenIsBound {
     uint256 _startTotalWeight = 1e18;
     // add the weight of the already-bound token
     bPool.set__totalWeight(bPool.getTotalDenormalizedWeight() + _startTotalWeight);
@@ -77,11 +80,7 @@ contract BPool_Unbind is BPoolBase {
     assertEq(bPool.call__totalWeight(), _startTotalWeight);
   }
 
-  function test_WhenReentrancyLockIsNOTSetWhenTokenIsNOTLastOneInTheArray()
-    external
-    whenCallerIsController
-    whenTokenIsBound
-  {
+  function test_WhenTokenIsNOTLastOnTheTokensArray() external whenCallerIsController whenTokenIsBound {
     _setRecord(secondToken, IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
     bPool.set__totalWeight(tokenWeight);
     address[] memory tokens = new address[](2);
@@ -98,13 +97,5 @@ contract BPool_Unbind is BPoolBase {
     assertTrue(bPool.call__records(secondToken).bound);
     // it updates records to point to the new indices
     assertEq(bPool.call__records(secondToken).index, 0);
-  }
-
-  function test_WhenReentrancyLockIsSetShouldRevert() external {
-    // it should revert
-    bPool.call__setLock(_MUTEX_TAKEN);
-    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
-    // it should revert
-    bPool.unbind(token);
   }
 }

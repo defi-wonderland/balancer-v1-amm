@@ -1,4 +1,6 @@
-BPool_Bind::whenReentrancyLockIsNOTSet
+BPool::Bind
+├── when reentrancy lock is set
+│   └── it should revert
 ├── when caller is NOT controller
 │   └── it should revert
 └── when caller is controller
@@ -22,6 +24,3 @@ BPool_Bind::whenReentrancyLockIsNOTSet
         ├── it calls _pullUnderlying
         ├── it adds token to the list
         └── it sets the token record
-
-BPool_Bind::whenReentrancyLockIsSet
-└── it should revert

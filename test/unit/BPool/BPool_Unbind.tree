@@ -1,4 +1,6 @@
-BPool_Unbind::whenReentrancyLockIsNOTSet
+BPool::Unbind
+├── when reentrancy lock is set
+│   └── it should revert
 ├── when caller is NOT controller
 │   └── it should revert
 └── when caller is controller
@@ -19,6 +21,3 @@ BPool_Unbind::whenReentrancyLockIsNOTSet
             ├── it removes the token from the array
             ├── it keeps other tokens in the array
             └── it updates records to point to the correct indices
-
-BPool_Unbind::whenReentrancyLockIsSet
-└── it should revert
