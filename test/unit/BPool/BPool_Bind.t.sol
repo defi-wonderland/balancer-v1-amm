@@ -68,6 +68,8 @@ contract BPool_Bind is BPoolBase {
   }
 
   function test_WhenReentrancyLockIsNOTSetWhenTokenCanBeBound() external whenCallerIsController {
+    uint256 _startTotalWeight = 1e18;
+    bPool.set__totalWeight(_startTotalWeight);
     // it calls _pullUnderlying
     bPool.expectCall__pullUnderlying(token, deployer, tokenBindBalance);
     // it sets reentrancy lock
@@ -81,7 +83,8 @@ contract BPool_Bind is BPoolBase {
     assertEq(bPool.call__records(token).bound, true);
     assertEq(bPool.call__records(token).denorm, tokenWeight);
     // it sets total weight
-    assertEq(bPool.call__totalWeight(), tokenWeight);
+    // use a starting value to ensure it's decreased and not cleared
+    assertEq(bPool.call__totalWeight(), tokenWeight + _startTotalWeight);
   }
 
   function test_WhenReentrancyLockIsSetShouldRevert() external {

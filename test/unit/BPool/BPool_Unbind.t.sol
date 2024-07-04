@@ -54,6 +54,9 @@ contract BPool_Unbind is BPoolBase {
     whenCallerIsController
     whenTokenIsBound
   {
+    uint256 _startTotalWeight = 1e18;
+    // add the weight of the already-bound token
+    bPool.set__totalWeight(bPool.getTotalDenormalizedWeight() + _startTotalWeight);
     // it sets reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
     // it calls _pushUnderlying
@@ -70,7 +73,8 @@ contract BPool_Unbind is BPoolBase {
     // it pops from the array
     assertEq(bPool.getNumTokens(), 0);
     // it decreases the total weight
-    assertEq(bPool.call__totalWeight(), 0);
+    // use a starting value to ensure it's decreased and not cleared
+    assertEq(bPool.call__totalWeight(), _startTotalWeight);
   }
 
   function test_WhenReentrancyLockIsNOTSetWhenTokenIsNOTLastOneInTheArray()
@@ -78,7 +82,12 @@ contract BPool_Unbind is BPoolBase {
     whenCallerIsController
     whenTokenIsBound
   {
-    bPool.bind(secondToken, tokenBindBalance, tokenWeight);
+    _setRecord(secondToken, IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
+    bPool.set__totalWeight(tokenWeight);
+    address[] memory tokens = new address[](2);
+    tokens[0] = token;
+    tokens[1] = secondToken;
+    bPool.set__tokens(tokens);
     bPool.unbind(token);
     // it removes the token record
     assertFalse(bPool.call__records(token).bound);

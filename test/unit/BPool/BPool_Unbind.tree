@@ -14,7 +14,7 @@ BPool_Unbind::whenReentrancyLockIsNOTSet
         │   ├── it removes the token record
         │   ├── it decreases the total weight
         │   └── it pops from the array
-        └── when token is NOT last one in the array
+        └── when token is NOT last on the tokens array
             ├── it removes the token record
             ├── it removes the token from the array
             ├── it keeps other tokens in the array
