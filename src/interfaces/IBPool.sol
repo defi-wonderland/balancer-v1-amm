@@ -148,8 +148,9 @@ interface IBPool is IERC20 {
 
   /**
    * @notice Thrown when the token is not bound in the pool
+   * @param token The address of the token not bound
    */
-  error BPool_TokenNotBound();
+  error BPool_TokenNotBound(address token);
 
   /**
    * @notice Thrown when the pool is not finalized

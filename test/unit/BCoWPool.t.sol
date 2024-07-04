@@ -185,14 +185,14 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
   function test_Revert_NonBoundBuyToken(address _otherToken) public assumeNotBoundToken(_otherToken) {
     GPv2Order.Data memory order = correctOrder;
     order.buyToken = IERC20(_otherToken);
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_otherToken)));
     bCoWPool.verify(order);
   }
 
   function test_Revert_NonBoundSellToken(address _otherToken) public assumeNotBoundToken(_otherToken) {
     GPv2Order.Data memory order = correctOrder;
     order.sellToken = IERC20(_otherToken);
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_otherToken)));
     bCoWPool.verify(order);
   }
 

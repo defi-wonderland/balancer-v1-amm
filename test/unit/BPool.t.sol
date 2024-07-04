@@ -447,7 +447,7 @@ contract BPool_Unit_GetDenormalizedWeight is BasePoolTest {
   }
 
   function test_Revert_NotBound(address _token) public {
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_token)));
     bPool.getDenormalizedWeight(_token);
   }
 }
@@ -482,7 +482,7 @@ contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
   }
 
   function test_Revert_NotBound(address _token) public {
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_token)));
     bPool.getNormalizedWeight(_token);
   }
 }
@@ -503,7 +503,7 @@ contract BPool_Unit_GetBalance is BasePoolTest {
   }
 
   function test_Revert_NotBound(address _token) public {
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_token)));
     bPool.getBalance(_token);
   }
 }
@@ -938,7 +938,7 @@ contract BPool_Unit_Unbind is BasePoolTest {
   function test_Revert_NotBound(Unbind_FuzzScenario memory _fuzz, address _token) public happyPath(_fuzz) {
     _setRecord(_token, IBPool.Record({bound: false, index: _fuzz.tokenIndex, denorm: _fuzz.denorm}));
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_token)));
     bPool.unbind(_token);
   }
 
@@ -1058,7 +1058,7 @@ contract BPool_Unit_GetSpotPrice is BasePoolTest {
     vm.assume(_tokenIn != _fuzz.tokenIn);
     vm.assume(_tokenIn != _fuzz.tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenIn)));
     bPool.getSpotPrice(_tokenIn, _fuzz.tokenOut);
   }
 
@@ -1069,7 +1069,7 @@ contract BPool_Unit_GetSpotPrice is BasePoolTest {
     vm.assume(_tokenOut != _fuzz.tokenIn);
     vm.assume(_tokenOut != _fuzz.tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenOut)));
     bPool.getSpotPrice(_fuzz.tokenIn, _tokenOut);
   }
 
@@ -1125,7 +1125,7 @@ contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
     vm.assume(_tokenIn != _fuzz.tokenIn);
     vm.assume(_tokenIn != _fuzz.tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenIn)));
     bPool.getSpotPriceSansFee(_tokenIn, _fuzz.tokenOut);
   }
 
@@ -1136,7 +1136,7 @@ contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
     vm.assume(_tokenOut != _fuzz.tokenIn);
     vm.assume(_tokenOut != _fuzz.tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenOut)));
     bPool.getSpotPriceSansFee(_fuzz.tokenIn, _tokenOut);
   }
 
@@ -1513,7 +1513,7 @@ contract BPool_Unit_SwapExactAmountIn is SwapExactAmountInUtils {
     vm.assume(_tokenIn != tokenIn);
     vm.assume(_tokenIn != tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenIn)));
     bPool.swapExactAmountIn(_tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, type(uint256).max);
   }
 
@@ -1525,7 +1525,7 @@ contract BPool_Unit_SwapExactAmountIn is SwapExactAmountInUtils {
     vm.assume(_tokenOut != tokenIn);
     vm.assume(_tokenOut != tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenOut)));
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, _tokenOut, 0, type(uint256).max);
   }
 
@@ -1852,7 +1852,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     vm.assume(_tokenIn != tokenIn);
     vm.assume(_tokenIn != tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenIn)));
     bPool.swapExactAmountOut(_tokenIn, type(uint256).max, tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
@@ -1864,7 +1864,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     vm.assume(_tokenOut != tokenIn);
     vm.assume(_tokenOut != tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenOut)));
     bPool.swapExactAmountOut(tokenIn, type(uint256).max, _tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
@@ -2163,7 +2163,7 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
   ) public happyPath(_fuzz) {
     assumeNotForgeAddress(_tokenIn);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenIn)));
     bPool.joinswapExternAmountIn(_tokenIn, _fuzz.tokenAmountIn, 0);
   }
 
@@ -2353,7 +2353,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
   ) public happyPath(_fuzz) {
     assumeNotForgeAddress(_tokenIn);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenIn)));
     bPool.joinswapPoolAmountOut(_tokenIn, _fuzz.poolAmountOut, type(uint256).max);
   }
 
@@ -2591,7 +2591,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
   ) public happyPath(_fuzz) {
     assumeNotForgeAddress(_tokenIn);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenIn)));
     bPool.exitswapPoolAmountIn(_tokenIn, _fuzz.poolAmountIn, 0);
   }
 
@@ -2847,7 +2847,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
   ) public happyPath(_fuzz) {
     assumeNotForgeAddress(_tokenOut);
 
-    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (_tokenOut)));
     bPool.exitswapExternAmountOut(_tokenOut, _fuzz.tokenAmountOut, type(uint256).max);
   }
 
