@@ -522,6 +522,8 @@ contract BPool is BToken, BMath, IBPool {
       outRecord.denorm,
       _swapFee
     );
+
+    return spotPrice;
   }
 
   /// @inheritdoc IBPool
@@ -542,6 +544,8 @@ contract BPool is BToken, BMath, IBPool {
       outRecord.denorm,
       0
     );
+
+    return spotPrice;
   }
 
   /// @inheritdoc IBPool
