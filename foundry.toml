@@ -14,6 +14,7 @@ libs = ["node_modules", "lib"]
 optimizer_runs = 50             # TODO: increase for production and add via-ir
 evm_version = 'cancun'
 fs_permissions = [{ access = "read-write", path = ".forge-snapshots/"}]
+deny_warnings = true
 
 [profile.optimized]
 via_ir = true
