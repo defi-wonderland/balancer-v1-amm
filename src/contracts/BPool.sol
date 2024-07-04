@@ -87,7 +87,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function setSwapFee(uint256 swapFee) external _logs_ _lock_ _controller_ _finalized_ {
+  function setSwapFee(uint256 swapFee) external _logs_ _lock_ _controller_ _notFinalized_ {
     if (swapFee < MIN_FEE) {
       revert BPool_FeeBelowMinimum();
     }
