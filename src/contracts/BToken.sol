@@ -14,9 +14,9 @@ contract BToken is ERC20 {
    * @notice Increase the allowance of the spender.
    * @param spender The address which will spend the funds.
    * @param amount The amount of tokens to increase the allowance by.
-   * @return True if the operation is successful.
+   * @return success True if the operation is successful.
    */
-  function increaseApproval(address spender, uint256 amount) external returns (bool) {
+  function increaseApproval(address spender, uint256 amount) external returns (bool success) {
     _approve(msg.sender, spender, allowance(msg.sender, spender) + amount);
     return true;
   }
@@ -25,9 +25,9 @@ contract BToken is ERC20 {
    * @notice Decrease the allowance of the spender.
    * @param spender The address which will spend the funds.
    * @param amount The amount of tokens to decrease the allowance by.
-   * @return True if the operation is successful.
+   * @return success True if the operation is successful.
    */
-  function decreaseApproval(address spender, uint256 amount) external returns (bool) {
+  function decreaseApproval(address spender, uint256 amount) external returns (bool success) {
     uint256 oldValue = allowance(msg.sender, spender);
     if (amount > oldValue) {
       _approve(msg.sender, spender, 0);

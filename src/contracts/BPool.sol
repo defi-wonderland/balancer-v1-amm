@@ -565,7 +565,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getDenormalizedWeight(address token) external view _viewlock_ returns (uint256) {
+  function getDenormalizedWeight(address token) external view _viewlock_ returns (uint256 denormalizedWeight) {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
     }
@@ -573,12 +573,12 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getTotalDenormalizedWeight() external view _viewlock_ returns (uint256) {
+  function getTotalDenormalizedWeight() external view _viewlock_ returns (uint256 totalWeight) {
     return _totalWeight;
   }
 
   /// @inheritdoc IBPool
-  function getNormalizedWeight(address token) external view _viewlock_ returns (uint256) {
+  function getNormalizedWeight(address token) external view _viewlock_ returns (uint256 normalizedWeight) {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
     }
@@ -587,7 +587,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getBalance(address token) external view _viewlock_ returns (uint256) {
+  function getBalance(address token) external view _viewlock_ returns (uint256 balance) {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
     }
@@ -595,24 +595,24 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getSwapFee() external view _viewlock_ returns (uint256) {
+  function getSwapFee() external view _viewlock_ returns (uint256 swapFee) {
     return _swapFee;
   }
 
   /// @inheritdoc IBPool
-  function getController() external view _viewlock_ returns (address) {
+  function getController() external view _viewlock_ returns (address controller) {
     return _controller;
   }
 
   /**
    * @notice Sets the value of the transient storage slot used for reentrancy locks
-   * @param _value The value of the transient storage slot used for reentrancy locks.
+   * @param value The value of the transient storage slot used for reentrancy locks.
    * @dev Should be set to _MUTEX_FREE after a call, any other value will
    * be interpreted as locked
    */
-  function _setLock(bytes32 _value) internal virtual {
+  function _setLock(bytes32 value) internal virtual {
     assembly ("memory-safe") {
-      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, _value)
+      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, value)
     }
   }
 
@@ -679,13 +679,13 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @notice Gets the value of the transient storage slot used for reentrancy locks
-   * @return _value Contents of transient storage slot used for reentrancy locks.
+   * @return value Contents of transient storage slot used for reentrancy locks.
    * @dev Should only be compared against _MUTEX_FREE for the purposes of
    * allowing calls
    */
-  function _getLock() internal view virtual returns (bytes32 _value) {
+  function _getLock() internal view virtual returns (bytes32 value) {
     assembly ("memory-safe") {
-      _value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
+      value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
     }
   }
 }

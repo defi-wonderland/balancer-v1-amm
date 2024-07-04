@@ -18,9 +18,9 @@ contract BCoWFactory is BFactory, IBCoWFactory {
   /// @inheritdoc IBCoWFactory
   bytes32 public immutable APP_DATA;
 
-  constructor(address _solutionSettler, bytes32 _appData) BFactory() {
-    SOLUTION_SETTLER = _solutionSettler;
-    APP_DATA = _appData;
+  constructor(address solutionSettler, bytes32 appData) BFactory() {
+    SOLUTION_SETTLER = solutionSettler;
+    APP_DATA = appData;
   }
 
   /// @inheritdoc IBCoWFactory
@@ -31,9 +31,9 @@ contract BCoWFactory is BFactory, IBCoWFactory {
 
   /**
    * @dev Deploys a BCoWPool instead of a regular BPool.
-   * @return _pool The deployed BCoWPool
+   * @return pool The deployed BCoWPool
    */
-  function _newBPool() internal virtual override returns (IBPool _pool) {
+  function _newBPool() internal virtual override returns (IBPool pool) {
     return new BCoWPool(SOLUTION_SETTLER, APP_DATA);
   }
 }
