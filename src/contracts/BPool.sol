@@ -618,22 +618,22 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @dev Pulls tokens from the sender. Tokens needs to be approved first. Calls are not locked.
-   * @param erc20 The address of the token to pull
+   * @param token The address of the token to pull
    * @param from The address to pull the tokens from
    * @param amount The amount of tokens to pull
    */
-  function _pullUnderlying(address erc20, address from, uint256 amount) internal virtual {
-    IERC20(erc20).safeTransferFrom(from, address(this), amount);
+  function _pullUnderlying(address token, address from, uint256 amount) internal virtual {
+    IERC20(token).safeTransferFrom(from, address(this), amount);
   }
 
   /**
    * @dev Pushes tokens to the receiver. Calls are not locked.
-   * @param erc20 The address of the token to push
+   * @param token The address of the token to push
    * @param to The address to push the tokens to
    * @param amount The amount of tokens to push
    */
-  function _pushUnderlying(address erc20, address to, uint256 amount) internal virtual {
-    IERC20(erc20).safeTransfer(to, amount);
+  function _pushUnderlying(address token, address to, uint256 amount) internal virtual {
+    IERC20(token).safeTransfer(to, amount);
   }
 
   /**
