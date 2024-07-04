@@ -72,12 +72,12 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
       revert AppDataDoesNotMatch();
     }
 
-    bytes32 _orderHash = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);
-    if (_orderHash != orderHash) {
+    bytes32 orderHash_ = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);
+    if (orderHash_ != orderHash) {
       revert OrderDoesNotMatchMessageHash();
     }
 
-    if (_orderHash != _getLock()) {
+    if (orderHash_ != _getLock()) {
       revert OrderDoesNotMatchCommitmentHash();
     }
 
