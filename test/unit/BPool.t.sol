@@ -1589,7 +1589,7 @@ contract BPool_Unit_SwapExactAmountIn is SwapExactAmountInUtils {
     // TODO: this revert might be unreachable. Find a way to test it or remove the revert in the code.
   }
 
-  function test_Revert_SpotPriceAfterBelowMaxPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
+  function test_Revert_SpotPriceAfterAboveMaxPrice(SwapExactAmountIn_FuzzScenario memory _fuzz) public happyPath(_fuzz) {
     uint256 _tokenAmountOut = calcOutGivenIn(
       _fuzz.tokenInBalance,
       _fuzz.tokenInDenorm,
@@ -1928,7 +1928,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     // TODO: this revert might be unreachable. Find a way to test it or remove the revert in the code.
   }
 
-  function test_Revert_SpotPriceAfterBelowMaxPrice(SwapExactAmountOut_FuzzScenario memory _fuzz)
+  function test_Revert_SpotPriceAfterAboveMaxPrice(SwapExactAmountOut_FuzzScenario memory _fuzz)
     public
     happyPath(_fuzz)
   {
