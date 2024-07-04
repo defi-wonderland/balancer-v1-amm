@@ -66,8 +66,12 @@ contract BPoolUnbind is BPoolBase {
     _startTotalWeight = bound(_startTotalWeight, 0, MAX_TOTAL_WEIGHT - tokenWeight);
     // add the weight of the already-bound token
     bPool.set__totalWeight(bPool.getTotalDenormalizedWeight() + _startTotalWeight);
-    // it sets reentrancy lock
+    // it reads the reentrancy lock
+    bPool.expectCall__getLock();
+    // it sets the reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
+    // it clears the reentrancy lock
+    bPool.expectCall__setLock(_MUTEX_FREE);
     // it calls _pushUnderlying
     bPool.expectCall__pushUnderlying(token, deployer, tokenBindBalance);
 

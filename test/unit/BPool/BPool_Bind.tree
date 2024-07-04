@@ -19,9 +19,11 @@ BPool::Bind
     ├── when weight sum exceeds MAX_TOTAL_WEIGHT
     │   └── it should revert
     └── when token can be bound
-        ├── it sets reentrancy lock
+        ├── it reads the reentrancy lock
+        ├── it sets the reentrancy lock
         ├── it emits LOG_CALL event
         ├── it increments _totalWeight
         ├── it calls _pullUnderlying
         ├── it adds token to the tokens array
-        └── it sets the token record
+        ├── it sets the token record
+        └── it clears the reentrancy lock
