@@ -30,6 +30,10 @@ contract BFactory is IBFactory {
 
   /// @inheritdoc IBFactory
   function setBLabs(address bLabs) external {
+    if (bLabs == address(0)) {
+      revert BFactory_AddressZero();
+    }
+
     if (msg.sender != _bLabs) {
       revert BFactory_NotBLabs();
     }
