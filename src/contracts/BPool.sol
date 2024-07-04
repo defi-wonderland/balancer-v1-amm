@@ -278,7 +278,7 @@ contract BPool is BToken, BMath, IBPool {
       revert BPool_SpotPriceAfterBelowSpotPriceBefore();
     }
     if (spotPriceAfter > maxPrice) {
-      revert BPool_SpotPriceAfterBelowMaxPrice();
+      revert BPool_SpotPriceAboveMaxPrice();
     }
     if (spotPriceBefore > bdiv(tokenAmountIn, tokenAmountOut)) {
       revert BPool_SpotPriceBeforeAboveTokenRatio();
@@ -340,7 +340,7 @@ contract BPool is BToken, BMath, IBPool {
       revert BPool_SpotPriceAfterBelowSpotPriceBefore();
     }
     if (spotPriceAfter > maxPrice) {
-      revert BPool_SpotPriceAfterBelowMaxPrice();
+      revert BPool_SpotPriceAboveMaxPrice();
     }
     if (spotPriceBefore > bdiv(tokenAmountIn, tokenAmountOut)) {
       revert BPool_SpotPriceBeforeAboveTokenRatio();

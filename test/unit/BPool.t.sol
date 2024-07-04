@@ -1609,7 +1609,7 @@ contract BPool_Unit_SwapExactAmountIn is SwapExactAmountInUtils {
     );
     vm.assume(_spotPriceAfter > _spotPriceBefore);
 
-    vm.expectRevert(IBPool.BPool_SpotPriceAfterBelowMaxPrice.selector);
+    vm.expectRevert(IBPool.BPool_SpotPriceAboveMaxPrice.selector);
     bPool.swapExactAmountIn(tokenIn, _fuzz.tokenAmountIn, tokenOut, 0, _spotPriceBefore);
   }
 
@@ -1951,7 +1951,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     );
     vm.assume(_spotPriceAfter > _spotPriceBefore);
 
-    vm.expectRevert(IBPool.BPool_SpotPriceAfterBelowMaxPrice.selector);
+    vm.expectRevert(IBPool.BPool_SpotPriceAboveMaxPrice.selector);
     bPool.swapExactAmountOut(tokenIn, type(uint256).max, tokenOut, _fuzz.tokenAmountOut, _spotPriceBefore);
   }
 
