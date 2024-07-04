@@ -71,8 +71,11 @@ contract BPoolBind is BPoolBase {
     bPool.bind(token, tokenBindBalance, MAX_TOTAL_WEIGHT / 2);
   }
 
-  function test_WhenTokenCanBeBound() external whenCallerIsController {
-    uint256 _startTotalWeight = 1e18;
+  function test_WhenTokenCanBeBound(uint256 _startTotalWeight, uint256 _existingTokens) external whenCallerIsController {
+    _existingTokens = bound(_existingTokens, 0, MAX_BOUND_TOKENS - 1);
+    _startTotalWeight = bound(_startTotalWeight, 0, MAX_TOTAL_WEIGHT - tokenWeight);
+    bPool.set__tokens(_getDeterministicTokenArray(_existingTokens));
+
     bPool.set__totalWeight(_startTotalWeight);
     // it calls _pullUnderlying
     bPool.expectCall__pullUnderlying(token, deployer, tokenBindBalance);
@@ -86,10 +89,11 @@ contract BPoolBind is BPoolBase {
     bPool.bind(token, tokenBindBalance, tokenWeight);
 
     // it adds token to the tokens array
-    assertEq(bPool.call__tokens()[0], token);
+    assertEq(bPool.call__tokens()[_existingTokens], token);
     // it sets the token record
     assertEq(bPool.call__records(token).bound, true);
     assertEq(bPool.call__records(token).denorm, tokenWeight);
+    assertEq(bPool.call__records(token).index, _existingTokens);
     // it sets total weight
     // use a starting value to ensure it's decreased and not cleared
     assertEq(bPool.call__totalWeight(), tokenWeight + _startTotalWeight);
