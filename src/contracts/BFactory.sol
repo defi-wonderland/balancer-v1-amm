@@ -56,16 +56,16 @@ contract BFactory is IBFactory {
   }
 
   /// @inheritdoc IBFactory
-  function getBLabs() external view returns (address bLabs) {
+  function getBLabs() external view returns (address) {
     return _bLabs;
   }
 
   /**
    * @notice Deploys a new BPool.
    * @dev Internal function to allow overriding in derived contracts.
-   * @return pool The deployed BPool
+   * @return bPool The deployed BPool
    */
-  function _newBPool() internal virtual returns (IBPool pool) {
-    pool = new BPool();
+  function _newBPool() internal virtual returns (IBPool bPool) {
+    bPool = new BPool();
   }
 }

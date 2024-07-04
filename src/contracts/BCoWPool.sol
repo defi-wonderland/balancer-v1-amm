@@ -72,12 +72,12 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
       revert AppDataDoesNotMatch();
     }
 
-    bytes32 _orderHash = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);
-    if (_orderHash != orderHash) {
+    bytes32 orderHash_ = order.hash(SOLUTION_SETTLER_DOMAIN_SEPARATOR);
+    if (orderHash_ != orderHash) {
       revert OrderDoesNotMatchMessageHash();
     }
 
-    if (_orderHash != _getLock()) {
+    if (orderHash_ != _getLock()) {
       revert OrderDoesNotMatchCommitmentHash();
     }
 
@@ -137,7 +137,8 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
    * pool after the finalization of the setup. Also emits COWAMMPoolCreated() event.
    */
   function _afterFinalize() internal override {
-    for (uint256 i; i < _tokens.length; i++) {
+    uint256 tokensLength = _tokens.length;
+    for (uint256 i; i < tokensLength; i++) {
       IERC20(_tokens[i]).approve(VAULT_RELAYER, type(uint256).max);
     }
 
@@ -145,7 +146,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     // If this pool was not deployed using a bCoWFactory, this will revert and catch
     // And the event will be emitted by this contract instead
     // solhint-disable-next-line no-empty-blocks
-    try IBCoWFactory(_factory).logBCoWPool() {}
+    try IBCoWFactory(_FACTORY).logBCoWPool() {}
     catch {
       emit IBCoWFactory.COWAMMPoolCreated(address(this));
     }

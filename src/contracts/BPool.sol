@@ -15,7 +15,7 @@ contract BPool is BToken, BMath, IBPool {
   using SafeERC20 for IERC20;
   /// @dev BFactory address to push token exitFee to
 
-  address internal _factory;
+  address internal immutable _FACTORY;
   /// @dev Has CONTROL role
   address internal _controller;
   /// @dev Fee for swapping
@@ -81,7 +81,7 @@ contract BPool is BToken, BMath, IBPool {
 
   constructor() {
     _controller = msg.sender;
-    _factory = msg.sender;
+    _FACTORY = msg.sender;
     _swapFee = MIN_FEE;
     _finalized = false;
   }
@@ -98,12 +98,12 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function setController(address manager) external _logs_ _lock_ _controller_ {
-    if (manager == address(0)) {
+  function setController(address newController) external _logs_ _lock_ _controller_ {
+    if (newController == address(0)) {
       revert BPool_AddressZero();
     }
 
-    _controller = manager;
+    _controller = newController;
   }
 
   /// @inheritdoc IBPool
@@ -176,7 +176,8 @@ contract BPool is BToken, BMath, IBPool {
       revert BPool_InvalidPoolRatio();
     }
 
-    for (uint256 i = 0; i < _tokens.length; i++) {
+    uint256 tokensLength = _tokens.length;
+    for (uint256 i = 0; i < tokensLength; i++) {
       address t = _tokens[i];
       uint256 bal = IERC20(t).balanceOf(address(this));
       uint256 tokenAmountIn = bmul(ratio, bal);
@@ -204,10 +205,11 @@ contract BPool is BToken, BMath, IBPool {
     }
 
     _pullPoolShare(msg.sender, poolAmountIn);
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(_FACTORY, exitFee);
     _burnPoolShare(pAiAfterExitFee);
 
-    for (uint256 i = 0; i < _tokens.length; i++) {
+    uint256 tokensLength = _tokens.length;
+    for (uint256 i = 0; i < tokensLength; i++) {
       address t = _tokens[i];
       uint256 bal = IERC20(t).balanceOf(address(this));
       uint256 tokenAmountOut = bmul(ratio, bal);
@@ -435,7 +437,7 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullPoolShare(msg.sender, poolAmountIn);
     _burnPoolShare(bsub(poolAmountIn, exitFee));
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(_FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
     return tokenAmountOut;
@@ -472,7 +474,7 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullPoolShare(msg.sender, poolAmountIn);
     _burnPoolShare(bsub(poolAmountIn, exitFee));
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(_FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
     return poolAmountIn;
@@ -488,13 +490,16 @@ contract BPool is BToken, BMath, IBPool {
     }
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
-    return calcSpotPrice(
+
+    spotPrice = calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
       IERC20(tokenOut).balanceOf(address(this)),
       outRecord.denorm,
       _swapFee
     );
+
+    return spotPrice;
   }
 
   /// @inheritdoc IBPool
@@ -507,13 +512,16 @@ contract BPool is BToken, BMath, IBPool {
     }
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
-    return calcSpotPrice(
+
+    spotPrice = calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
       IERC20(tokenOut).balanceOf(address(this)),
       outRecord.denorm,
       0
     );
+
+    return spotPrice;
   }
 
   /// @inheritdoc IBPool

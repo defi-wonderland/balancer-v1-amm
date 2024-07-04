@@ -62,7 +62,7 @@ contract MockBCoWPool is BCoWPool, Test {
     else return super._getLock();
   }
 
-  function call__getLock() public returns (bytes32 _value) {
+  function call__getLock() public view returns (bytes32 _value) {
     return _getLock();
   }
 
@@ -70,12 +70,9 @@ contract MockBCoWPool is BCoWPool, Test {
     vm.expectCall(address(this), abi.encodeWithSignature('_getLock()'));
   }
 
-  function set__factory(address __factory) public {
-    _factory = __factory;
-  }
-
-  function call__factory() public view returns (address) {
-    return _factory;
+  // NOTE: manually added method
+  function call__FACTORY() public view returns (address) {
+    return _FACTORY;
   }
 
   function set__controller(address __controller) public {
