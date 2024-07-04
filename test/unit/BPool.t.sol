@@ -635,6 +635,7 @@ contract BPool_Unit_SetController is BasePoolTest {
   }
 
   function test_Set_ReentrancyLock(address _controller) public {
+    vm.assume(_controller != address(0));
     _expectSetReentrancyLock();
     bPool.setController(_controller);
   }
