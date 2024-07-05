@@ -16,6 +16,7 @@ contract BPoolBase is Test, BConst, Utils {
   uint256 public tokenBindBalance = 100e18;
   uint256 public tokenWeight = 1e18;
   uint256 public totalWeight = 10e18;
+  address public secondToken = makeAddr('secondToken');
 
   function setUp() public virtual {
     vm.prank(deployer);

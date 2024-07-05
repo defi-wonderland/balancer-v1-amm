@@ -7,8 +7,6 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BPoolUnbind is BPoolBase {
-  address public secondToken = makeAddr('secondToken');
-
   function setUp() public virtual override {
     super.setUp();
     vm.mockCall(secondToken, abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
