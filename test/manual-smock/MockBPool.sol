@@ -269,6 +269,41 @@ contract MockBPool is BPool, Test {
     else return super._setLock(_value);
   }
 
+  function _pushPoolShare(address to, uint256 amount) internal override {
+    (bool _success, bytes memory _data) =
+      address(this).call(abi.encodeWithSignature('_pushPoolShare(address,uint256)', to, amount));
+
+    if (_success) return abi.decode(_data, ());
+    else return super._pushPoolShare(to, amount);
+  }
+
+  function call__pushPoolShare(address to, uint256 amount) public {
+    return _pushPoolShare(to, amount);
+  }
+
+  function expectCall__pushPoolShare(address to, uint256 amount) public {
+    vm.expectCall(address(this), abi.encodeWithSignature('_pushPoolShare(address,uint256)', to, amount));
+  }
+
+  function mock_call__mintPoolShare(uint256 amount) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('_mintPoolShare(uint256)', amount), abi.encode());
+  }
+
+  function _mintPoolShare(uint256 amount) internal override {
+    (bool _success, bytes memory _data) = address(this).call(abi.encodeWithSignature('_mintPoolShare(uint256)', amount));
+
+    if (_success) return abi.decode(_data, ());
+    else return super._mintPoolShare(amount);
+  }
+
+  function call__mintPoolShare(uint256 amount) public {
+    return _mintPoolShare(amount);
+  }
+
+  function expectCall__mintPoolShare(uint256 amount) public {
+    vm.expectCall(address(this), abi.encodeWithSignature('_mintPoolShare(uint256)', amount));
+  }
+
   function call__setLock(bytes32 _value) public {
     return _setLock(_value);
   }
@@ -344,6 +379,45 @@ contract MockBPool is BPool, Test {
 
   function expectCall__afterFinalize() public {
     vm.expectCall(address(this), abi.encodeWithSignature('_afterFinalize()'));
+  }
+
+  function mock_call__pullPoolShare(address from, uint256 amount) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('_pullPoolShare(address,uint256)', from, amount), abi.encode());
+  }
+
+  function _pullPoolShare(address from, uint256 amount) internal override {
+    (bool _success, bytes memory _data) =
+      address(this).call(abi.encodeWithSignature('_pullPoolShare(address,uint256)', from, amount));
+
+    if (_success) return abi.decode(_data, ());
+    else return super._pullPoolShare(from, amount);
+  }
+
+  function call__pullPoolShare(address from, uint256 amount) public {
+    return _pullPoolShare(from, amount);
+  }
+
+  function expectCall__pullPoolShare(address from, uint256 amount) public {
+    vm.expectCall(address(this), abi.encodeWithSignature('_pullPoolShare(address,uint256)', from, amount));
+  }
+
+  function mock_call__burnPoolShare(uint256 amount) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('_burnPoolShare(uint256)', amount), abi.encode());
+  }
+
+  function _burnPoolShare(uint256 amount) internal override {
+    (bool _success, bytes memory _data) = address(this).call(abi.encodeWithSignature('_burnPoolShare(uint256)', amount));
+
+    if (_success) return abi.decode(_data, ());
+    else return super._burnPoolShare(amount);
+  }
+
+  function call__burnPoolShare(uint256 amount) public {
+    return _burnPoolShare(amount);
+  }
+
+  function expectCall__burnPoolShare(uint256 amount) public {
+    vm.expectCall(address(this), abi.encodeWithSignature('_burnPoolShare(uint256)', amount));
   }
 
   function mock_call__getLock(bytes32 _value) public {
