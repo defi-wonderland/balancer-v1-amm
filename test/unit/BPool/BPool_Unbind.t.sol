@@ -58,12 +58,8 @@ contract BPoolUnbind is BPoolBase {
   }
 
   function test_WhenTokenIsLastOnTheTokensArray() external whenCallerIsController whenTokenCanBeUnbound {
-    // it reads the reentrancy lock
-    bPool.expectCall__getLock();
     // it sets the reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
-    // it clears the reentrancy lock
-    bPool.expectCall__setLock(_MUTEX_FREE);
     // it calls _pushUnderlying
     bPool.expectCall__pushUnderlying(token, deployer, tokenBindBalance);
 
@@ -73,6 +69,8 @@ contract BPoolUnbind is BPoolBase {
     emit IBPool.LOG_CALL(IBPool.unbind.selector, deployer, _data);
     bPool.unbind(token);
 
+    // it clears the reentrancy lock
+    assertEq(bPool.call__getLock(), _MUTEX_FREE);
     // it removes the token record
     assertFalse(bPool.call__records(token).bound);
     // it pops from the array

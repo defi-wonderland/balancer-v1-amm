@@ -10,7 +10,6 @@ BPool::Unbind
     │   └── it should revert
     └── when token can be unbound
         ├── when token is last on the tokens array
-        │   ├── it reads the reentrancy lock
         │   ├── it sets the reentrancy lock
         │   ├── it emits LOG_CALL event
         │   ├── it calls _pushUnderlying
