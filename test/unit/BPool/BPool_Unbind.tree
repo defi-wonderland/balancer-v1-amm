@@ -6,9 +6,9 @@ BPool::Unbind
 └── when caller is controller
     ├── when token is not bound
     │   └── it should revert
-    └── when token is bound
-        ├── when pool is finalized
-        │   └── it should revert
+    ├── when pool is finalized
+    │   └── it should revert
+    └── when token can be unbound
         ├── when token is last on the tokens array
         │   ├── it reads the reentrancy lock
         │   ├── it sets the reentrancy lock
