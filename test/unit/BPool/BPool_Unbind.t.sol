@@ -40,38 +40,26 @@ contract BPoolUnbind is BPoolBase {
     bPool.unbind(token);
   }
 
-  modifier whenTokenIsBound() {
-    _setRecord(token, IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
-    bPool.set__totalWeight(tokenWeight);
-    address[] memory tokens = new address[](1);
-    tokens[0] = token;
-    bPool.set__tokens(tokens);
-    _;
-  }
-
-  function test_RevertWhen_PoolIsFinalized() external whenCallerIsController whenTokenIsBound {
+  function test_RevertWhen_PoolIsFinalized() external whenCallerIsController {
+    _setRecord(token, IBPool.Record({bound: true, index: 0, denorm: 0}));
     bPool.set__finalized(true);
     // it should revert
     vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
     bPool.unbind(token);
   }
 
-  function test_WhenTokenIsLastOnTheTokensArray(uint256 _startTotalWeight)
-    external
-    whenCallerIsController
-    whenTokenIsBound
-  {
-    // NOTE: not fuzzing the existing tokens since modifier is always executed *before*
-    // what I could do for a setup here
-    _startTotalWeight = bound(_startTotalWeight, 0, MAX_TOTAL_WEIGHT - tokenWeight);
-    // add the weight of the already-bound token
-    bPool.set__totalWeight(bPool.getTotalDenormalizedWeight() + _startTotalWeight);
-    // it reads the reentrancy lock
-    bPool.expectCall__getLock();
+  modifier whenTokenCanBeUnbound() {
+    _setRecord(token, IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
+    bPool.set__totalWeight(totalWeight);
+    address[] memory tokens = new address[](1);
+    tokens[0] = token;
+    bPool.set__tokens(tokens);
+    _;
+  }
+
+  function test_WhenTokenIsLastOnTheTokensArray() external whenCallerIsController whenTokenCanBeUnbound {
     // it sets the reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
-    // it clears the reentrancy lock
-    bPool.expectCall__setLock(_MUTEX_FREE);
     // it calls _pushUnderlying
     bPool.expectCall__pushUnderlying(token, deployer, tokenBindBalance);
 
@@ -81,23 +69,18 @@ contract BPoolUnbind is BPoolBase {
     emit IBPool.LOG_CALL(IBPool.unbind.selector, deployer, _data);
     bPool.unbind(token);
 
+    // it clears the reentrancy lock
+    assertEq(bPool.call__getLock(), _MUTEX_FREE);
     // it removes the token record
     assertFalse(bPool.call__records(token).bound);
     // it pops from the array
     assertEq(bPool.getNumTokens(), 0);
     // it decreases the total weight
-    // use a starting value to ensure it's decreased and not cleared
-    assertEq(bPool.call__totalWeight(), _startTotalWeight);
+    assertEq(bPool.call__totalWeight(), totalWeight - tokenWeight);
   }
 
-  function test_WhenTokenIsNOTLastOnTheTokensArray(uint256 _startTotalWeight)
-    external
-    whenCallerIsController
-    whenTokenIsBound
-  {
-    _startTotalWeight = bound(_startTotalWeight, 0, MAX_TOTAL_WEIGHT - tokenWeight);
+  function test_WhenTokenIsNOTLastOnTheTokensArray() external whenCallerIsController whenTokenCanBeUnbound {
     _setRecord(secondToken, IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
-    bPool.set__totalWeight(tokenWeight);
     address[] memory tokens = new address[](2);
     tokens[0] = token;
     tokens[1] = secondToken;

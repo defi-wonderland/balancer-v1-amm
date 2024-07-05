@@ -71,20 +71,15 @@ contract BPoolBind is BPoolBase {
     bPool.bind(token, tokenBindBalance, MAX_TOTAL_WEIGHT / 2);
   }
 
-  function test_WhenTokenCanBeBound(uint256 _startTotalWeight, uint256 _existingTokens) external whenCallerIsController {
+  function test_WhenTokenCanBeBound(uint256 _existingTokens) external whenCallerIsController {
     _existingTokens = bound(_existingTokens, 0, MAX_BOUND_TOKENS - 1);
-    _startTotalWeight = bound(_startTotalWeight, 0, MAX_TOTAL_WEIGHT - tokenWeight);
     bPool.set__tokens(_getDeterministicTokenArray(_existingTokens));
 
-    bPool.set__totalWeight(_startTotalWeight);
+    bPool.set__totalWeight(totalWeight);
     // it calls _pullUnderlying
     bPool.expectCall__pullUnderlying(token, deployer, tokenBindBalance);
-    // it reads the reentrancy lock
-    bPool.expectCall__getLock();
     // it sets the reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
-    // it clears the reentrancy lock
-    bPool.expectCall__setLock(_MUTEX_FREE);
     // it emits LOG_CALL event
     vm.expectEmit();
     bytes memory _data = abi.encodeWithSelector(IBPool.bind.selector, token, tokenBindBalance, tokenWeight);
@@ -92,6 +87,8 @@ contract BPoolBind is BPoolBase {
 
     bPool.bind(token, tokenBindBalance, tokenWeight);
 
+    // it clears the reentrancy lock
+    assertEq(bPool.call__getLock(), _MUTEX_FREE);
     // it adds token to the tokens array
     assertEq(bPool.call__tokens()[_existingTokens], token);
     // it sets the token record
@@ -99,7 +96,6 @@ contract BPoolBind is BPoolBase {
     assertEq(bPool.call__records(token).denorm, tokenWeight);
     assertEq(bPool.call__records(token).index, _existingTokens);
     // it sets total weight
-    // use a starting value to ensure it's decreased and not cleared
-    assertEq(bPool.call__totalWeight(), tokenWeight + _startTotalWeight);
+    assertEq(bPool.call__totalWeight(), totalWeight + tokenWeight);
   }
 }
