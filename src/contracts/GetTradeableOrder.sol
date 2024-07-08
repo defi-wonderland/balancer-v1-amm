@@ -42,7 +42,6 @@ library GetTradeableOrder {
     console.log('selfReserve0', selfReserve0);
     console.log('selfReserve1', selfReserve1);
 
-
     IERC20 sellToken;
     IERC20 buyToken;
     uint256 sellAmount;
