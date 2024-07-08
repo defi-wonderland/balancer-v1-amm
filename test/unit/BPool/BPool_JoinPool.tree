@@ -4,11 +4,10 @@ BPool::JoinPool
 ├── when pool is not finalized
 │   └── it should revert
 ├── when total supply is zero
-│   └── it should revert
-│       └── division by zero
+│   └── it should revert // division by zero
 ├── when pool amount out is too small
 │   └── it should revert
-├── when balance of pool in an underlying token is zero
+├── when balance of pool in any token is zero
 │   └── it should revert
 ├── when required amount of a token is more than maxAmountsIn
 │   └── it should revert
