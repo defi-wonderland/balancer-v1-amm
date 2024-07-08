@@ -78,7 +78,51 @@ contract ConstantProductHelperForkedTest is Test {
   // NOTE: 1 ETH = 1000e6 DAI
   uint256 constant INITIAL_SPOT_PRICE = 0.001e18;
 
-  function _testHelper(IBPool pool, uint256 ammWethInitialBalance, uint256 ammDaiInitialBalance) internal {
+  function testBasicOrder() public {
+    IBCoWPool pool = IBCoWPool(address(basicPool));
+
+    uint256 ammWethInitialBalance = 1 ether;
+    uint256 ammDaiInitialBalance = 1000 ether;
+
+    deal(address(WETH), address(pool), ammWethInitialBalance);
+    deal(address(DAI), address(pool), ammDaiInitialBalance);
+
+    uint256 spotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
+    assertEq(spotPrice, INITIAL_SPOT_PRICE);
+
+    _executeHelperOrder(pool, ammWethInitialBalance, ammDaiInitialBalance);
+
+    uint256 postSpotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
+    assertEq(postSpotPrice, 1_052_631_578_947_368);
+  }
+
+  // NOTE: failing test
+  function testWeightedOrder() public {
+    IBCoWPool pool = IBCoWPool(address(weightedPool));
+
+    uint256 ammWethInitialBalance = 1 ether;
+    uint256 ammDaiInitialBalance = 1000 ether;
+
+    deal(address(WETH), address(pool), ammWethInitialBalance);
+    // NOTE: pool is 80-20 DAI-WETH, has 4xDAI balance than basic, same spot price
+    deal(address(DAI), address(pool), 4 * ammDaiInitialBalance);
+
+    uint256 spotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
+    assertEq(spotPrice, INITIAL_SPOT_PRICE);
+
+    _executeHelperOrder(pool, ammWethInitialBalance, ammDaiInitialBalance);
+
+    uint256 postSpotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
+    assertEq(postSpotPrice, 1_052_631_578_947_368);
+  }
+
+  function addressVecToIerc20Vec(address[] memory addrVec) private pure returns (IERC20[] memory ierc20vec) {
+    assembly {
+      ierc20vec := addrVec
+    }
+  }
+
+  function _executeHelperOrder(IBPool pool, uint256 ammWethInitialBalance, uint256 ammDaiInitialBalance) internal {
     IERC20[] memory tokens = addressVecToIerc20Vec(helper.tokens(address(pool)));
     uint256 daiIndex = 0;
     uint256 wethIndex = 1;
@@ -133,7 +177,7 @@ contract ConstantProductHelperForkedTest is Test {
       feeAmount: ammOrder.feeAmount,
       flags: GPv2TradeEncoder.encodeFlags(ammOrder, GPv2Signing.Scheme.Eip1271),
       executedAmount: ammOrder.sellAmount,
-      signature: abi.encodePacked(address(pool), abi.encode(ammOrder))
+      signature: sig
     });
 
     GPv2Interaction.Data[][3] memory interactions =
@@ -144,49 +188,5 @@ contract ConstantProductHelperForkedTest is Test {
     // finally, settle
     vm.prank(solver);
     settlement.settle(tokens, prices, trades, interactions);
-  }
-
-  function testBasicOrder() public {
-    IBCoWPool pool = IBCoWPool(address(basicPool));
-
-    uint256 ammWethInitialBalance = 1 ether;
-    uint256 ammDaiInitialBalance = 1000 ether;
-
-    deal(address(WETH), address(pool), ammWethInitialBalance);
-    deal(address(DAI), address(pool), ammDaiInitialBalance);
-
-    uint256 spotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
-    assertEq(spotPrice, INITIAL_SPOT_PRICE);
-
-    _testHelper(pool, ammWethInitialBalance, ammDaiInitialBalance);
-
-    uint256 postSpotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
-    assertEq(postSpotPrice, 1_052_631_578_947_368);
-  }
-
-  // NOTE: failing test
-  function testWeightedOrder() public {
-    IBCoWPool pool = IBCoWPool(address(weightedPool));
-
-    uint256 ammWethInitialBalance = 1 ether;
-    uint256 ammDaiInitialBalance = 1000 ether;
-
-    deal(address(WETH), address(pool), ammWethInitialBalance);
-    // NOTE: pool is 80-20 DAI-WETH, has 4xDAI balance than basic, same spot price
-    deal(address(DAI), address(pool), 4 * ammDaiInitialBalance);
-
-    uint256 spotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
-    assertEq(spotPrice, INITIAL_SPOT_PRICE);
-
-    _testHelper(pool, ammWethInitialBalance, ammDaiInitialBalance);
-
-    uint256 postSpotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
-    assertEq(postSpotPrice, 1_052_631_578_947_368);
-  }
-
-  function addressVecToIerc20Vec(address[] memory addrVec) private pure returns (IERC20[] memory ierc20vec) {
-    assembly {
-      ierc20vec := addrVec
-    }
   }
 }

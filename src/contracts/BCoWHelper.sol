@@ -64,13 +64,20 @@ contract BCoWHelper is ICOWAMMPoolHelper {
 
     order_ = GetTradeableOrder.getTradeableOrder(params);
 
+    bytes memory eip1271sig;
+    eip1271sig = abi.encode(order_);
     bytes32 domainSeparator = IBCoWPool(pool).SOLUTION_SETTLER_DOMAIN_SEPARATOR();
+    bytes32 orderCommitment = order_.hash(domainSeparator);
+
+    // A ERC-1271 signature on CoW Protocol is composed of two parts: the
+    // signer address and the valid ERC-1271 signature data for that signer.
+    sig = abi.encodePacked(pool, eip1271sig);
 
     preInteractions = new GPv2Interaction.Data[](1);
     preInteractions[0] = GPv2Interaction.Data({
       target: pool,
       value: 0,
-      callData: abi.encodeWithSelector(IBCoWPool.commit.selector, order_.hash(domainSeparator))
+      callData: abi.encodeWithSelector(IBCoWPool.commit.selector, orderCommitment)
     });
   }
 }
