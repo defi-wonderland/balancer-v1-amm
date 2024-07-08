@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {BPoolBase} from './BPoolBase.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
-import {MockBPool} from 'test/manual-smock/MockBPool.sol';
+import {MockBPool} from 'test/smock/MockBPool.sol';
 
 contract BPool is BPoolBase {
   function test_ConstructorWhenCalled(address _deployer) external {
