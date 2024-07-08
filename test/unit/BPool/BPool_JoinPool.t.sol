@@ -65,7 +65,7 @@ contract BPoolJoinPool is BPoolBase {
     bPool.call__pullPoolShare(deployer, INIT_POOL_SUPPLY);
     bPool.call__burnPoolShare(INIT_POOL_SUPPLY);
     // it should revert
-    // division by zero
+    //    division by zero
     vm.expectRevert(BNum.BNum_DivZero.selector);
     bPool.joinPool(0, new uint256[](2));
   }
