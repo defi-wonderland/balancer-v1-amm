@@ -13,8 +13,18 @@ contract BPoolJoinPool is BPoolBase {
   uint256 public tokenAUM = 10e18;
   uint256 public secondTokenAUM = 30e18;
 
+  // when minting n pool shares, enough amount X of every token t should be provided to statisfy
+  // Xt = n/BPT.totalSupply() * t.balanceOf(BPT)
+  // in this scenario n = 10, totalSupply = 100
+
+  // for t = token -> t.balanceOf(BPT) = tokenAUM = 10
+  // therefore Xt = 10/100*10 = 10
   uint256 public requiredTokenIn = 1e18;
+  // for t = secondToken -> t.balanceOf(BPT) = secondTokenAUM = 30
+  // therefore Xt = 10/100*30 = 30
   uint256 public requiredSecondTokenIn = 3e18;
+  // put another way, if the current 100 shares represent 30 secondToken, then
+  // to mint another 10, user should provide 3 secondToken so ratio stays the same.
 
   function setUp() public virtual override {
     super.setUp();
@@ -55,28 +65,26 @@ contract BPoolJoinPool is BPoolBase {
     bPool.call__pullPoolShare(deployer, INIT_POOL_SUPPLY);
     bPool.call__burnPoolShare(INIT_POOL_SUPPLY);
     // it should revert
+    // division by zero
     vm.expectRevert(BNum.BNum_DivZero.selector);
     bPool.joinPool(0, new uint256[](2));
   }
 
-  function test_RevertWhen_PoolAmountOutIsZero() external {
+  function test_RevertWhen_PoolAmountOutIsTooSmall(uint256 amountOut) external {
+    amountOut = bound(amountOut, 0, (INIT_POOL_SUPPLY / 1e18) / 2 - 1);
     // it should revert
     vm.expectRevert(IBPool.BPool_InvalidPoolRatio.selector);
-    bPool.joinPool(0, new uint256[](2));
+    bPool.joinPool(amountOut, new uint256[](2));
   }
 
-  function test_RevertWhen_PoolRatioRoundsDownToZero() external {
-    // it should revert
-    vm.expectRevert(IBPool.BPool_InvalidPoolRatio.selector);
-    // somewhat coupled to BNum, perhaps not a different case from the above?
-    bPool.joinPool(49, new uint256[](2));
-  }
-
-  function test_RevertWhen_BalanceOfPoolInAnUnderlyingTokenIsZero() external {
-    vm.mockCall(token, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(0)));
+  function test_RevertWhen_BalanceOfPoolInAnyTokenIsZero() external {
+    uint256[] memory maxAmounts = new uint256[](2);
+    maxAmounts[0] = requiredTokenIn;
+    maxAmounts[1] = requiredSecondTokenIn;
+    vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(0)));
     // it should revert
     vm.expectRevert(IBPool.BPool_InvalidTokenAmountIn.selector);
-    bPool.joinPool(poolAmountOut, new uint256[](2));
+    bPool.joinPool(poolAmountOut, maxAmounts);
   }
 
   function test_RevertWhen_RequiredAmountOfATokenIsMoreThanMaxAmountsIn() external {

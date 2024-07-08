@@ -5,9 +5,8 @@ BPool::JoinPool
 │   └── it should revert
 ├── when total supply is zero
 │   └── it should revert
-├── when pool amount out is zero
-│   └── it should revert
-├── when pool ratio rounds down to zero
+│       └── division by zero
+├── when pool amount out is too small
 │   └── it should revert
 ├── when balance of pool in an underlying token is zero
 │   └── it should revert
