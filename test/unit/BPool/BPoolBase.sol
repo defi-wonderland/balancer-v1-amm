@@ -13,7 +13,6 @@ contract BPoolBase is Test, BConst, Utils {
   address public deployer = makeAddr('deployer');
 
   address public token = makeAddr('token');
-  uint256 public tokenBindBalance = 100e18;
   uint256 public tokenWeight = 1e18;
   uint256 public totalWeight = 10e18;
   address public secondToken = makeAddr('secondToken');
@@ -24,7 +23,6 @@ contract BPoolBase is Test, BConst, Utils {
 
     vm.mockCall(token, abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
     vm.mockCall(token, abi.encodePacked(IERC20.transfer.selector), abi.encode());
-    vm.mockCall(token, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(tokenBindBalance));
   }
 
   function _setRandomTokens(uint256 _length) internal returns (address[] memory _tokensToAdd) {
