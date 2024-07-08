@@ -36,7 +36,6 @@ contract BPoolUnbind is BPoolBase {
 
   function test_RevertWhen_TokenIsNotBound() external whenCallerIsController {
     vm.expectRevert(abi.encodeWithSelector(IBPool.BPool_TokenNotBound.selector, (token)));
-
     // it should revert
     bPool.unbind(token);
   }
