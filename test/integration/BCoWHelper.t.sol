@@ -169,12 +169,12 @@ contract ConstantProductHelperForkedTest is Test {
     IBCoWPool pool = IBCoWPool(address(weightedPool));
 
     uint256 ammWethInitialBalance = 1 ether;
-    uint256 ammDaiInitialBalance = 4000 ether;
+    uint256 ammDaiInitialBalance = 1000 ether;
 
     deal(address(WETH), address(pool), ammWethInitialBalance);
-    deal(address(DAI), address(pool), ammDaiInitialBalance);
-
     // NOTE: pool is 80-20 DAI-WETH, has 4xDAI balance than basic, same spot price
+    deal(address(DAI), address(pool), 4 * ammDaiInitialBalance);
+
     uint256 spotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
     assertEq(spotPrice, INITIAL_SPOT_PRICE);
 

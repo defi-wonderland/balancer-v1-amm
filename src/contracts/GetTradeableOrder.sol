@@ -5,8 +5,6 @@ import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 
-import {console} from 'forge-std/console.sol';
-
 library GetTradeableOrder {
   /// @dev Avoid stack too deep errors with `getTradeableOrder`.
   struct GetTradeableOrderParams {
@@ -39,9 +37,6 @@ library GetTradeableOrder {
     (uint256 selfReserve0, uint256 selfReserve1) =
       (params.token0.balanceOf(params.pool), params.token1.balanceOf(params.pool));
 
-    console.log('selfReserve0', selfReserve0);
-    console.log('selfReserve1', selfReserve1);
-
     IERC20 sellToken;
     IERC20 buyToken;
     uint256 sellAmount;
@@ -62,11 +57,7 @@ library GetTradeableOrder {
     uint256 selfReserve0TimesPriceDenominator = selfReserve0 * params.priceDenominator;
     uint256 selfReserve1TimesPriceNumerator = selfReserve1 * params.priceNumerator;
 
-    console.log('selfReserve0TimesPriceDenominator', selfReserve0TimesPriceDenominator);
-    console.log('selfReserve1TimesPriceNumerator', selfReserve1TimesPriceNumerator);
-
     if (selfReserve1TimesPriceNumerator < selfReserve0TimesPriceDenominator) {
-      console.log('sell token 0, buy token1');
       sellToken = params.token0;
       buyToken = params.token1;
       sellAmount = selfReserve0 / 2 - Math.ceilDiv(selfReserve1TimesPriceNumerator, 2 * params.priceDenominator);
@@ -77,7 +68,6 @@ library GetTradeableOrder {
         Math.Rounding.Ceil
       );
     } else {
-      console.log('sell token 1, buy token0');
       sellToken = params.token1;
       buyToken = params.token0;
       sellAmount = selfReserve1 / 2 - Math.ceilDiv(selfReserve0TimesPriceDenominator, 2 * params.priceNumerator);
@@ -88,9 +78,6 @@ library GetTradeableOrder {
         Math.Rounding.Ceil
       );
     }
-
-    console.log('sellAmount', sellAmount);
-    console.log('buyAmount', buyAmount);
 
     order_ = GPv2Order.Data(
       sellToken,

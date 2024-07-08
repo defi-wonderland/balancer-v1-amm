@@ -18,7 +18,6 @@ import {ISettlement} from 'interfaces/ISettlement.sol';
 import {BPool} from 'contracts/BPool.sol';
 // TODO: add interface of BMath to IBPool
 import {GetTradeableOrder} from 'contracts/GetTradeableOrder.sol';
-import {console} from 'forge-std/console.sol';
 
 contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
   using GPv2Order for GPv2Order.Data;
@@ -41,7 +40,6 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
       tokenWeightOut: DAI_WEIGHT,
       swapFee: 0
     });
-    console.log(initialSpotPrice);
     // 0.0001 (1 DAI in WETH terms)
     // notice the weight distribution of 80% DAI and 20% WETH
 
@@ -58,9 +56,7 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
       })
     );
 
-    console.log(order.sellAmount);
     // sell 0.25 WETH
-    console.log(order.buyAmount);
     // buy 1500 DAI
 
     // execute the transfers
@@ -82,7 +78,6 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
       swapFee: 0
     });
 
-    console.log(finalSpotPrice);
     // 0.00054 (1 DAI in WETH terms)
     // doesn't reach 0.0005 but doesn't overshoot
   }
