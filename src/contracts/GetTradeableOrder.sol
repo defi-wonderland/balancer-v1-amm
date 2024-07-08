@@ -11,9 +11,15 @@ library GetTradeableOrder {
     address pool;
     IERC20 token0;
     IERC20 token1;
-    uint256 token0Weight;
-    uint256 token1Weight;
+    /// @dev The numerator of the price, expressed in amount of token1 per
+    /// amount of token0. For example, if token0 is DAI and the price is
+    /// 1 WETH (token1) for 3000 DAI, then this could be 1 (and the
+    /// denominator would be 3000).
     uint256 priceNumerator;
+    /// @dev The denominator of the price, expressed in amount of token1 per
+    /// amount of token0. For example, if token0 is DAI and the price is
+    /// 1 WETH (token1) for 3000 DAI, then this could be 3000 (and the
+    /// denominator would be 1).
     uint256 priceDenominator;
     bytes32 appData;
   }
@@ -29,14 +35,23 @@ library GetTradeableOrder {
     (uint256 selfReserve0, uint256 selfReserve1) =
       (params.token0.balanceOf(params.pool), params.token1.balanceOf(params.pool));
 
-    selfReserve0 = Math.mulDiv(selfReserve0, 1e18, params.token0Weight);
-    selfReserve1 = Math.mulDiv(selfReserve1, 1e18, params.token1Weight);
-
     IERC20 sellToken;
     IERC20 buyToken;
     uint256 sellAmount;
     uint256 buyAmount;
-    
+    // Note on rounding: we want to round down the sell amount and up the
+    // buy amount. This is because the math for the order makes it lie
+    // precisely on the AMM curve, and a rounding error to the other way
+    // could cause a valid order to become invalid.
+    // Note on the if condition: it guarantees that sellAmount is positive
+    // in the corresponding branch (it would be negative in the other). This
+    // excludes rounding errors: in this case, the function could revert but
+    // the amounts involved would be just a few atoms, so we accept that no
+    // order will be available.
+    // Note on the order price: The buy amount is not optimal for the AMM
+    // given the sell amount. This is intended because we want to force
+    // solvers to maximize the surplus for this order with the price that
+    // isn't the AMM best price.
     uint256 selfReserve0TimesPriceDenominator = selfReserve0 * params.priceDenominator;
     uint256 selfReserve1TimesPriceNumerator = selfReserve1 * params.priceNumerator;
     uint256 tradedAmountToken0;
@@ -51,11 +66,7 @@ library GetTradeableOrder {
         Math.Rounding.Ceil
       );
       tradedAmountToken0 = sellAmount;
-
-      sellAmount = Math.mulDiv(sellAmount, params.token0Weight, 1e18);
-      buyAmount = Math.mulDiv(buyAmount, params.token1Weight, 1e18);
     } else {
-      revert('avoiding this branch in PoC');
       sellToken = params.token1;
       buyToken = params.token0;
       sellAmount = selfReserve1 / 2 - Math.ceilDiv(selfReserve0TimesPriceDenominator, 2 * params.priceNumerator);
