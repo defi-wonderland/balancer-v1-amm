@@ -7,7 +7,6 @@ import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {Test} from 'forge-std/Test.sol';
 
 contract MockBCoWPool is BCoWPool, Test {
-
   // NOTE: manually added method (public overrides not supported in smock)
   function verify(GPv2Order.Data memory order) public view override {
     (bool _success, bytes memory _data) =
