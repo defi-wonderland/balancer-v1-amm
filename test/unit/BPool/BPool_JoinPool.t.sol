@@ -9,7 +9,7 @@ import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BPoolJoinPool is BPoolBase {
   // Valid scenario
-  uint256 public SHARE_PROPORTION = 10;
+  uint256 public constant SHARE_PROPORTION = 10;
   uint256 public poolAmountOut = INIT_POOL_SUPPLY / SHARE_PROPORTION;
   uint256 public token0Balance = 10e18;
   uint256 public token1Balance = 30e18;
@@ -23,8 +23,8 @@ contract BPoolJoinPool is BPoolBase {
   function setUp() public virtual override {
     super.setUp();
     bPool.set__finalized(true);
-    // simulate an amount of pool shares (minted to the pool for easy burning)
-    deal(address(bPool), address(bPool), INIT_POOL_SUPPLY, true);
+    // mint an initial amount of pool shares (expected to happen at _finalize)
+    bPool.call__mintPoolShare(INIT_POOL_SUPPLY);
     address[] memory _tokens = new address[](2);
     _tokens[0] = token;
     _tokens[1] = secondToken;
