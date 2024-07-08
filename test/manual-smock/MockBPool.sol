@@ -5,11 +5,6 @@ import {BMath, BPool, BToken, IBPool, IERC20, SafeERC20} from '../../src/contrac
 import {Test} from 'forge-std/Test.sol';
 
 contract MockBPool is BPool, Test {
-  // NOTE: manually added method
-  function call__FACTORY() public view returns (address) {
-    return _FACTORY;
-  }
-
   function set__controller(address __controller) public {
     _controller = __controller;
   }

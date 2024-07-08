@@ -13,7 +13,7 @@ contract BPool is BPoolBase {
     // it sets caller as controller
     assertEq(_newBPool.call__controller(), _deployer);
     // it sets caller as factory
-    assertEq(_newBPool.call__FACTORY(), _deployer);
+    assertEq(_newBPool.FACTORY(), _deployer);
     // it sets swap fee to MIN_FEE
     assertEq(_newBPool.call__swapFee(), MIN_FEE);
     // it does NOT finalize the pool

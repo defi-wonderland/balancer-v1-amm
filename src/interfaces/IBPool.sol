@@ -424,4 +424,12 @@ interface IBPool is IERC20 {
    * @return controller The controller of the pool
    */
   function getController() external view returns (address controller);
+
+  /**
+   * @notice Gets the BFactory address
+   * @dev it might be useful to discern between pools deployed by the original
+   * Balancer BFactory vs those deployed by `BCoWFactory`, for example
+   * @return factory The address of the factory that deployed this contract
+   */
+  function FACTORY() external view returns (address factory);
 }
