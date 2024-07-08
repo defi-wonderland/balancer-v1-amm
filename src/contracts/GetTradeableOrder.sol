@@ -5,12 +5,16 @@ import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 
+import {console} from 'forge-std/console.sol';
+
 library GetTradeableOrder {
   /// @dev Avoid stack too deep errors with `getTradeableOrder`.
   struct GetTradeableOrderParams {
     address pool;
     IERC20 token0;
     IERC20 token1;
+    uint256 weightToken0;
+    uint256 weightToken1;
     /// @dev The numerator of the price, expressed in amount of token1 per
     /// amount of token0. For example, if token0 is DAI and the price is
     /// 1 WETH (token1) for 3000 DAI, then this could be 1 (and the
@@ -35,6 +39,10 @@ library GetTradeableOrder {
     (uint256 selfReserve0, uint256 selfReserve1) =
       (params.token0.balanceOf(params.pool), params.token1.balanceOf(params.pool));
 
+    console.log('selfReserve0', selfReserve0);
+    console.log('selfReserve1', selfReserve1);
+
+
     IERC20 sellToken;
     IERC20 buyToken;
     uint256 sellAmount;
@@ -54,8 +62,12 @@ library GetTradeableOrder {
     // isn't the AMM best price.
     uint256 selfReserve0TimesPriceDenominator = selfReserve0 * params.priceDenominator;
     uint256 selfReserve1TimesPriceNumerator = selfReserve1 * params.priceNumerator;
-    uint256 tradedAmountToken0;
+
+    console.log('selfReserve0TimesPriceDenominator', selfReserve0TimesPriceDenominator);
+    console.log('selfReserve1TimesPriceNumerator', selfReserve1TimesPriceNumerator);
+
     if (selfReserve1TimesPriceNumerator < selfReserve0TimesPriceDenominator) {
+      console.log('sell token 0, buy token1');
       sellToken = params.token0;
       buyToken = params.token1;
       sellAmount = selfReserve0 / 2 - Math.ceilDiv(selfReserve1TimesPriceNumerator, 2 * params.priceDenominator);
@@ -65,8 +77,8 @@ library GetTradeableOrder {
         params.priceNumerator * selfReserve0,
         Math.Rounding.Ceil
       );
-      tradedAmountToken0 = sellAmount;
     } else {
+      console.log('sell token 1, buy token0');
       sellToken = params.token1;
       buyToken = params.token0;
       sellAmount = selfReserve1 / 2 - Math.ceilDiv(selfReserve0TimesPriceDenominator, 2 * params.priceNumerator);
@@ -76,8 +88,10 @@ library GetTradeableOrder {
         params.priceDenominator * selfReserve1,
         Math.Rounding.Ceil
       );
-      tradedAmountToken0 = buyAmount;
     }
+
+    console.log('sellAmount', sellAmount);
+    console.log('buyAmount', buyAmount);
 
     order_ = GPv2Order.Data(
       sellToken,

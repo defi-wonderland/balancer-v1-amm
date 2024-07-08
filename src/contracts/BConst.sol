@@ -22,7 +22,7 @@ contract BConst {
   uint256 public constant EXIT_FEE = 0;
 
   /// @notice The minimum weight that a token can have.
-  uint256 public constant MIN_WEIGHT = BONE;
+  uint256 public constant MIN_WEIGHT = 0.01e18;
   /// @notice The maximum weight that a token can have.
   uint256 public constant MAX_WEIGHT = BONE * 50;
   /// @notice The maximum sum of weights of all tokens in a pool.

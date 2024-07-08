@@ -50,8 +50,8 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
         pool: address(pool),
         token0: weth,
         token1: dai,
-        // token0Weight: WETH_WEIGHT,
-        // token1Weight: DAI_WEIGHT,
+        weightToken0: WETH_WEIGHT,
+        weightToken1: DAI_WEIGHT,
         priceNumerator: 1e18,
         priceDenominator: 2000e18, // reach 0.0005
         appData: APP_DATA
