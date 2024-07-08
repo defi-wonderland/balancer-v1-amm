@@ -17,8 +17,8 @@ contract BPoolJoinPool is BPoolBase {
 
   // when minting n pool shares, enough amount X of every token t should be provided to statisfy
   // Xt = n/BPT.totalSupply() * t.balanceOf(BPT)
-  uint256 public requiredTokenIn = token0Balance / SHARE_PROPORTION;
-  uint256 public requiredSecondTokenIn = token1Balance / SHARE_PROPORTION;
+  uint256 public requiredToken0In = token0Balance / SHARE_PROPORTION;
+  uint256 public requiredToken1In = token1Balance / SHARE_PROPORTION;
 
   function setUp() public virtual override {
     super.setUp();
@@ -37,8 +37,8 @@ contract BPoolJoinPool is BPoolBase {
     vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token1Balance)));
 
     maxAmountsIn = new uint256[](2);
-    maxAmountsIn[0] = requiredTokenIn;
-    maxAmountsIn[1] = requiredSecondTokenIn;
+    maxAmountsIn[0] = requiredToken0In;
+    maxAmountsIn[1] = requiredToken1In;
   }
 
   function test_RevertWhen_ReentrancyLockIsSet() external {
@@ -81,7 +81,7 @@ contract BPoolJoinPool is BPoolBase {
   }
 
   function test_RevertWhen_RequiredAmountOfATokenIsMoreThanMaxAmountsIn() external {
-    maxAmountsIn[0] -= 100;
+    maxAmountsIn[0] -= 1;
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenAmountInAboveMaxAmountIn.selector);
     bPool.joinPool(poolAmountOut, maxAmountsIn);
@@ -91,17 +91,17 @@ contract BPoolJoinPool is BPoolBase {
     // it sets reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
     // it calls _pullUnderlying for every token
-    bPool.mock_call__pullUnderlying(token, address(this), requiredTokenIn);
-    bPool.expectCall__pullUnderlying(token, address(this), requiredTokenIn);
-    bPool.mock_call__pullUnderlying(secondToken, address(this), requiredSecondTokenIn);
-    bPool.expectCall__pullUnderlying(secondToken, address(this), requiredSecondTokenIn);
+    bPool.mock_call__pullUnderlying(token, address(this), requiredToken0In);
+    bPool.expectCall__pullUnderlying(token, address(this), requiredToken0In);
+    bPool.mock_call__pullUnderlying(secondToken, address(this), requiredToken1In);
+    bPool.expectCall__pullUnderlying(secondToken, address(this), requiredToken1In);
     // it mints the pool shares
     bPool.expectCall__mintPoolShare(poolAmountOut);
     // it sends pool shares to caller
     bPool.expectCall__pushPoolShare(address(this), poolAmountOut);
     uint256[] memory maxAmounts = new uint256[](2);
-    maxAmounts[0] = requiredTokenIn;
-    maxAmounts[1] = requiredSecondTokenIn;
+    maxAmounts[0] = requiredToken0In;
+    maxAmounts[1] = requiredToken1In;
 
     // it emits LOG_CALL event
     bytes memory _data = abi.encodeWithSelector(IBPool.joinPool.selector, poolAmountOut, maxAmounts);
@@ -109,9 +109,9 @@ contract BPoolJoinPool is BPoolBase {
     emit IBPool.LOG_CALL(IBPool.joinPool.selector, address(this), _data);
     // it emits LOG_JOIN event for every token
     vm.expectEmit();
-    emit IBPool.LOG_JOIN(address(this), token, requiredTokenIn);
+    emit IBPool.LOG_JOIN(address(this), token, requiredToken0In);
     vm.expectEmit();
-    emit IBPool.LOG_JOIN(address(this), secondToken, requiredSecondTokenIn);
+    emit IBPool.LOG_JOIN(address(this), secondToken, requiredToken1In);
     bPool.joinPool(poolAmountOut, maxAmounts);
     // it clears the reentrancy lock
     assertEq(_MUTEX_FREE, bPool.call__getLock());
