@@ -8,30 +8,23 @@ import {BNum} from 'contracts/BNum.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BPoolJoinPool is BPoolBase {
-  uint256 public poolAmountOut = 10e18;
-  // Assets Under Management
-  uint256 public tokenAUM = 10e18;
-  uint256 public secondTokenAUM = 30e18;
+  // Valid scenario
+  uint256 public SHARE_PROPORTION = 10;
+  uint256 public poolAmountOut = INIT_POOL_SUPPLY / SHARE_PROPORTION;
+  uint256 public token0Balance = 10e18;
+  uint256 public token1Balance = 30e18;
+  uint256[] maxAmountsIn;
 
   // when minting n pool shares, enough amount X of every token t should be provided to statisfy
   // Xt = n/BPT.totalSupply() * t.balanceOf(BPT)
-  // in this scenario n = 10, totalSupply = 100
-
-  // for t = token -> t.balanceOf(BPT) = tokenAUM = 10
-  // therefore Xt = 10/100*10 = 10
-  uint256 public requiredTokenIn = 1e18;
-  // for t = secondToken -> t.balanceOf(BPT) = secondTokenAUM = 30
-  // therefore Xt = 10/100*30 = 30
-  uint256 public requiredSecondTokenIn = 3e18;
-  // put another way, if the current 100 shares represent 30 secondToken, then
-  // to mint another 10, user should provide 3 secondToken so ratio stays the same.
+  uint256 public requiredTokenIn = token0Balance / SHARE_PROPORTION;
+  uint256 public requiredSecondTokenIn = token1Balance / SHARE_PROPORTION;
 
   function setUp() public virtual override {
     super.setUp();
     bPool.set__finalized(true);
-    // simulate expected finalize outcome
-    bPool.call__mintPoolShare(INIT_POOL_SUPPLY);
-    bPool.call__pushPoolShare(deployer, INIT_POOL_SUPPLY);
+    // simulate an amount of pool shares (minted to the pool for easy burning)
+    deal(address(bPool), address(bPool), INIT_POOL_SUPPLY, true);
     address[] memory _tokens = new address[](2);
     _tokens[0] = token;
     _tokens[1] = secondToken;
@@ -40,8 +33,12 @@ contract BPoolJoinPool is BPoolBase {
     _setRecord(token, IBPool.Record({bound: true, index: 0, denorm: 0}));
     _setRecord(secondToken, IBPool.Record({bound: true, index: 1, denorm: 0}));
     // underlying balances are used instead
-    vm.mockCall(token, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(tokenAUM)));
-    vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(secondTokenAUM)));
+    vm.mockCall(token, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token0Balance)));
+    vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token1Balance)));
+
+    maxAmountsIn = new uint256[](2);
+    maxAmountsIn[0] = requiredTokenIn;
+    maxAmountsIn[1] = requiredSecondTokenIn;
   }
 
   function test_RevertWhen_ReentrancyLockIsSet() external {
@@ -61,11 +58,10 @@ contract BPoolJoinPool is BPoolBase {
   // should not happen in the real world since finalization mints 100 tokens
   // and sends them to controller
   function test_RevertWhen_TotalSupplyIsZero() external {
-    // undo what was just done by setup
-    bPool.call__pullPoolShare(deployer, INIT_POOL_SUPPLY);
+    // natively burn the pool shares initially minted to the pool
     bPool.call__burnPoolShare(INIT_POOL_SUPPLY);
     // it should revert
-    //    division by zero
+    //     division by zero
     vm.expectRevert(BNum.BNum_DivZero.selector);
     bPool.joinPool(0, new uint256[](2));
   }
@@ -78,22 +74,17 @@ contract BPoolJoinPool is BPoolBase {
   }
 
   function test_RevertWhen_BalanceOfPoolInAnyTokenIsZero() external {
-    uint256[] memory maxAmounts = new uint256[](2);
-    maxAmounts[0] = requiredTokenIn;
-    maxAmounts[1] = requiredSecondTokenIn;
     vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(0)));
     // it should revert
     vm.expectRevert(IBPool.BPool_InvalidTokenAmountIn.selector);
-    bPool.joinPool(poolAmountOut, maxAmounts);
+    bPool.joinPool(poolAmountOut, maxAmountsIn);
   }
 
   function test_RevertWhen_RequiredAmountOfATokenIsMoreThanMaxAmountsIn() external {
-    uint256[] memory maxAmounts = new uint256[](2);
-    maxAmounts[0] = requiredTokenIn - 100;
-    maxAmounts[1] = requiredSecondTokenIn;
+    maxAmountsIn[0] -= 100;
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenAmountInAboveMaxAmountIn.selector);
-    bPool.joinPool(poolAmountOut, maxAmounts);
+    bPool.joinPool(poolAmountOut, maxAmountsIn);
   }
 
   function test_WhenPreconditionsAreMet() external {
