@@ -7,7 +7,6 @@ contract Params {
   }
 
   struct BCoWFactoryDeploymentParams {
-    address bLabs;
     address settlement;
     bytes32 appData;
   }
@@ -40,11 +39,12 @@ contract Params {
 
   constructor() {
     // Mainnet
-    _bFactoryDeploymentParams[1] = BFactoryDeploymentParams(_B_LABS);
-    _bCoWFactoryDeploymentParams[1] = BCoWFactoryDeploymentParams(_B_LABS, _GPV2_SETTLEMENT, _APP_DATA);
+    _bFactoryDeploymentParams[1] = BFactoryDeploymentParams({bLabs: _B_LABS});
+    _bCoWFactoryDeploymentParams[1] = BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});
 
     // Sepolia
-    _bFactoryDeploymentParams[11_155_111] = BFactoryDeploymentParams(_B_LABS);
-    _bCoWFactoryDeploymentParams[11_155_111] = BCoWFactoryDeploymentParams(_B_LABS, _GPV2_SETTLEMENT, _APP_DATA);
+    _bFactoryDeploymentParams[11_155_111] = BFactoryDeploymentParams({bLabs: _B_LABS});
+    _bCoWFactoryDeploymentParams[11_155_111] =
+      BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});
   }
 }
