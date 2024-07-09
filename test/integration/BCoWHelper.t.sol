@@ -98,7 +98,7 @@ contract ConstantProductHelperForkedTest is Test {
     assertEq(postSpotPrice, 1_052_631_578_947_368);
   }
 
-  // NOTE: failing test
+  // NOTE: reverting test, weighted pools are not supported
   function testWeightedOrder() public {
     IBCoWPool pool = IBCoWPool(address(weightedPool));
 
@@ -165,8 +165,8 @@ contract ConstantProductHelperForkedTest is Test {
     // Check that the amounts and price aren't unreasonable. We changed the
     // price by about 5%, so the amounts aren't expected to change
     // significantly more (say, about 2.5% of the original balance).
-    // assertApproxEqRel(ammOrder.sellAmount, ammDaiInitialBalance * 25 / 1000, TEN_PERCENT);
-    // assertApproxEqRel(ammOrder.buyAmount, ammWethInitialBalance * 25 / 1000, TEN_PERCENT);
+    assertApproxEqRel(ammOrder.sellAmount, ammDaiInitialBalance * 25 / 1000, TEN_PERCENT);
+    assertApproxEqRel(ammOrder.buyAmount, ammWethInitialBalance * 25 / 1000, TEN_PERCENT);
 
     GPv2Trade.Data[] memory trades = new GPv2Trade.Data[](1);
 
