@@ -233,15 +233,14 @@ contract BPool is BToken, BMath, IBPool {
     uint256 minAmountOut,
     uint256 maxPrice
   ) external _logs_ _lock_ _finalized_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
-    if (!_records[tokenIn].bound) {
-      revert BPool_TokenNotBound();
-    }
-    if (!_records[tokenOut].bound) {
-      revert BPool_TokenNotBound();
-    }
-
     Record storage inRecord = _records[address(tokenIn)];
     Record storage outRecord = _records[address(tokenOut)];
+    if (!inRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
+    if (!outRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
 
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
@@ -292,15 +291,14 @@ contract BPool is BToken, BMath, IBPool {
     uint256 tokenAmountOut,
     uint256 maxPrice
   ) external _logs_ _lock_ _finalized_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
-    if (!_records[tokenIn].bound) {
-      revert BPool_TokenNotBound();
-    }
-    if (!_records[tokenOut].bound) {
-      revert BPool_TokenNotBound();
-    }
-
     Record storage inRecord = _records[address(tokenIn)];
     Record storage outRecord = _records[address(tokenOut)];
+    if (!inRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
+    if (!outRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
 
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
@@ -349,11 +347,11 @@ contract BPool is BToken, BMath, IBPool {
     uint256 tokenAmountIn,
     uint256 minPoolAmountOut
   ) external _logs_ _lock_ _finalized_ returns (uint256 poolAmountOut) {
-    if (!_records[tokenIn].bound) {
+    Record storage inRecord = _records[tokenIn];
+    if (!inRecord.bound) {
       revert BPool_TokenNotBound();
     }
 
-    Record storage inRecord = _records[tokenIn];
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
     if (tokenAmountIn > bmul(tokenInBalance, MAX_IN_RATIO)) {
       revert BPool_TokenAmountInAboveMaxRatio();
@@ -380,11 +378,11 @@ contract BPool is BToken, BMath, IBPool {
     uint256 poolAmountOut,
     uint256 maxAmountIn
   ) external _logs_ _lock_ _finalized_ returns (uint256 tokenAmountIn) {
-    if (!_records[tokenIn].bound) {
+    Record storage inRecord = _records[tokenIn];
+    if (!inRecord.bound) {
       revert BPool_TokenNotBound();
     }
 
-    Record storage inRecord = _records[tokenIn];
     uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(this));
 
     tokenAmountIn =
@@ -415,11 +413,11 @@ contract BPool is BToken, BMath, IBPool {
     uint256 poolAmountIn,
     uint256 minAmountOut
   ) external _logs_ _lock_ _finalized_ returns (uint256 tokenAmountOut) {
-    if (!_records[tokenOut].bound) {
+    Record storage outRecord = _records[tokenOut];
+    if (!outRecord.bound) {
       revert BPool_TokenNotBound();
     }
 
-    Record storage outRecord = _records[tokenOut];
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
 
     tokenAmountOut =
@@ -450,11 +448,11 @@ contract BPool is BToken, BMath, IBPool {
     uint256 tokenAmountOut,
     uint256 maxPoolAmountIn
   ) external _logs_ _lock_ _finalized_ returns (uint256 poolAmountIn) {
-    if (!_records[tokenOut].bound) {
+    Record storage outRecord = _records[tokenOut];
+    if (!outRecord.bound) {
       revert BPool_TokenNotBound();
     }
 
-    Record storage outRecord = _records[tokenOut];
     uint256 tokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
     if (tokenAmountOut > bmul(tokenOutBalance, MAX_OUT_RATIO)) {
       revert BPool_TokenAmountOutAboveMaxOut();
@@ -483,15 +481,14 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
-    if (!_records[tokenIn].bound) {
-      revert BPool_TokenNotBound();
-    }
-    if (!_records[tokenOut].bound) {
-      revert BPool_TokenNotBound();
-    }
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
-
+    if (!inRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
+    if (!outRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
     spotPrice = calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
@@ -505,14 +502,14 @@ contract BPool is BToken, BMath, IBPool {
 
   /// @inheritdoc IBPool
   function getSpotPriceSansFee(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
-    if (!_records[tokenIn].bound) {
-      revert BPool_TokenNotBound();
-    }
-    if (!_records[tokenOut].bound) {
-      revert BPool_TokenNotBound();
-    }
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
+    if (!inRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
+    if (!outRecord.bound) {
+      revert BPool_TokenNotBound();
+    }
 
     spotPrice = calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
