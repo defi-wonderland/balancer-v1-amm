@@ -14,6 +14,7 @@ library GetTradeableOrder {
    * @param token1 The second token of the pool.
    * @param priceNumerator The numerator of the pricing vector.
    * @param priceDenominator The denominator of the pricing vector.
+   * @param appData The app data identifier to include in the order.
    * @dev Avoid stack too deep errors with `getTradeableOrder`.
    */
   struct GetTradeableOrderParams {
