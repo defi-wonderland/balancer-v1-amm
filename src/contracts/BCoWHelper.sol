@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.25;
 
-import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
-import {GPv2Interaction, GPv2Order, ICOWAMMPoolHelper} from 'interfaces/ICOWAMMPoolHelper.sol';
+
+import {ICOWAMMPoolHelper} from '@cow-amm/interfaces/ICOWAMMPoolHelper.sol';
+import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';
+import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
+import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
+
+// TODO: vendor from cow-amm
 import {GetTradeableOrder} from 'libraries/GetTradeableOrder.sol';
 
 /**

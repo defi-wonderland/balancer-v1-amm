@@ -4,12 +4,15 @@ pragma solidity 0.8.25;
 import {BCoWHelper} from 'contracts/BCoWHelper.sol';
 import {Test} from 'forge-std/Test.sol';
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
-import {GPv2Interaction, GPv2Order, ICOWAMMPoolHelper} from 'interfaces/ICOWAMMPoolHelper.sol';
-
 import {ISettlement} from 'interfaces/ISettlement.sol';
+
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+
+import {ICOWAMMPoolHelper} from '@cow-amm/interfaces/ICOWAMMPoolHelper.sol';
+import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';
+import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 
 import {MockBCoWFactory} from 'test/manual-smock/MockBCoWFactory.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
