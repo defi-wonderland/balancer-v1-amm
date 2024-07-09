@@ -15,8 +15,6 @@ contract TestnetScript is Script, Params {
 
   function run() public {
     vm.startBroadcast();
-    (, address caller,) = vm.readCallers();
-
     // NOTE: dripping can be called by anyone but only once a day (per address)
     IFaucet(_SEPOLIA_FAUCET).drip(_SEPOLIA_BAL_TOKEN);
     IFaucet(_SEPOLIA_FAUCET).drip(_SEPOLIA_DAI_TOKEN);

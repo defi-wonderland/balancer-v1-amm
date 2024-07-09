@@ -23,9 +23,14 @@ contract Params {
   /// @notice BLabs address (has controller permission to collect fees from BFactory pools)
   address internal constant _B_LABS = 0xAF38644Bb3Af9217383CE0C0fb390128B5c8F4A6; // TODO: update this address
 
-  /// @notice AppData identifier
-  /// @dev Value obtained from https://explorer.cow.fi/appdata?tab=encode using "CoW AMM balancer" as the App Code
-  bytes32 internal constant _APP_DATA = 0x865eefa670f204d06d405b88130062c4789d9b35a58245d87aca11e9a53cbc24;
+  /**
+   * @notice AppData identifier
+   * @dev Value obtained from https://explorer.cow.fi/appdata?tab=encode
+   *      - appCode: "CoW AMM Balancer"
+   *      - metadata:hooks:version: 0.1.0
+   *      - version: 1.1.0
+   */
+  bytes32 internal constant _APP_DATA = 0x362e5182440b52aa8fffe70a251550fbbcbca424740fe5a14f59bf0c1b06fe1d;
 
   /// @notice BFactory deployment parameters for each chain
   mapping(uint256 _chainId => BFactoryDeploymentParams _params) internal _bFactoryDeploymentParams;
