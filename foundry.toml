@@ -11,7 +11,7 @@ sort_imports = true
 [profile.default]
 solc_version = '0.8.25'
 libs = ["node_modules", "lib"]
-optimizer_runs = 500
+optimizer_runs = 50000
 evm_version = 'cancun'
 fs_permissions = [{ access = "read-write", path = ".forge-snapshots/"}]
 # 2018: function can be view, so far only caused by mocks
