@@ -828,9 +828,9 @@ for-each@^0.3.3:
   version "0.0.0"
   resolved "https://codeload.github.com/marktoda/forge-gas-snapshot/tar.gz/9161f7c0b6c6788a89081e2b3b9c67592b71e689"
 
-"forge-std@github:foundry-rs/forge-std#5475f85":
-  version "1.7.6"
-  resolved "https://codeload.github.com/foundry-rs/forge-std/tar.gz/5475f852e3f530d7e25dfb4596aa1f9baa8ffdfc"
+"forge-std@github:foundry-rs/forge-std#1.8.2":
+  version "1.8.2"
+  resolved "https://codeload.github.com/foundry-rs/forge-std/tar.gz/978ac6fadb62f5f0b723c996f64be52eddba6801"
 
 form-data@^4.0.0:
   version "4.0.0"
@@ -977,6 +977,10 @@ graceful-fs@^4.2.0:
   version "4.2.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
+
+"halmos-cheatcodes@github:a16z/halmos-cheatcodes#c0d8655":
+  version "0.0.0"
+  resolved "https://codeload.github.com/a16z/halmos-cheatcodes/tar.gz/c0d865508c0fee0a11b97732c5e90f9cad6b65a5"
 
 handlebars@4.7.7:
   version "4.7.7"

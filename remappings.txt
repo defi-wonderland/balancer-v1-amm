@@ -5,6 +5,7 @@ solmate/=node_modules/solmate/src
 @cowprotocol/=node_modules/@cowprotocol/contracts/src/contracts
 cowprotocol/=node_modules/@cowprotocol/contracts/src/
 @composable-cow/=node_modules/composable-cow/
+halmos-cheatcodes=node_modules/halmos-cheatcodes
 
 contracts/=src/contracts
 interfaces/=src/interfaces
