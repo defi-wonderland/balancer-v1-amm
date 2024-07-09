@@ -11,7 +11,7 @@ import {Params} from 'script/Params.s.sol';
 
 contract TestnetScript is Script, Params {
   /// @notice BFactory contract deployment address
-  IBFactory public bFactory = IBFactory(address(0xb024fC7EAB6707A094c06C646be343a54096EB98));
+  IBFactory public bFactory = IBFactory(address(0x25E497A2930788e0ecb97D0aA3E1274793F83A91));
 
   function run() public {
     vm.startBroadcast();
@@ -26,9 +26,9 @@ contract TestnetScript is Script, Params {
     IERC20(_SEPOLIA_DAI_TOKEN).approve(address(bPool), type(uint256).max);
     IERC20(_SEPOLIA_USDC_TOKEN).approve(address(bPool), type(uint256).max);
 
-    bPool.bind(_SEPOLIA_BAL_TOKEN, 4e18, 1e18);
-    bPool.bind(_SEPOLIA_DAI_TOKEN, 1e18, 1e18);
-    bPool.bind(_SEPOLIA_USDC_TOKEN, 1e6, 1e18);
+    bPool.bind(_SEPOLIA_BAL_TOKEN, 40e18, 1e18);
+    bPool.bind(_SEPOLIA_DAI_TOKEN, 10e18, 1e18);
+    bPool.bind(_SEPOLIA_USDC_TOKEN, 10e6, 1e18);
 
     bPool.finalize();
     vm.stopBroadcast();
