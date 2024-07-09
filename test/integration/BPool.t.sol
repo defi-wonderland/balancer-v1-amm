@@ -48,9 +48,6 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   uint256 public constant DAI_AMOUNT = HUNDRED_UNITS;
   uint256 public constant WETH_AMOUNT_INVERSE = ONE_TENTH_UNIT;
 
-  uint256 public constant DAI_WEIGHT = 8e18;
-  uint256 public constant WETH_WEIGHT = 2e18;
-
   // swap amounts OUT
   // NOTE: amounts OUT are hardcoded from test result
   uint256 public constant WETH_OUT_AMOUNT = 94_049_266_814_811_022; // 0.094 ETH
