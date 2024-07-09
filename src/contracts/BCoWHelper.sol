@@ -11,7 +11,7 @@ import {GetTradeableOrder} from 'libraries/GetTradeableOrder.sol';
 /**
  * @title BCoWHelper
  * @notice Helper contract that allows to trade on CoW Swap Protocol.
- * @dev This contract supports only 2-token pools.
+ * @dev This contract supports only 2-token equal-weights pools.
  */
 contract BCoWHelper is ICOWAMMPoolHelper {
   using GPv2Order for GPv2Order.Data;
