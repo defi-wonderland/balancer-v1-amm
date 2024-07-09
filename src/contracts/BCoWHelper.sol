@@ -30,6 +30,11 @@ contract BCoWHelper is ICOWAMMPoolHelper {
     tokens_ = IBCoWPool(pool).getFinalTokens();
     if (tokens_.length != 2) revert PoolDoesNotExist();
 
+    // NOTE: reverts in case pool is not supported (non-equal weights)
+    if (IBCoWPool(pool).getNormalizedWeight(tokens_[0]) != IBCoWPool(pool).getNormalizedWeight(tokens_[1])) {
+      revert PoolDoesNotExist();
+    }
+
     return tokens_;
   }
 
@@ -54,8 +59,6 @@ contract BCoWHelper is ICOWAMMPoolHelper {
       pool: pool,
       token0: IERC20(tokens_[0]),
       token1: IERC20(tokens_[1]),
-      weightToken0: IBCoWPool(pool).getNormalizedWeight(tokens_[0]),
-      weightToken1: IBCoWPool(pool).getNormalizedWeight(tokens_[1]),
       // The price of this function is expressed as amount of
       // token1 per amount of token0. The `prices` vector is
       // expressed the other way around.

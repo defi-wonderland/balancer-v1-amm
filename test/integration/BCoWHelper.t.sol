@@ -7,6 +7,8 @@ import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
+
+import {ICOWAMMPoolHelper} from 'interfaces/ICOWAMMPoolHelper.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
 import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';
@@ -60,13 +62,13 @@ contract ConstantProductHelperForkedTest is Test {
 
     DAI.approve(address(weightedPool), type(uint256).max);
     WETH.approve(address(weightedPool), type(uint256).max);
-    weightedPool.bind(address(DAI), VALID_AMOUNT, 0.16e18); // 80% weight
-    weightedPool.bind(address(WETH), VALID_AMOUNT, 0.04e18); // 20% weight
+    weightedPool.bind(address(DAI), VALID_AMOUNT, 8e18); // 80% weight
+    weightedPool.bind(address(WETH), VALID_AMOUNT, 2e18); // 20% weight
 
     DAI.approve(address(basicPool), type(uint256).max);
     WETH.approve(address(basicPool), type(uint256).max);
-    basicPool.bind(address(DAI), VALID_AMOUNT, 1e18); // no weight
-    basicPool.bind(address(WETH), VALID_AMOUNT, 1e18); // no weight
+    basicPool.bind(address(DAI), VALID_AMOUNT, 4.2e18); // no weight
+    basicPool.bind(address(WETH), VALID_AMOUNT, 4.2e18); // no weight
 
     // finalize
     weightedPool.finalize();
@@ -110,10 +112,13 @@ contract ConstantProductHelperForkedTest is Test {
     uint256 spotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
     assertEq(spotPrice, INITIAL_SPOT_PRICE);
 
-    _executeHelperOrder(pool, ammWethInitialBalance, ammDaiInitialBalance);
+    vm.expectRevert(ICOWAMMPoolHelper.PoolDoesNotExist.selector);
+    helper.order(address(pool), new uint256[](2));
 
-    uint256 postSpotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
-    assertEq(postSpotPrice, 1_052_631_578_947_368);
+    // NOTE: not supported
+    // _executeHelperOrder(pool, ammWethInitialBalance, ammDaiInitialBalance);
+    // uint256 postSpotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
+    // assertEq(postSpotPrice, 1_052_631_578_947_368);
   }
 
   function addressVecToIerc20Vec(address[] memory addrVec) private pure returns (IERC20[] memory ierc20vec) {

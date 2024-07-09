@@ -11,8 +11,6 @@ library GetTradeableOrder {
     address pool;
     IERC20 token0;
     IERC20 token1;
-    uint256 weightToken0;
-    uint256 weightToken1;
     /// @dev The numerator of the price, expressed in amount of token1 per
     /// amount of token0. For example, if token0 is DAI and the price is
     /// 1 WETH (token1) for 3000 DAI, then this could be 1 (and the
