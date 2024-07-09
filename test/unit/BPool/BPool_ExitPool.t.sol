@@ -1,0 +1,135 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.25;
+
+import {BPoolBase} from './BPoolBase.sol';
+
+import {IERC20Errors} from '@openzeppelin/contracts/interfaces/draft-IERC6093.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+
+import {BNum} from 'contracts/BNum.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
+
+contract BPoolExitPool is BPoolBase {
+  // Valid scenario
+  uint256 public constant SHARE_PROPORTION = 20;
+  uint256 public poolAmountIn = INIT_POOL_SUPPLY / SHARE_PROPORTION;
+  uint256 public token0Balance = 20e18;
+  uint256 public token1Balance = 50e18;
+  uint256[] minAmountsOut;
+
+  // when buring n pool shares, caller expects enough amount X of every token t
+  // should be sent to statisfy:
+  // Xt = n/BPT.totalSupply() * t.balanceOf(BPT)
+  uint256 public expectedToken0Out = token0Balance / SHARE_PROPORTION;
+  uint256 public expectedToken1Out = token1Balance / SHARE_PROPORTION;
+
+  function setUp() public virtual override {
+    super.setUp();
+    bPool.set__finalized(true);
+    // mint an initial amount of pool shares (expected to happen at _finalize)
+    bPool.call__mintPoolShare(INIT_POOL_SUPPLY);
+    address[] memory _tokens = new address[](2);
+    _tokens[0] = token;
+    _tokens[1] = secondToken;
+    bPool.set__tokens(_tokens);
+    // token weights are not used for all-token exits
+    _setRecord(token, IBPool.Record({bound: true, index: 0, denorm: 0}));
+    _setRecord(secondToken, IBPool.Record({bound: true, index: 1, denorm: 0}));
+    // underlying balances are used instead
+    vm.mockCall(token, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token0Balance)));
+    vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token1Balance)));
+
+    minAmountsOut = new uint256[](2);
+    minAmountsOut[0] = expectedToken0Out;
+    minAmountsOut[1] = expectedToken1Out;
+  }
+
+  function test_RevertWhen_ReentrancyLockIsSet() external {
+    bPool.call__setLock(_MUTEX_TAKEN);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
+    bPool.exitPool(0, minAmountsOut);
+  }
+
+  function test_RevertWhen_PoolIsNotFinalized() external {
+    bPool.set__finalized(false);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_PoolNotFinalized.selector);
+    bPool.exitPool(0, minAmountsOut);
+  }
+
+  function test_RevertWhen_TotalSupplyIsZero() external {
+    bPool.call__burnPoolShare(INIT_POOL_SUPPLY);
+    // it should revert
+    //     division by zero
+    vm.expectRevert(BNum.BNum_DivZero.selector);
+    bPool.exitPool(0, minAmountsOut);
+  }
+
+  function test_RevertWhen_PoolAmountInIsTooSmall(uint256 amountIn) external {
+    amountIn = bound(amountIn, 0, (INIT_POOL_SUPPLY / 1e18) / 2 - 1);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_InvalidPoolRatio.selector);
+    bPool.exitPool(amountIn, minAmountsOut);
+  }
+
+  function test_RevertWhen_CallerDoesNotHaveTheRequiredPoolShares() external {
+    // it should revert
+    vm.expectRevert(
+      abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(this), 0, poolAmountIn)
+    );
+    bPool.exitPool(poolAmountIn, minAmountsOut);
+  }
+
+  modifier whenCallerHasEnoughPoolShares() {
+    // setup leaves them in bpool contract, this moves them to the caller
+    bPool.call__pushPoolShare(address(this), INIT_POOL_SUPPLY);
+    _;
+  }
+
+  function test_RevertWhen_BalanceOfPoolInAnyTokenIsZero() external whenCallerHasEnoughPoolShares {
+    vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(0)));
+    // it should revert
+    vm.expectRevert(IBPool.BPool_InvalidTokenAmountOut.selector);
+    bPool.exitPool(poolAmountIn, minAmountsOut);
+  }
+
+  function test_RevertWhen_ReturnedAmountOfATokenIsLessThanMinAmountsOut() external whenCallerHasEnoughPoolShares {
+    minAmountsOut[1] += 1;
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokenAmountOutBelowMinAmountOut.selector);
+    bPool.exitPool(poolAmountIn, minAmountsOut);
+  }
+
+  function test_WhenPreconditionsAreMet() external whenCallerHasEnoughPoolShares {
+    // it pulls poolAmountIn shares
+    bPool.expectCall__pullPoolShare(address(this), poolAmountIn);
+    // it sends zero exitFee to factory
+    // NOTE: if exit_fee is going to be hard-coded to zero we could remove this
+    // and save some gas
+    bPool.expectCall__pushPoolShare(deployer, 0);
+    // it burns pool shares
+    bPool.expectCall__burnPoolShare(poolAmountIn);
+    // it calls _pushUnderlying for every token
+    bPool.mock_call__pushUnderlying(token, address(this), expectedToken0Out);
+    bPool.expectCall__pushUnderlying(token, address(this), expectedToken0Out);
+    bPool.mock_call__pushUnderlying(secondToken, address(this), expectedToken1Out);
+    bPool.expectCall__pushUnderlying(secondToken, address(this), expectedToken1Out);
+    // it sets the reentrancy lock
+    bPool.expectCall__setLock(_MUTEX_TAKEN);
+    // // it emits LOG_CALL event
+    bytes memory _data = abi.encodeWithSelector(IBPool.exitPool.selector, poolAmountIn, minAmountsOut);
+    vm.expectEmit();
+    emit IBPool.LOG_CALL(IBPool.exitPool.selector, address(this), _data);
+    // it emits LOG_EXIT event for every token
+    vm.expectEmit();
+    emit IBPool.LOG_EXIT(address(this), token, expectedToken0Out);
+    vm.expectEmit();
+    emit IBPool.LOG_EXIT(address(this), secondToken, expectedToken1Out);
+
+    bPool.exitPool(poolAmountIn, minAmountsOut);
+
+    // it clears the reentrancy lock
+    assertEq(_MUTEX_FREE, bPool.call__getLock());
+  }
+}
