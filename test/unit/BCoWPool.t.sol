@@ -11,7 +11,7 @@ import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
-import {MockBPool} from 'test/manual-smock/MockBPool.sol';
+import {MockBPool} from 'test/smock/MockBPool.sol';
 
 abstract contract BaseCoWPoolTest is BasePoolTest, BCoWConst {
   address public cowSolutionSettler = makeAddr('cowSolutionSettler');
@@ -86,9 +86,7 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
       vm.mockCall(tokens[i], abi.encodePacked(IERC20.approve.selector), abi.encode(true));
     }
 
-    vm.mockCall(
-      address(bCoWPool.call__FACTORY()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode()
-    );
+    vm.mockCall(address(bCoWPool.FACTORY()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode());
   }
 
   function test_Set_Approvals() public {
@@ -100,7 +98,7 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
 
   function test_Log_IfRevert() public {
     vm.mockCallRevert(
-      address(bCoWPool.call__FACTORY()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode()
+      address(bCoWPool.FACTORY()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode()
     );
 
     vm.expectEmit(address(bCoWPool));
@@ -110,7 +108,7 @@ contract BCoWPool_Unit_Finalize is BaseCoWPoolTest {
   }
 
   function test_Call_LogBCoWPool() public {
-    vm.expectCall(address(bCoWPool.call__FACTORY()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), 1);
+    vm.expectCall(address(bCoWPool.FACTORY()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), 1);
     bCoWPool.finalize();
   }
 }
@@ -205,7 +203,7 @@ contract BCoWPool_Unit_Verify is BaseCoWPoolTest, SwapExactAmountInUtils {
   }
 
   function test_Revert_LargeDurationOrder(uint256 _timeOffset) public {
-    _timeOffset = bound(_timeOffset, MAX_ORDER_DURATION, type(uint32).max - block.timestamp);
+    _timeOffset = bound(_timeOffset, MAX_ORDER_DURATION + 1, type(uint32).max - block.timestamp);
     GPv2Order.Data memory order = correctOrder;
     order.validTo = uint32(block.timestamp + _timeOffset);
     vm.expectRevert(IBCoWPool.BCoWPool_OrderValidityTooLong.selector);
@@ -291,9 +289,7 @@ contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
     for (uint256 i = 0; i < TOKENS_AMOUNT; i++) {
       vm.mockCall(tokens[i], abi.encodePacked(IERC20.approve.selector), abi.encode(true));
     }
-    vm.mockCall(
-      address(bCoWPool.call__FACTORY()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode()
-    );
+    vm.mockCall(address(bCoWPool.FACTORY()), abi.encodeWithSelector(IBCoWFactory.logBCoWPool.selector), abi.encode());
     bCoWPool.finalize();
   }
 
