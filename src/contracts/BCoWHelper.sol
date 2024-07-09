@@ -16,26 +16,12 @@ import {GetTradeableOrder} from 'libraries/GetTradeableOrder.sol';
 contract BCoWHelper is ICOWAMMPoolHelper {
   using GPv2Order for GPv2Order.Data;
 
-  address public factory;
   bytes32 public immutable APP_DATA;
+  address public factory;
 
   constructor(address factory_) {
     factory = factory_;
     APP_DATA = IBCoWFactory(factory_).APP_DATA();
-  }
-
-  function tokens(address pool) public view returns (address[] memory tokens_) {
-    if (!IBFactory(factory).isBPool(pool)) revert PoolDoesNotExist();
-    // NOTE: reverts in case pool is not finalized
-    tokens_ = IBCoWPool(pool).getFinalTokens();
-    if (tokens_.length != 2) revert PoolDoesNotExist();
-
-    // NOTE: reverts in case pool is not supported (non-equal weights)
-    if (IBCoWPool(pool).getNormalizedWeight(tokens_[0]) != IBCoWPool(pool).getNormalizedWeight(tokens_[1])) {
-      revert PoolDoesNotExist();
-    }
-
-    return tokens_;
   }
 
   function order(
@@ -84,5 +70,19 @@ contract BCoWHelper is ICOWAMMPoolHelper {
     });
 
     return (order_, preInteractions, postInteractions, sig);
+  }
+
+  function tokens(address pool) public view returns (address[] memory tokens_) {
+    if (!IBFactory(factory).isBPool(pool)) revert PoolDoesNotExist();
+    // NOTE: reverts in case pool is not finalized
+    tokens_ = IBCoWPool(pool).getFinalTokens();
+    if (tokens_.length != 2) revert PoolDoesNotExist();
+
+    // NOTE: reverts in case pool is not supported (non-equal weights)
+    if (IBCoWPool(pool).getNormalizedWeight(tokens_[0]) != IBCoWPool(pool).getNormalizedWeight(tokens_[1])) {
+      revert PoolDoesNotExist();
+    }
+
+    return tokens_;
   }
 }
