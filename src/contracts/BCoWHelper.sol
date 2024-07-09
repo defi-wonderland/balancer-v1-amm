@@ -78,12 +78,13 @@ contract BCoWHelper is ICOWAMMPoolHelper {
 
   /// @inheritdoc ICOWAMMPoolHelper
   function tokens(address pool) public view returns (address[] memory tokens_) {
+    // reverts in case pool is not deployed by the helper's factory
     if (!IBFactory(factory).isBPool(pool)) revert PoolDoesNotExist();
-    // NOTE: reverts in case pool is not finalized
+    // call reverts with `BPool_PoolNotFinalized()` in case pool is not finalized
     tokens_ = IBCoWPool(pool).getFinalTokens();
+    // reverts in case pool is not supported (non-2-token pool)
     if (tokens_.length != 2) revert PoolDoesNotExist();
-
-    // NOTE: reverts in case pool is not supported (non-equal weights)
+    // reverts in case pool is not supported (non-equal weights)
     if (IBCoWPool(pool).getNormalizedWeight(tokens_[0]) != IBCoWPool(pool).getNormalizedWeight(tokens_[1])) {
       revert PoolDoesNotExist();
     }
