@@ -15,7 +15,8 @@ contract BPool is BToken, BMath, IBPool {
   using SafeERC20 for IERC20;
   /// @dev BFactory address to push token exitFee to
 
-  address internal _factory;
+  /// @inheritdoc IBPool
+  address public immutable FACTORY;
   /// @dev Has CONTROL role
   address internal _controller;
   /// @dev Fee for swapping
@@ -53,6 +54,22 @@ contract BPool is BToken, BMath, IBPool {
     _;
   }
 
+  /// @dev Throws an error if pool is not finalized
+  modifier _finalized_() {
+    if (!_finalized) {
+      revert BPool_PoolNotFinalized();
+    }
+    _;
+  }
+
+  /// @dev Throws an error if pool is finalized
+  modifier _notFinalized_() {
+    if (_finalized) {
+      revert BPool_PoolIsFinalized();
+    }
+    _;
+  }
+
   /**
    * @notice Throws an error if caller is not controller
    */
@@ -65,16 +82,13 @@ contract BPool is BToken, BMath, IBPool {
 
   constructor() {
     _controller = msg.sender;
-    _factory = msg.sender;
+    FACTORY = msg.sender;
     _swapFee = MIN_FEE;
     _finalized = false;
   }
 
   /// @inheritdoc IBPool
-  function setSwapFee(uint256 swapFee) external _logs_ _lock_ _controller_ {
-    if (_finalized) {
-      revert BPool_PoolIsFinalized();
-    }
+  function setSwapFee(uint256 swapFee) external _logs_ _lock_ _controller_ _notFinalized_ {
     if (swapFee < MIN_FEE) {
       revert BPool_FeeBelowMinimum();
     }
@@ -85,15 +99,16 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function setController(address manager) external _logs_ _lock_ _controller_ {
-    _controller = manager;
+  function setController(address newController) external _logs_ _lock_ _controller_ {
+    if (newController == address(0)) {
+      revert BPool_AddressZero();
+    }
+
+    _controller = newController;
   }
 
   /// @inheritdoc IBPool
-  function finalize() external _logs_ _lock_ _controller_ {
-    if (_finalized) {
-      revert BPool_PoolIsFinalized();
-    }
+  function finalize() external _logs_ _lock_ _controller_ _notFinalized_ {
     if (_tokens.length < MIN_BOUND_TOKENS) {
       revert BPool_TokensBelowMinimum();
     }
@@ -106,18 +121,13 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function bind(address token, uint256 balance, uint256 denorm) external _logs_ _lock_ _controller_ {
+  function bind(address token, uint256 balance, uint256 denorm) external _logs_ _lock_ _controller_ _notFinalized_ {
     if (_records[token].bound) {
       revert BPool_TokenAlreadyBound();
     }
-    if (_finalized) {
-      revert BPool_PoolIsFinalized();
-    }
-
     if (_tokens.length >= MAX_BOUND_TOKENS) {
       revert BPool_TokensAboveMaximum();
     }
-
     if (denorm < MIN_WEIGHT) {
       revert BPool_WeightBelowMinimum();
     }
@@ -140,12 +150,9 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function unbind(address token) external _logs_ _lock_ _controller_ {
+  function unbind(address token) external _logs_ _lock_ _controller_ _notFinalized_ {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
-    }
-    if (_finalized) {
-      revert BPool_PoolIsFinalized();
     }
 
     _totalWeight = bsub(_totalWeight, _records[token].denorm);
@@ -163,18 +170,15 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn) external _logs_ _lock_ {
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
-    }
-
+  function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn) external _logs_ _lock_ _finalized_ {
     uint256 poolTotal = totalSupply();
     uint256 ratio = bdiv(poolAmountOut, poolTotal);
     if (ratio == 0) {
       revert BPool_InvalidPoolRatio();
     }
 
-    for (uint256 i = 0; i < _tokens.length; i++) {
+    uint256 tokensLength = _tokens.length;
+    for (uint256 i = 0; i < tokensLength; i++) {
       address t = _tokens[i];
       uint256 bal = IERC20(t).balanceOf(address(this));
       uint256 tokenAmountIn = bmul(ratio, bal);
@@ -192,11 +196,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut) external _logs_ _lock_ {
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
-    }
-
+  function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut) external _logs_ _lock_ _finalized_ {
     uint256 poolTotal = totalSupply();
     uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
     uint256 pAiAfterExitFee = bsub(poolAmountIn, exitFee);
@@ -206,10 +206,11 @@ contract BPool is BToken, BMath, IBPool {
     }
 
     _pullPoolShare(msg.sender, poolAmountIn);
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(FACTORY, exitFee);
     _burnPoolShare(pAiAfterExitFee);
 
-    for (uint256 i = 0; i < _tokens.length; i++) {
+    uint256 tokensLength = _tokens.length;
+    for (uint256 i = 0; i < tokensLength; i++) {
       address t = _tokens[i];
       uint256 bal = IERC20(t).balanceOf(address(this));
       uint256 tokenAmountOut = bmul(ratio, bal);
@@ -231,15 +232,12 @@ contract BPool is BToken, BMath, IBPool {
     address tokenOut,
     uint256 minAmountOut,
     uint256 maxPrice
-  ) external _logs_ _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
+  ) external _logs_ _lock_ _finalized_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
     if (!_records[tokenIn].bound) {
       revert BPool_TokenNotBound();
     }
     if (!_records[tokenOut].bound) {
       revert BPool_TokenNotBound();
-    }
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
     }
 
     Record storage inRecord = _records[address(tokenIn)];
@@ -272,7 +270,7 @@ contract BPool is BToken, BMath, IBPool {
       revert BPool_SpotPriceAfterBelowSpotPriceBefore();
     }
     if (spotPriceAfter > maxPrice) {
-      revert BPool_SpotPriceAfterBelowMaxPrice();
+      revert BPool_SpotPriceAboveMaxPrice();
     }
     if (spotPriceBefore > bdiv(tokenAmountIn, tokenAmountOut)) {
       revert BPool_SpotPriceBeforeAboveTokenRatio();
@@ -293,15 +291,12 @@ contract BPool is BToken, BMath, IBPool {
     address tokenOut,
     uint256 tokenAmountOut,
     uint256 maxPrice
-  ) external _logs_ _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
+  ) external _logs_ _lock_ _finalized_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
     if (!_records[tokenIn].bound) {
       revert BPool_TokenNotBound();
     }
     if (!_records[tokenOut].bound) {
       revert BPool_TokenNotBound();
-    }
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
     }
 
     Record storage inRecord = _records[address(tokenIn)];
@@ -334,7 +329,7 @@ contract BPool is BToken, BMath, IBPool {
       revert BPool_SpotPriceAfterBelowSpotPriceBefore();
     }
     if (spotPriceAfter > maxPrice) {
-      revert BPool_SpotPriceAfterBelowMaxPrice();
+      revert BPool_SpotPriceAboveMaxPrice();
     }
     if (spotPriceBefore > bdiv(tokenAmountIn, tokenAmountOut)) {
       revert BPool_SpotPriceBeforeAboveTokenRatio();
@@ -353,10 +348,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenIn,
     uint256 tokenAmountIn,
     uint256 minPoolAmountOut
-  ) external _logs_ _lock_ returns (uint256 poolAmountOut) {
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
-    }
+  ) external _logs_ _lock_ _finalized_ returns (uint256 poolAmountOut) {
     if (!_records[tokenIn].bound) {
       revert BPool_TokenNotBound();
     }
@@ -387,10 +379,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenIn,
     uint256 poolAmountOut,
     uint256 maxAmountIn
-  ) external _logs_ _lock_ returns (uint256 tokenAmountIn) {
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
-    }
+  ) external _logs_ _lock_ _finalized_ returns (uint256 tokenAmountIn) {
     if (!_records[tokenIn].bound) {
       revert BPool_TokenNotBound();
     }
@@ -425,10 +414,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenOut,
     uint256 poolAmountIn,
     uint256 minAmountOut
-  ) external _logs_ _lock_ returns (uint256 tokenAmountOut) {
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
-    }
+  ) external _logs_ _lock_ _finalized_ returns (uint256 tokenAmountOut) {
     if (!_records[tokenOut].bound) {
       revert BPool_TokenNotBound();
     }
@@ -452,7 +438,7 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullPoolShare(msg.sender, poolAmountIn);
     _burnPoolShare(bsub(poolAmountIn, exitFee));
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
     return tokenAmountOut;
@@ -463,10 +449,7 @@ contract BPool is BToken, BMath, IBPool {
     address tokenOut,
     uint256 tokenAmountOut,
     uint256 maxPoolAmountIn
-  ) external _logs_ _lock_ returns (uint256 poolAmountIn) {
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
-    }
+  ) external _logs_ _lock_ _finalized_ returns (uint256 poolAmountIn) {
     if (!_records[tokenOut].bound) {
       revert BPool_TokenNotBound();
     }
@@ -492,7 +475,7 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullPoolShare(msg.sender, poolAmountIn);
     _burnPoolShare(bsub(poolAmountIn, exitFee));
-    _pushPoolShare(_factory, exitFee);
+    _pushPoolShare(FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
     return poolAmountIn;
@@ -508,13 +491,16 @@ contract BPool is BToken, BMath, IBPool {
     }
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
-    return calcSpotPrice(
+
+    spotPrice = calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
       IERC20(tokenOut).balanceOf(address(this)),
       outRecord.denorm,
       _swapFee
     );
+
+    return spotPrice;
   }
 
   /// @inheritdoc IBPool
@@ -527,13 +513,16 @@ contract BPool is BToken, BMath, IBPool {
     }
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
-    return calcSpotPrice(
+
+    spotPrice = calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
       IERC20(tokenOut).balanceOf(address(this)),
       outRecord.denorm,
       0
     );
+
+    return spotPrice;
   }
 
   /// @inheritdoc IBPool
@@ -557,10 +546,7 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getFinalTokens() external view _viewlock_ returns (address[] memory tokens) {
-    if (!_finalized) {
-      revert BPool_PoolNotFinalized();
-    }
+  function getFinalTokens() external view _viewlock_ _finalized_ returns (address[] memory tokens) {
     return _tokens;
   }
 
@@ -606,34 +592,34 @@ contract BPool is BToken, BMath, IBPool {
 
   /**
    * @notice Sets the value of the transient storage slot used for reentrancy locks
-   * @param _value The value of the transient storage slot used for reentrancy locks.
+   * @param value The value of the transient storage slot used for reentrancy locks.
    * @dev Should be set to _MUTEX_FREE after a call, any other value will
    * be interpreted as locked
    */
-  function _setLock(bytes32 _value) internal virtual {
+  function _setLock(bytes32 value) internal virtual {
     assembly ("memory-safe") {
-      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, _value)
+      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, value)
     }
   }
 
   /**
    * @dev Pulls tokens from the sender. Tokens needs to be approved first. Calls are not locked.
-   * @param erc20 The address of the token to pull
+   * @param token The address of the token to pull
    * @param from The address to pull the tokens from
    * @param amount The amount of tokens to pull
    */
-  function _pullUnderlying(address erc20, address from, uint256 amount) internal virtual {
-    IERC20(erc20).safeTransferFrom(from, address(this), amount);
+  function _pullUnderlying(address token, address from, uint256 amount) internal virtual {
+    IERC20(token).safeTransferFrom(from, address(this), amount);
   }
 
   /**
    * @dev Pushes tokens to the receiver. Calls are not locked.
-   * @param erc20 The address of the token to push
+   * @param token The address of the token to push
    * @param to The address to push the tokens to
    * @param amount The amount of tokens to push
    */
-  function _pushUnderlying(address erc20, address to, uint256 amount) internal virtual {
-    IERC20(erc20).safeTransfer(to, amount);
+  function _pushUnderlying(address token, address to, uint256 amount) internal virtual {
+    IERC20(token).safeTransfer(to, amount);
   }
 
   /**
@@ -648,7 +634,7 @@ contract BPool is BToken, BMath, IBPool {
    * @param from The address to pull the pool tokens from
    * @param amount The amount of pool tokens to pull
    */
-  function _pullPoolShare(address from, uint256 amount) internal {
+  function _pullPoolShare(address from, uint256 amount) internal virtual {
     _pull(from, amount);
   }
 
@@ -657,7 +643,7 @@ contract BPool is BToken, BMath, IBPool {
    * @param to The address to push the pool tokens to
    * @param amount The amount of pool tokens to push
    */
-  function _pushPoolShare(address to, uint256 amount) internal {
+  function _pushPoolShare(address to, uint256 amount) internal virtual {
     _push(to, amount);
   }
 
@@ -665,7 +651,7 @@ contract BPool is BToken, BMath, IBPool {
    * @dev Mints an amount of pool tokens.
    * @param amount The amount of pool tokens to mint
    */
-  function _mintPoolShare(uint256 amount) internal {
+  function _mintPoolShare(uint256 amount) internal virtual {
     _mint(address(this), amount);
   }
 
@@ -673,19 +659,19 @@ contract BPool is BToken, BMath, IBPool {
    * @dev Burns an amount of pool tokens.
    * @param amount The amount of pool tokens to burn
    */
-  function _burnPoolShare(uint256 amount) internal {
+  function _burnPoolShare(uint256 amount) internal virtual {
     _burn(address(this), amount);
   }
 
   /**
    * @notice Gets the value of the transient storage slot used for reentrancy locks
-   * @return _value Contents of transient storage slot used for reentrancy locks.
+   * @return value Contents of transient storage slot used for reentrancy locks.
    * @dev Should only be compared against _MUTEX_FREE for the purposes of
    * allowing calls
    */
-  function _getLock() internal view virtual returns (bytes32 _value) {
+  function _getLock() internal view virtual returns (bytes32 value) {
     assembly ("memory-safe") {
-      _value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
+      value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
     }
   }
 }
