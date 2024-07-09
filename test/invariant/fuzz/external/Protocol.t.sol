@@ -2,19 +2,25 @@
 pragma solidity 0.8.25;
 
 import {EchidnaTest, FuzzERC20} from '../../AdvancedTestsUtils.sol';
+
+import {BCoWFactory, BCoWPool} from 'contracts/BCoWFactory.sol';
 import {BConst} from 'contracts/BConst.sol';
-import {BFactory, IBPool} from 'contracts/BFactory.sol';
+
+import {MockSettler} from './MockSettler.sol';
 
 contract EchidnaBalancer is EchidnaTest {
   // System under test
-  BFactory factory;
+  BCoWFactory factory;
   BConst bconst;
   FuzzERC20 tokenA;
   FuzzERC20 tokenB;
 
+  address solutionSettler;
+  bytes32 appData;
+
   mapping(address => bool) alreadyMinted;
 
-  IBPool[] deployedPools;
+  BCoWPool[] deployedPools;
 
   constructor() {
     tokenA = new FuzzERC20();
@@ -22,7 +28,9 @@ contract EchidnaBalancer is EchidnaTest {
     tokenA.initialize('', '', 18);
     tokenB.initialize('', '', 18);
 
-    factory = new BFactory();
+    solutionSettler = address(new MockSettler());
+
+    factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
   }
 
@@ -45,7 +53,7 @@ contract EchidnaBalancer is EchidnaTest {
     require(_denormA + _denormB <= bconst.MAX_TOTAL_WEIGHT());
 
     _poolIndex = _poolIndex % deployedPools.length;
-    IBPool pool = deployedPools[_poolIndex];
+    BCoWPool pool = deployedPools[_poolIndex];
 
     tokenA.approve(address(pool), _amountA);
     tokenB.approve(address(pool), _amountB);
@@ -58,7 +66,7 @@ contract EchidnaBalancer is EchidnaTest {
 
   function fuzz_BFactoryAlwaysDeploy() public AgentOrDeployer {
     hevm.prank(currentCaller);
-    IBPool _newPool = factory.newBPool();
+    BCoWPool _newPool = BCoWPool(address(factory.newBPool()));
 
     deployedPools.push(_newPool);
 
