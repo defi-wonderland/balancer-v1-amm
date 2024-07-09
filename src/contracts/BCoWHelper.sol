@@ -51,8 +51,6 @@ contract BCoWHelper is ICOWAMMPoolHelper {
       bytes memory sig
     )
   {
-    postInteractions; // NOTE: avoid unused var
-
     address[] memory tokens_ = tokens(pool);
 
     GetTradeableOrder.GetTradeableOrderParams memory params = GetTradeableOrder.GetTradeableOrderParams({
@@ -84,5 +82,7 @@ contract BCoWHelper is ICOWAMMPoolHelper {
       value: 0,
       callData: abi.encodeWithSelector(IBCoWPool.commit.selector, orderCommitment)
     });
+
+    return (order_, preInteractions, postInteractions, sig);
   }
 }
