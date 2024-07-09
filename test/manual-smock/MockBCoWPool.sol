@@ -21,6 +21,17 @@ contract MockBCoWPool is BCoWPool, Test {
     vm.expectCall(address(this), abi.encodeWithSignature('verify(GPv2Order.Data)', order));
   }
 
+  // NOTE: manually added methods (immutable overrides not supported in smock)
+  function mock_call_SOLUTION_SETTLER_DOMAIN_SEPARATOR(bytes32 domainSeparator) public {
+    vm.mockCall(
+      address(this), abi.encodeWithSignature('SOLUTION_SETTLER_DOMAIN_SEPARATOR()'), abi.encode(domainSeparator)
+    );
+  }
+
+  function expectCall_SOLUTION_SETTLER_DOMAIN_SEPARATOR() public {
+    vm.expectCall(address(this), abi.encodeWithSignature('SOLUTION_SETTLER_DOMAIN_SEPARATOR()'));
+  }
+
   /// MockBCoWPool mock methods
 
   constructor(address cowSolutionSettler, bytes32 appData) BCoWPool(cowSolutionSettler, appData) {}
