@@ -22,7 +22,7 @@ contract DeployBFactory is DeployBaseFactory {
   function _deployFactory() internal override returns (IBFactory bFactory) {
     BFactoryDeploymentParams memory bParams = _bFactoryDeploymentParams[block.chainid];
     bFactory = new BFactory();
-    bFactory.setBLabs(bParams.bDao);
+    bFactory.setBDao(bParams.bDao);
   }
 }
 
@@ -31,6 +31,6 @@ contract DeployBCoWFactory is DeployBaseFactory {
     BFactoryDeploymentParams memory bParams = _bFactoryDeploymentParams[block.chainid];
     BCoWFactoryDeploymentParams memory bCoWParams = _bCoWFactoryDeploymentParams[block.chainid];
     bFactory = new BCoWFactory(bCoWParams.settlement, bCoWParams.appData);
-    bFactory.setBLabs(bParams.bDao);
+    bFactory.setBDao(bParams.bDao);
   }
 }
