@@ -7,6 +7,7 @@ import {GPv2Order} from 'cowprotocol/contracts/libraries/GPv2Order.sol';
 /**
  * @notice Pool-specific helper interface for AMM's operating in CoW Protocol.
  */
+// TODO: vendor interface from cowprotocol/cow-amm repo when available
 interface ICOWAMMPoolHelper {
   /**
    * All functions that take `pool` as an argument MUST revert with this error

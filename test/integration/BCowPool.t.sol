@@ -8,11 +8,11 @@ import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {GPv2Trade} from '@cowprotocol/libraries/GPv2Trade.sol';
 import {GPv2Signing} from '@cowprotocol/mixins/GPv2Signing.sol';
+import {GetTradeableOrder} from 'libraries/GetTradeableOrder.sol';
 
 import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BCoWFactory} from 'contracts/BCoWFactory.sol';
 import {BPool} from 'contracts/BPool.sol';
-import {GetTradeableOrder} from 'contracts/GetTradeableOrder.sol';
 
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';

@@ -8,3 +8,4 @@ cowprotocol/=node_modules/@cowprotocol/contracts/src/
 
 contracts/=src/contracts
 interfaces/=src/interfaces
+libraries/=src/libraries

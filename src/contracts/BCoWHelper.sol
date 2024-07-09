@@ -2,11 +2,11 @@
 pragma solidity 0.8.25;
 
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
-import {GetTradeableOrder} from 'contracts/GetTradeableOrder.sol';
 import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {GPv2Interaction, GPv2Order, ICOWAMMPoolHelper} from 'interfaces/ICOWAMMPoolHelper.sol';
+import {GetTradeableOrder} from 'libraries/GetTradeableOrder.sol';
 
 /**
  * @title BCoWHelper

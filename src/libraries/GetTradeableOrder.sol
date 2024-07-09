@@ -5,6 +5,7 @@ import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 
+// TODO: vendor library from cowprotocol/cow-amm repo when available
 library GetTradeableOrder {
   /// @dev Avoid stack too deep errors with `getTradeableOrder`.
   struct GetTradeableOrderParams {
