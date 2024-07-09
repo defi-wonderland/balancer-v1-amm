@@ -16,7 +16,10 @@ import {GetTradeableOrder} from 'libraries/GetTradeableOrder.sol';
 contract BCoWHelper is ICOWAMMPoolHelper {
   using GPv2Order for GPv2Order.Data;
 
+  /// @notice The app data used by this helper's factory.
   bytes32 public immutable APP_DATA;
+
+  /// @notice The factory contract to which this helper provides support.
   address public factory;
 
   constructor(address factory_) {
@@ -24,6 +27,7 @@ contract BCoWHelper is ICOWAMMPoolHelper {
     APP_DATA = IBCoWFactory(factory_).APP_DATA();
   }
 
+  /// @inheritdoc ICOWAMMPoolHelper
   function order(
     address pool,
     uint256[] calldata prices
@@ -72,6 +76,7 @@ contract BCoWHelper is ICOWAMMPoolHelper {
     return (order_, preInteractions, postInteractions, sig);
   }
 
+  /// @inheritdoc ICOWAMMPoolHelper
   function tokens(address pool) public view returns (address[] memory tokens_) {
     if (!IBFactory(factory).isBPool(pool)) revert PoolDoesNotExist();
     // NOTE: reverts in case pool is not finalized

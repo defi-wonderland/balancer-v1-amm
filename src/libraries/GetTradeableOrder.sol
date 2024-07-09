@@ -7,7 +7,15 @@ import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 
 // TODO: vendor library from cowprotocol/cow-amm repo when available
 library GetTradeableOrder {
-  /// @dev Avoid stack too deep errors with `getTradeableOrder`.
+  /**
+   * @notice Parameters for the `getTradeableOrder` function.
+   * @param pool The address of the pool to query.
+   * @param token0 The first token of the pool.
+   * @param token1 The second token of the pool.
+   * @param priceNumerator The numerator of the pricing vector.
+   * @param priceDenominator The denominator of the pricing vector.
+   * @dev Avoid stack too deep errors with `getTradeableOrder`.
+   */
   struct GetTradeableOrderParams {
     address pool;
     IERC20 token0;
@@ -28,6 +36,11 @@ library GetTradeableOrder {
   /// @notice The largest possible duration of any AMM order, starting from the current block timestamp.
   uint32 public constant MAX_ORDER_DURATION = 5 * 60;
 
+  /**
+   * @notice Method to calculate the canonical order of a pool given a pricing vector.
+   * @param params Encoded parameters for the order.
+   * @return order_ The canonical order of the pool.
+   */
   function getTradeableOrder(GetTradeableOrderParams memory params)
     internal
     view

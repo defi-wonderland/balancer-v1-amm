@@ -10,51 +10,57 @@ import {GPv2Order} from 'cowprotocol/contracts/libraries/GPv2Order.sol';
 // TODO: vendor interface from cowprotocol/cow-amm repo when available
 interface ICOWAMMPoolHelper {
   /**
-   * All functions that take `pool` as an argument MUST revert with this error
-   * if the `pool` does not exist.
+   * @notice All functions that take `pool` as an argument MUST revert with this error
+   *         if the `pool` does not exist.
    * @dev Indexers monitoring CoW AMM pools MAY use this as a signal to purge the
    *      pool from their index.
    */
   error PoolDoesNotExist();
 
   /**
-   * All functions that take `pool` as an argument MUST revert with this error
-   * in the event that the pool is paused (ONLY applicable if the pool is pausable).
+   * @notice All functions that take `pool` as an argument MUST revert with this error
+   *         in the event that the pool is paused (ONLY applicable if the pool is pausable).
    * @dev Indexers monitoring CoW AMM pools SHOULD use this as a signal to retain
    *      the pool in the index with back-off on polling for orders.
    */
   error PoolIsPaused();
 
   /**
-   * All functions that take `pool` as an argument MUST revert with this error
-   * in the event that the pool is closed (ONLY applicable if the pool can be
-   * closed).
+   * @notice All functions that take `pool` as an argument MUST revert with this error
+   *         in the event that the pool is closed (ONLY applicable if the pool can be
+   *         closed).
    * @dev Indexers monitoring CoW AMM pools MAY use this as a signal to purge the
    *      pool from their index.
    */
   error PoolIsClosed();
 
   /**
-   * Returned by the `order` function if there is no order matching the supplied
-   * parameters.
+   * @notice Returned by the `order` function if there is no order matching the supplied
+   *         parameters.
    */
   error NoOrder();
 
   /**
-   * AMM Pool helpers MUST return the factory target for indexing of CoW AMM pools.
+   * @notice The factory contract to which this helper provides support.
+   * @dev AMM Pool helpers MUST return the factory target for indexing of CoW AMM pools.
+   * @return factory The factory contract address.
    */
-  function factory() external view returns (address);
+  function factory() external view returns (address factory);
 
   /**
-   * AMM Pool helpers MUST return all tokens that may be traded on this pool.
-   * The order of the tokens is expected to be consistent and must be the same
-   * as that used for the input price vector in the `order` function.
+   * @notice Gets the tokens that may be traded on the given pool.
+   * @dev AMM Pool helpers MUST return all tokens that may be traded on this pool.
+   *      The order of the tokens is expected to be consistent and must be the same
+   *      as that used for the input price vector in the `order` function.
+   * @param pool The address of the pool to query.
+   * @return tokens The array of tokens that may be traded on the pool.
    */
-  function tokens(address pool) external view returns (address[] memory);
+  function tokens(address pool) external view returns (address[] memory tokens);
 
   /**
-   * AMM Pool helpers MUST provide a method for returning the canonical order
-   * required to satisfy the pool's invariants, given a pricing vector.
+   * @notice Gets the pool's canonical order given a pricing vector
+   * @dev AMM Pool helpers MUST provide a method for returning the canonical order
+   *      required to satisfy the pool's invariants, given a pricing vector.
    * @dev Reverts with `NoOrder` if the `pool` has no canonical order matching the
    *      given price vector.
    * @param pool to calculate the order / signature for
