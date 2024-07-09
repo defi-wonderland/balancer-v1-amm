@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 contract Params {
   struct BFactoryDeploymentParams {
-    address bLabs;
+    address bDao;
   }
 
   struct BCoWFactoryDeploymentParams {
@@ -19,8 +19,8 @@ contract Params {
 
   /// @notice Settlement address
   address internal constant _GPV2_SETTLEMENT = 0x9008D19f58AAbD9eD0D60971565AA8510560ab41;
-  /// @notice BLabs address (has controller permission to collect fees from BFactory pools)
-  address internal constant _B_LABS = 0xAF38644Bb3Af9217383CE0C0fb390128B5c8F4A6; // TODO: update this address
+  /// @notice Balancer DAO address (has controller permission to collect fees from BFactory pools)
+  address internal constant _B_DAO = 0xce88686553686DA562CE7Cea497CE749DA109f9F;
 
   /**
    * @notice AppData identifier
@@ -39,11 +39,11 @@ contract Params {
 
   constructor() {
     // Mainnet
-    _bFactoryDeploymentParams[1] = BFactoryDeploymentParams({bLabs: _B_LABS});
+    _bFactoryDeploymentParams[1] = BFactoryDeploymentParams({bDao: _B_DAO});
     _bCoWFactoryDeploymentParams[1] = BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});
 
     // Sepolia
-    _bFactoryDeploymentParams[11_155_111] = BFactoryDeploymentParams({bLabs: _B_LABS});
+    _bFactoryDeploymentParams[11_155_111] = BFactoryDeploymentParams({bDao: _B_DAO});
     _bCoWFactoryDeploymentParams[11_155_111] =
       BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});
   }
