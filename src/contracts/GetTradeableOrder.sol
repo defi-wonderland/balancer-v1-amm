@@ -54,27 +54,16 @@ library GetTradeableOrder {
     // isn't the AMM best price.
     uint256 selfReserve0TimesPriceDenominator = selfReserve0 * params.priceDenominator;
     uint256 selfReserve1TimesPriceNumerator = selfReserve1 * params.priceNumerator;
-
     if (selfReserve1TimesPriceNumerator < selfReserve0TimesPriceDenominator) {
       sellToken = params.token0;
       buyToken = params.token1;
       sellAmount = selfReserve0 / 2 - Math.ceilDiv(selfReserve1TimesPriceNumerator, 2 * params.priceDenominator);
-      buyAmount = Math.mulDiv(
-        sellAmount,
-        selfReserve1TimesPriceNumerator + (params.priceDenominator * sellAmount),
-        params.priceNumerator * selfReserve0,
-        Math.Rounding.Ceil
-      );
+      buyAmount = Math.mulDiv(sellAmount, selfReserve1, selfReserve0 - sellAmount, Math.Rounding.Ceil);
     } else {
       sellToken = params.token1;
       buyToken = params.token0;
       sellAmount = selfReserve1 / 2 - Math.ceilDiv(selfReserve0TimesPriceDenominator, 2 * params.priceNumerator);
-      buyAmount = Math.mulDiv(
-        sellAmount,
-        selfReserve0TimesPriceDenominator + (params.priceNumerator * sellAmount),
-        params.priceDenominator * selfReserve1,
-        Math.Rounding.Ceil
-      );
+      buyAmount = Math.mulDiv(sellAmount, selfReserve0, selfReserve1 - sellAmount, Math.Rounding.Ceil);
     }
 
     order_ = GPv2Order.Data(
