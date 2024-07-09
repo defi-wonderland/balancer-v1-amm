@@ -12,62 +12,77 @@ contract EchidnaBalancer is EchidnaTest {
   // System under test
   BCoWFactory factory;
   BConst bconst;
-  FuzzERC20 tokenA;
-  FuzzERC20 tokenB;
 
   address solutionSettler;
   bytes32 appData;
 
-  mapping(address => bool) alreadyMinted;
+  bool alreadySetup;
 
+  FuzzERC20[] tokens;
   BCoWPool[] deployedPools;
+  mapping(BCoWPool => bool) finalizedPools;
 
   constructor() {
-    tokenA = new FuzzERC20();
-    tokenB = new FuzzERC20();
-    tokenA.initialize('', '', 18);
-    tokenB.initialize('', '', 18);
-
     solutionSettler = address(new MockSettler());
 
     factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
   }
 
-  function setup_mint(uint256 _amountA, uint256 _amountB) public AgentOrDeployer {
-    if (!alreadyMinted[currentCaller]) {
-      alreadyMinted[currentCaller] = true;
-      tokenA.mint(currentCaller, _amountA);
-      tokenB.mint(currentCaller, _amountB);
+  modifier providedEnoughTokenCaller(FuzzERC20 _token, uint256 _amount) {
+    _token.mint(currentCaller, _amount);
+    _;
+  }
+
+  function setup_tokens() public AgentOrDeployer {
+    if (!alreadySetup) {
+      // max bound token is 8
+      for (uint256 i; i < 8; i++) {
+        FuzzERC20 _token = new FuzzERC20();
+        _token.initialize('', '', 18);
+        tokens.push(_token);
+      }
+
+      alreadySetup = true;
     }
   }
 
-  function setup_poolLiquidity(
-    uint256 _amountA,
-    uint256 _amountB,
-    uint256 _denormA,
-    uint256 _denormB,
-    uint256 _poolIndex
-  ) public {
-    require(_amountA >= bconst.MIN_BALANCE() && _amountB >= bconst.MIN_BALANCE());
-    require(_denormA + _denormB <= bconst.MAX_TOTAL_WEIGHT());
-
+  function setup_poolLiquidity(uint256 _numberOfTokens, uint256 _poolIndex) public {
     _poolIndex = _poolIndex % deployedPools.length;
-    BCoWPool pool = deployedPools[_poolIndex];
 
-    tokenA.approve(address(pool), _amountA);
-    tokenB.approve(address(pool), _amountB);
-    pool.bind(address(tokenA), _amountA, _denormA);
-    pool.bind(address(tokenB), _amountB, _denormB);
-    pool.finalize();
+    _numberOfTokens = clamp(_numberOfTokens, bconst.MIN_BOUND_TOKENS(), bconst.MAX_BOUND_TOKENS());
+
+    BCoWPool pool = deployedPools[_poolIndex];
+    require(!deployedPools[_poolIndex].isFinalized());
+
+    for (uint256 i; i < _numberOfTokens; i++) {
+      FuzzERC20 _token = tokens[i];
+      uint256 _amount = bconst.INIT_POOL_SUPPLY() / _numberOfTokens;
+      pool.bind(address(_token), _amount, bconst.MIN_WEIGHT());
+    }
+
+    // require(_amountA >= bconst.MIN_BALANCE() && _amountB >= bconst.MIN_BALANCE());
+    // require(_denormA + _denormB <= bconst.MAX_TOTAL_WEIGHT());
+
+    // tokenA.approve(address(pool), _amountA);
+    // tokenB.approve(address(pool), _amountB);
+    // pool.bind(address(tokenA), _amountA, _denormA);
+    // pool.bind(address(tokenB), _amountB, _denormB);
+    // pool.finalize();
   }
 
   // Probably wants to have a pool setup with more than 2 tokens too + swap
-
+  /// @custom:property-id 1
+  /// @custom:property BFactory should always be able to deploy new pools
   function fuzz_BFactoryAlwaysDeploy() public AgentOrDeployer {
+    // Precondition
+    require(deployedPools.length < 4); // Avoid too many pools to interact with
     hevm.prank(currentCaller);
+
+    // Action
     BCoWPool _newPool = BCoWPool(address(factory.newBPool()));
 
+    // Postcondition
     deployedPools.push(_newPool);
 
     assert(address(_newPool).code.length > 0);
@@ -75,23 +90,32 @@ contract EchidnaBalancer is EchidnaTest {
     assert(!_newPool.isFinalized());
   }
 
+  /// @custom:property-id 2
+  /// @custom:property BFactory's blab should always be modifiable by the current blabs
   function fuzz_blabAlwaysModByBLab() public AgentOrDeployer {
+    // Precondition
     address _currentBLab = factory.getBLabs();
 
     hevm.prank(currentCaller);
 
+    // Action
     try factory.setBLabs(address(123)) {
+      // Postcondition
       assert(_currentBLab == currentCaller);
     } catch {
       assert(_currentBLab != currentCaller);
     }
   }
 
+  /// @custom:property-id 3
+  /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
   function fuzz_alwayCollect() public AgentOrDeployer {}
 
+  /// @custom:property-id 8
+  /// @custom:property  BToken increaseApproval should increase the approval of the address by the amount
   function fuzz_increaseApproval() public AgentOrDeployer {}
 
+  /// @custom:property-id 9
+  /// @custom:property BToken decreaseApproval should decrease the approval to max(old-amount, 0)
   function fuzz_decreaseApproval() public AgentOrDeployer {}
-
-  function fuzz_correctOutForExactIn() public AgentOrDeployer {}
 }
