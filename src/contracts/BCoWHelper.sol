@@ -42,10 +42,12 @@ contract BCoWHelper is ICOWAMMPoolHelper {
     returns (
       GPv2Order.Data memory order_,
       GPv2Interaction.Data[] memory preInteractions,
-      GPv2Interaction.Data[] memory, /* postInteractions */
+      GPv2Interaction.Data[] memory postInteractions,
       bytes memory sig
     )
   {
+    postInteractions; // NOTE: avoid unused var
+
     address[] memory tokens_ = tokens(pool);
 
     GetTradeableOrder.GetTradeableOrderParams memory params = GetTradeableOrder.GetTradeableOrderParams({

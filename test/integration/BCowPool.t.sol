@@ -1,25 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {PoolSwapIntegrationTest} from './PoolSwap.t.sol';
+import {BPoolIntegrationTest} from './BPool.t.sol';
 import {GPv2TradeEncoder} from '@composable-cow/test/vendored/GPv2TradeEncoder.sol';
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 import {GPv2Trade} from '@cowprotocol/libraries/GPv2Trade.sol';
 import {GPv2Signing} from '@cowprotocol/mixins/GPv2Signing.sol';
+
 import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BCoWFactory} from 'contracts/BCoWFactory.sol';
+import {BPool} from 'contracts/BPool.sol';
+import {GetTradeableOrder} from 'contracts/GetTradeableOrder.sol';
 
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {ISettlement} from 'interfaces/ISettlement.sol';
 
-import {BPool} from 'contracts/BPool.sol';
-// TODO: add interface of BMath to IBPool
-import {GetTradeableOrder} from 'contracts/GetTradeableOrder.sol';
-
-contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
+contract BCowPoolIntegrationTest is BPoolIntegrationTest, BCoWConst {
   using GPv2Order for GPv2Order.Data;
 
   address public solver = address(0xa5559C2E1302c5Ce82582A6b1E4Aec562C2FbCf4);
@@ -30,56 +29,6 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
 
   function _deployFactory() internal override returns (IBFactory) {
     return new BCoWFactory(address(settlement), APP_DATA);
-  }
-
-  function testGetTradeableOrder() public {
-    uint256 initialSpotPrice = BPool(address(pool)).calcSpotPrice({
-      tokenBalanceIn: weth.balanceOf(address(pool)), // 1 WETH
-      tokenWeightIn: WETH_WEIGHT,
-      tokenBalanceOut: dai.balanceOf(address(pool)), // 4000 DAI
-      tokenWeightOut: DAI_WEIGHT,
-      swapFee: 0
-    });
-    // 0.0001 (1 DAI in WETH terms)
-    // notice the weight distribution of 80% DAI and 20% WETH
-
-    GPv2Order.Data memory order = GetTradeableOrder.getTradeableOrder(
-      GetTradeableOrder.GetTradeableOrderParams({
-        pool: address(pool),
-        token0: weth,
-        token1: dai,
-        weightToken0: WETH_WEIGHT,
-        weightToken1: DAI_WEIGHT,
-        priceNumerator: 1e18,
-        priceDenominator: 2000e18, // reach 0.0005
-        appData: APP_DATA
-      })
-    );
-
-    // sell 0.25 WETH
-    // buy 1500 DAI
-
-    // execute the transfers
-    vm.startPrank(settlement.vaultRelayer());
-    order.sellToken.transferFrom(address(pool), address(this), order.sellAmount);
-    deal(address(order.buyToken), address(settlement.vaultRelayer()), order.buyAmount);
-    order.buyToken.transfer(address(pool), order.buyAmount);
-    vm.stopPrank();
-
-    // final balances
-    // 0.75 WETH
-    // 5500 DAI
-
-    uint256 finalSpotPrice = BPool(address(pool)).calcSpotPrice({
-      tokenBalanceIn: weth.balanceOf(address(pool)),
-      tokenWeightIn: WETH_WEIGHT,
-      tokenBalanceOut: dai.balanceOf(address(pool)),
-      tokenWeightOut: DAI_WEIGHT,
-      swapFee: 0
-    });
-
-    // 0.00054 (1 DAI in WETH terms)
-    // doesn't reach 0.0005 but doesn't overshoot
   }
 
   function _makeSwap() internal override {
@@ -292,5 +241,15 @@ contract BCowPoolIntegrationTest is PoolSwapIntegrationTest, BCoWConst {
     snapStart('settlementCoWSwapInverse');
     settlement.settle(tokens, clearingPrices, trades, interactions);
     snapEnd();
+  }
+
+  // NOTE: not implemented in Balancer CoW flow
+  function _makeJoin() internal override {
+    vm.skip(true);
+  }
+
+  // NOTE: not implemented in Balancer CoW flow
+  function _makeExit() internal override {
+    vm.skip(true);
   }
 }
