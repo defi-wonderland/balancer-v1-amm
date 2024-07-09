@@ -5,8 +5,7 @@ import {BCoWFactory, BCoWPool, BFactory, IBCoWFactory, IBPool} from '../../src/c
 import {Test} from 'forge-std/Test.sol';
 
 contract MockBCoWFactory is BCoWFactory, Test {
-  constructor(address solutionSettler, bytes32 appData) BCoWFactory(solutionSettler, appData) {}
-
+  // NOTE: manually added methods (immutable overrides not supported in smock)
   function mock_call_APP_DATA(bytes32 _appData) public {
     vm.mockCall(address(this), abi.encodeWithSignature('APP_DATA()'), abi.encode(_appData));
   }
@@ -15,8 +14,30 @@ contract MockBCoWFactory is BCoWFactory, Test {
     vm.expectCall(address(this), abi.encodeWithSignature('APP_DATA()'));
   }
 
+  // BCoWFactory methods
+  constructor(address solutionSettler, bytes32 appData) BCoWFactory(solutionSettler, appData) {}
+
   function mock_call_logBCoWPool() public {
     vm.mockCall(address(this), abi.encodeWithSignature('logBCoWPool()'), abi.encode());
+  }
+
+  function mock_call__newBPool(IBPool bCoWPool) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('_newBPool()'), abi.encode(bCoWPool));
+  }
+
+  function _newBPool() internal override returns (IBPool bCoWPool) {
+    (bool _success, bytes memory _data) = address(this).call(abi.encodeWithSignature('_newBPool()'));
+
+    if (_success) return abi.decode(_data, (IBPool));
+    else return super._newBPool();
+  }
+
+  function call__newBPool() public returns (IBPool bCoWPool) {
+    return _newBPool();
+  }
+
+  function expectCall__newBPool() public {
+    vm.expectCall(address(this), abi.encodeWithSignature('_newBPool()'));
   }
 
   // MockBFactory methods
@@ -28,20 +49,20 @@ contract MockBCoWFactory is BCoWFactory, Test {
     return _isBPool[_key0];
   }
 
-  function set__bLabs(address __bLabs) public {
-    _bLabs = __bLabs;
+  function set__bDao(address __bDao) public {
+    _bDao = __bDao;
   }
 
-  function call__bLabs() public view returns (address) {
-    return _bLabs;
+  function call__bDao() public view returns (address) {
+    return _bDao;
   }
 
   function mock_call_newBPool(IBPool bPool) public {
     vm.mockCall(address(this), abi.encodeWithSignature('newBPool()'), abi.encode(bPool));
   }
 
-  function mock_call_setBLabs(address bLabs) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('setBLabs(address)', bLabs), abi.encode());
+  function mock_call_setBDao(address bDao) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('setBDao(address)', bDao), abi.encode());
   }
 
   function mock_call_collect(IBPool bPool) public {
@@ -52,26 +73,7 @@ contract MockBCoWFactory is BCoWFactory, Test {
     vm.mockCall(address(this), abi.encodeWithSignature('isBPool(address)', bPool), abi.encode(_returnParam0));
   }
 
-  function mock_call_getBLabs(address _returnParam0) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('getBLabs()'), abi.encode(_returnParam0));
-  }
-
-  function mock_call__newBPool(IBPool bPool) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('_newBPool()'), abi.encode(bPool));
-  }
-
-  function _newBPool() internal override returns (IBPool bPool) {
-    (bool _success, bytes memory _data) = address(this).call(abi.encodeWithSignature('_newBPool()'));
-
-    if (_success) return abi.decode(_data, (IBPool));
-    else return super._newBPool();
-  }
-
-  function call__newBPool() public returns (IBPool bPool) {
-    return _newBPool();
-  }
-
-  function expectCall__newBPool() public {
-    vm.expectCall(address(this), abi.encodeWithSignature('_newBPool()'));
+  function mock_call_getBDao(address _returnParam0) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('getBDao()'), abi.encode(_returnParam0));
   }
 }
