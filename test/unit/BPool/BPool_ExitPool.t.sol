@@ -9,12 +9,14 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {BNum} from 'contracts/BNum.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
-contract BPoolExitPool is BPoolBase {
+contract BPoolExitPool is BPoolBase, BNum {
   // Valid scenario
   uint256 public constant SHARE_PROPORTION = 20;
   uint256 public poolAmountIn = INIT_POOL_SUPPLY / SHARE_PROPORTION;
   uint256 public token0Balance = 20e18;
   uint256 public token1Balance = 50e18;
+  // currently hard-coded to zero
+  uint256 public exitFee = bmul(poolAmountIn, EXIT_FEE);
   uint256[] minAmountsOut;
 
   // when buring n pool shares, caller expects enough amount X of every token t
@@ -90,12 +92,10 @@ contract BPoolExitPool is BPoolBase {
   function test_WhenPreconditionsAreMet() external {
     // it pulls poolAmountIn shares
     bPool.expectCall__pullPoolShare(address(this), poolAmountIn);
-    // it sends zero exitFee to factory
-    // NOTE: if exit_fee is going to be hard-coded to zero we could remove this
-    // and save some gas
-    bPool.expectCall__pushPoolShare(deployer, 0);
-    // it burns pool shares
-    bPool.expectCall__burnPoolShare(poolAmountIn);
+    // it sends exitFee to factory
+    bPool.expectCall__pushPoolShare(deployer, exitFee);
+    // it burns poolAmountIn - exitFee shares
+    bPool.expectCall__burnPoolShare(poolAmountIn - exitFee);
     // it calls _pushUnderlying for every token
     bPool.mock_call__pushUnderlying(tokens[0], address(this), expectedToken0Out);
     bPool.expectCall__pushUnderlying(tokens[0], address(this), expectedToken0Out);

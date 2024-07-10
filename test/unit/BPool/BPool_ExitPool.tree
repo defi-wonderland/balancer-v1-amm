@@ -15,8 +15,8 @@ BPool::ExitPool
     ├── it emits LOG_CALL event
     ├── it sets the reentrancy lock
     ├── it pulls poolAmountIn shares
-    ├── it sends zero exitFee to factory // note: should we remove this altogether?
-    ├── it burns pool shares
+    ├── it sends exitFee to factory
+    ├── it burns poolAmountIn - exitFee shares
     ├── it calls _pushUnderlying for every token
     ├── it emits LOG_EXIT event for every token
     └── it clears the reentrancy lock
