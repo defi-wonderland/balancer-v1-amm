@@ -36,6 +36,9 @@ contract BPoolExitPool is BPoolBase {
     vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token0Balance)));
     vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token1Balance)));
 
+    // caller not having enough pool shares would revert inside `_pullPoolShare`
+    bPool.mock_call__pullPoolShare(address(this), poolAmountIn);
+
     minAmountsOut = new uint256[](2);
     minAmountsOut[0] = expectedToken0Out;
     minAmountsOut[1] = expectedToken1Out;
@@ -70,35 +73,21 @@ contract BPoolExitPool is BPoolBase {
     bPool.exitPool(amountIn, minAmountsOut);
   }
 
-  function test_RevertWhen_CallerDoesNotHaveTheRequiredPoolShares() external {
-    // it should revert
-    vm.expectRevert(
-      abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(this), 0, poolAmountIn)
-    );
-    bPool.exitPool(poolAmountIn, minAmountsOut);
-  }
-
-  modifier whenCallerHasEnoughPoolShares() {
-    // setup leaves them in bpool contract, this moves them to the caller
-    bPool.call__pushPoolShare(address(this), INIT_POOL_SUPPLY);
-    _;
-  }
-
-  function test_RevertWhen_BalanceOfPoolInAnyTokenIsZero() external whenCallerHasEnoughPoolShares {
+  function test_RevertWhen_BalanceOfPoolInAnyTokenIsZero() external {
     vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(0)));
     // it should revert
     vm.expectRevert(IBPool.BPool_InvalidTokenAmountOut.selector);
     bPool.exitPool(poolAmountIn, minAmountsOut);
   }
 
-  function test_RevertWhen_ReturnedAmountOfATokenIsLessThanMinAmountsOut() external whenCallerHasEnoughPoolShares {
+  function test_RevertWhen_ReturnedAmountOfATokenIsLessThanMinAmountsOut() external {
     minAmountsOut[1] += 1;
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenAmountOutBelowMinAmountOut.selector);
     bPool.exitPool(poolAmountIn, minAmountsOut);
   }
 
-  function test_WhenPreconditionsAreMet() external whenCallerHasEnoughPoolShares {
+  function test_WhenPreconditionsAreMet() external {
     // it pulls poolAmountIn shares
     bPool.expectCall__pullPoolShare(address(this), poolAmountIn);
     // it sends zero exitFee to factory

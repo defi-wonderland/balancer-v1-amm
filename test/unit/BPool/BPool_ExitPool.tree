@@ -7,19 +7,16 @@ BPool::ExitPool
 │   └── it should revert // division by zero
 ├── when pool amount in is too small
 │   └── it should revert
-├── when caller does not have the required pool shares
+├── when balance of pool in any token is zero
 │   └── it should revert
-└── when caller has enough pool shares
-    ├── when balance of pool in any token is zero
-    │   └── it should revert
-    ├── when returned amount of a token is less than minAmountsOut
-    │   └── it should revert
-    └── when preconditions are met
-        ├── it emits LOG_CALL event
-        ├── it sets the reentrancy lock
-        ├── it pulls poolAmountIn shares
-        ├── it sends zero exitFee to factory // note: should we remove this altogether?
-        ├── it burns pool shares
-        ├── it calls _pushUnderlying for every token
-        ├── it emits LOG_EXIT event for every token
-        └── it clears the reentrancy lock
+├── when returned amount of a token is less than minAmountsOut
+│   └── it should revert
+└── when preconditions are met
+    ├── it emits LOG_CALL event
+    ├── it sets the reentrancy lock
+    ├── it pulls poolAmountIn shares
+    ├── it sends zero exitFee to factory // note: should we remove this altogether?
+    ├── it burns pool shares
+    ├── it calls _pushUnderlying for every token
+    ├── it emits LOG_EXIT event for every token
+    └── it clears the reentrancy lock
