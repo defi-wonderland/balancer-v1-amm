@@ -94,6 +94,11 @@ contract BPoolSwapExactAmountIn is BPoolBase, BNum {
     bPool.swapExactAmountIn(tokenIn, tokenAmountIn, tokenOut, expectedAmountOut, spotPriceAfterSwap - 1);
   }
 
+  function test_RevertWhen_SpotPriceBeforeSwapExceedsTokenRatioAfterSwap() external {
+    // it should revert
+    vm.skip(true);
+  }
+
   function test_WhenPreconditionsAreMet() external {
     // it sets reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);

@@ -15,6 +15,8 @@ BPool::SwapExactAmountIn
 │   └── it should revert
 ├── when spot price after swap exceeds maxPrice
 │   └── it should revert
+├── when spot price before swap exceeds token ratio after swap
+│   └── it should revert
 └── when preconditions are met
     ├── it emits a LOG_CALL event
     ├── it sets the reentrancy lock
