@@ -12,17 +12,17 @@ contract BPoolBase is Test, BConst, Utils {
   MockBPool public bPool;
   address public deployer = makeAddr('deployer');
 
-  address public token = makeAddr('token');
   uint256 public tokenWeight = 1e18;
   uint256 public totalWeight = 10e18;
-  address public secondToken = makeAddr('secondToken');
 
   function setUp() public virtual {
     vm.prank(deployer);
     bPool = new MockBPool();
+    tokens.push(makeAddr('token0'));
+    tokens.push(makeAddr('token1'));
 
-    vm.mockCall(token, abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
-    vm.mockCall(token, abi.encodePacked(IERC20.transfer.selector), abi.encode());
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.transfer.selector), abi.encode());
   }
 
   function _setRandomTokens(uint256 _length) internal returns (address[] memory _tokensToAdd) {

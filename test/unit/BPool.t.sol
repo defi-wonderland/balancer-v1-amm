@@ -26,8 +26,8 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
     // Create fake tokens
     address[] memory _tokensToAdd = _getDeterministicTokenArray(TOKENS_AMOUNT);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      tokens[i] = _tokensToAdd[i];
+    for (uint256 i = 0; i < _tokensToAdd.length; i++) {
+      tokens.push(_tokensToAdd[i]);
     }
   }
 

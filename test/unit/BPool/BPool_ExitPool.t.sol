@@ -28,16 +28,13 @@ contract BPoolExitPool is BPoolBase {
     bPool.set__finalized(true);
     // mint an initial amount of pool shares (expected to happen at _finalize)
     bPool.call__mintPoolShare(INIT_POOL_SUPPLY);
-    address[] memory _tokens = new address[](2);
-    _tokens[0] = token;
-    _tokens[1] = secondToken;
-    bPool.set__tokens(_tokens);
+    bPool.set__tokens(_tokensToMemory());
     // token weights are not used for all-token exits
-    _setRecord(token, IBPool.Record({bound: true, index: 0, denorm: 0}));
-    _setRecord(secondToken, IBPool.Record({bound: true, index: 1, denorm: 0}));
+    _setRecord(tokens[0], IBPool.Record({bound: true, index: 0, denorm: 0}));
+    _setRecord(tokens[1], IBPool.Record({bound: true, index: 1, denorm: 0}));
     // underlying balances are used instead
-    vm.mockCall(token, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token0Balance)));
-    vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token1Balance)));
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token0Balance)));
+    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(token1Balance)));
 
     minAmountsOut = new uint256[](2);
     minAmountsOut[0] = expectedToken0Out;
@@ -88,7 +85,7 @@ contract BPoolExitPool is BPoolBase {
   }
 
   function test_RevertWhen_BalanceOfPoolInAnyTokenIsZero() external whenCallerHasEnoughPoolShares {
-    vm.mockCall(secondToken, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(0)));
+    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(0)));
     // it should revert
     vm.expectRevert(IBPool.BPool_InvalidTokenAmountOut.selector);
     bPool.exitPool(poolAmountIn, minAmountsOut);
@@ -111,10 +108,10 @@ contract BPoolExitPool is BPoolBase {
     // it burns pool shares
     bPool.expectCall__burnPoolShare(poolAmountIn);
     // it calls _pushUnderlying for every token
-    bPool.mock_call__pushUnderlying(token, address(this), expectedToken0Out);
-    bPool.expectCall__pushUnderlying(token, address(this), expectedToken0Out);
-    bPool.mock_call__pushUnderlying(secondToken, address(this), expectedToken1Out);
-    bPool.expectCall__pushUnderlying(secondToken, address(this), expectedToken1Out);
+    bPool.mock_call__pushUnderlying(tokens[0], address(this), expectedToken0Out);
+    bPool.expectCall__pushUnderlying(tokens[0], address(this), expectedToken0Out);
+    bPool.mock_call__pushUnderlying(tokens[1], address(this), expectedToken1Out);
+    bPool.expectCall__pushUnderlying(tokens[1], address(this), expectedToken1Out);
     // it sets the reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
     // // it emits LOG_CALL event
@@ -123,9 +120,9 @@ contract BPoolExitPool is BPoolBase {
     emit IBPool.LOG_CALL(IBPool.exitPool.selector, address(this), _data);
     // it emits LOG_EXIT event for every token
     vm.expectEmit();
-    emit IBPool.LOG_EXIT(address(this), token, expectedToken0Out);
+    emit IBPool.LOG_EXIT(address(this), tokens[0], expectedToken0Out);
     vm.expectEmit();
-    emit IBPool.LOG_EXIT(address(this), secondToken, expectedToken1Out);
+    emit IBPool.LOG_EXIT(address(this), tokens[1], expectedToken1Out);
 
     bPool.exitPool(poolAmountIn, minAmountsOut);
 
