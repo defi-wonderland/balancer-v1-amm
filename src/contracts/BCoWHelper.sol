@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
-import {IBFactory} from 'interfaces/IBFactory.sol';
 
 import {ICOWAMMPoolHelper} from '@cow-amm/interfaces/ICOWAMMPoolHelper.sol';
 
@@ -25,8 +24,9 @@ contract BCoWHelper is ICOWAMMPoolHelper {
   /// @notice The app data used by this helper's factory.
   bytes32 public immutable APP_DATA;
 
-  /// @notice The factory contract to which this helper provides support.
-  address public factory;
+  /// @inheritdoc ICOWAMMPoolHelper
+  // solhint-disable-next-line style-guide-casing
+  address public immutable factory;
 
   constructor(address factory_) {
     factory = factory_;
@@ -63,14 +63,15 @@ contract BCoWHelper is ICOWAMMPoolHelper {
 
     order_ = GetTradeableOrder.getTradeableOrder(params);
 
-    bytes memory eip1271sig;
-    eip1271sig = abi.encode(order_);
-    bytes32 domainSeparator = IBCoWPool(pool).SOLUTION_SETTLER_DOMAIN_SEPARATOR();
-    bytes32 orderCommitment = order_.hash(domainSeparator);
-
     // A ERC-1271 signature on CoW Protocol is composed of two parts: the
     // signer address and the valid ERC-1271 signature data for that signer.
+    bytes memory eip1271sig;
+    eip1271sig = abi.encode(order_);
     sig = abi.encodePacked(pool, eip1271sig);
+
+    // Generate the order commitment pre-interaction
+    bytes32 domainSeparator = IBCoWPool(pool).SOLUTION_SETTLER_DOMAIN_SEPARATOR();
+    bytes32 orderCommitment = order_.hash(domainSeparator);
 
     preInteractions = new GPv2Interaction.Data[](1);
     preInteractions[0] = GPv2Interaction.Data({
@@ -85,7 +86,7 @@ contract BCoWHelper is ICOWAMMPoolHelper {
   /// @inheritdoc ICOWAMMPoolHelper
   function tokens(address pool) public view returns (address[] memory tokens_) {
     // reverts in case pool is not deployed by the helper's factory
-    if (!IBFactory(factory).isBPool(pool)) revert PoolDoesNotExist();
+    if (!IBCoWFactory(factory).isBPool(pool)) revert PoolDoesNotExist();
     // call reverts with `BPool_PoolNotFinalized()` in case pool is not finalized
     tokens_ = IBCoWPool(pool).getFinalTokens();
     // reverts in case pool is not supported (non-2-token pool)
