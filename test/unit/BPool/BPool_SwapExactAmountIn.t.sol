@@ -69,7 +69,7 @@ contract BPoolSwapExactAmountIn is BPoolBase, BNum {
     bPool.swapExactAmountIn(tokenIn, tokenAmountIn, makeAddr('unknown token'), expectedAmountOut, spotPriceAfterSwap);
   }
 
-  function test_RevertWhen_TokenInExceedsMaxAllowedRatio(uint256 tokenAmountIn_) external {
+  function test_RevertWhen_TokenAmountInExceedsMaxAllowedRatio(uint256 tokenAmountIn_) external {
     tokenAmountIn_ = bound(tokenAmountIn_, bmul(tokenInBalance, MAX_IN_RATIO) + 1, type(uint256).max);
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenAmountInAboveMaxRatio.selector);
@@ -82,16 +82,16 @@ contract BPoolSwapExactAmountIn is BPoolBase, BNum {
     bPool.swapExactAmountIn(tokenIn, tokenAmountIn, tokenOut, expectedAmountOut, spotPriceBeforeSwap - 1);
   }
 
+  function test_RevertWhen_CalculatedTokenAmountOutIsLessThanMinAmountOut() external {
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokenAmountOutBelowMinOut.selector);
+    bPool.swapExactAmountIn(tokenIn, tokenAmountIn, tokenOut, expectedAmountOut + 1, spotPriceAfterSwap);
+  }
+
   function test_RevertWhen_SpotPriceAfterSwapExceedsMaxPrice() external {
     // it should revert
     vm.expectRevert(IBPool.BPool_SpotPriceAboveMaxPrice.selector);
     bPool.swapExactAmountIn(tokenIn, tokenAmountIn, tokenOut, expectedAmountOut, spotPriceAfterSwap - 1);
-  }
-
-  function test_RevertWhen_ReturnedTokenOutIsLessThanMinAmountOut() external {
-    // it should revert
-    vm.expectRevert(IBPool.BPool_TokenAmountOutBelowMinOut.selector);
-    bPool.swapExactAmountIn(tokenIn, tokenAmountIn, tokenOut, expectedAmountOut + 1, spotPriceAfterSwap);
   }
 
   function test_WhenPreconditionsAreMet() external {
