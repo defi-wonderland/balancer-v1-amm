@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {BConst} from 'contracts/BConst.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
@@ -20,9 +19,6 @@ contract BPoolBase is Test, BConst, Utils {
     bPool = new MockBPool();
     tokens.push(makeAddr('token0'));
     tokens.push(makeAddr('token1'));
-
-    vm.mockCall(tokens[0], abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
-    vm.mockCall(tokens[0], abi.encodePacked(IERC20.transfer.selector), abi.encode());
   }
 
   function _setRandomTokens(uint256 _length) internal returns (address[] memory _tokensToAdd) {

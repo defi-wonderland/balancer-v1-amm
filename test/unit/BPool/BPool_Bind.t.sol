@@ -2,10 +2,18 @@
 pragma solidity 0.8.25;
 
 import {BPoolBase} from './BPoolBase.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BPoolBind is BPoolBase {
   uint256 public tokenBindBalance = 100e18;
+
+  function setUp() public virtual override {
+    super.setUp();
+
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.transferFrom.selector), abi.encode());
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.transfer.selector), abi.encode());
+  }
 
   function test_RevertWhen_ReentrancyLockIsSet() external {
     bPool.call__setLock(_MUTEX_TAKEN);
