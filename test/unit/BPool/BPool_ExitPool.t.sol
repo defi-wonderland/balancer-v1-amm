@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 import {BPoolBase} from './BPoolBase.sol';
 
-import {IERC20Errors} from '@openzeppelin/contracts/interfaces/draft-IERC6093.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {BNum} from 'contracts/BNum.sol';
@@ -103,7 +102,7 @@ contract BPoolExitPool is BPoolBase, BNum {
     bPool.expectCall__pushUnderlying(tokens[1], address(this), expectedToken1Out);
     // it sets the reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
-    // // it emits LOG_CALL event
+    // it emits LOG_CALL event
     bytes memory _data = abi.encodeWithSelector(IBPool.exitPool.selector, poolAmountIn, minAmountsOut);
     vm.expectEmit();
     emit IBPool.LOG_CALL(IBPool.exitPool.selector, address(this), _data);
