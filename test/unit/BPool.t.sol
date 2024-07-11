@@ -34,7 +34,7 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
   function _setRandomTokens(uint256 _length) internal returns (address[] memory _tokensToAdd) {
     _tokensToAdd = _getDeterministicTokenArray(_length);
     for (uint256 i = 0; i < _length; i++) {
-      _setRecord(_tokensToAdd[i], IBPool.Record({bound: true, index: i, denorm: 0}));
+      bPool.set__records(_tokensToAdd[i], IBPool.Record({bound: true, index: i, denorm: 0}));
     }
     _setTokens(_tokensToAdd);
   }
@@ -55,10 +55,6 @@ abstract contract BasePoolTest is Test, BConst, Utils, BMath {
 
   function _setTokens(address[] memory _tokens) internal {
     bPool.set__tokens(_tokens);
-  }
-
-  function _setRecord(address _token, IBPool.Record memory _record) internal {
-    bPool.set__records(_token, _record);
   }
 
   function _setSwapFee(uint256 _swapFee) internal {
@@ -274,7 +270,7 @@ abstract contract SwapExactAmountInUtils is BasePoolTest {
     _mockTransfer(tokenOut);
 
     // Set balances
-    _setRecord(
+    bPool.set__records(
       tokenIn,
       IBPool.Record({
         bound: true,
@@ -284,7 +280,7 @@ abstract contract SwapExactAmountInUtils is BasePoolTest {
     );
     _mockPoolBalance(tokenIn, _fuzz.tokenInBalance);
 
-    _setRecord(
+    bPool.set__records(
       tokenOut,
       IBPool.Record({
         bound: true,
@@ -434,7 +430,7 @@ contract BPool_Unit_GetNormalizedWeight is BasePoolTest {
     _weight = bound(_weight, MIN_WEIGHT, MAX_WEIGHT);
     _totalWeight = bound(_totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT);
     vm.assume(_weight < _totalWeight);
-    _setRecord(_token, IBPool.Record({bound: true, index: 0, denorm: _weight}));
+    bPool.set__records(_token, IBPool.Record({bound: true, index: 0, denorm: _weight}));
     _setTotalWeight(_totalWeight);
 
     assertEq(bPool.getNormalizedWeight(_token), bdiv(_weight, _totalWeight));
@@ -694,9 +690,9 @@ contract BPool_Unit_GetSpotPrice is BasePoolTest {
   }
 
   function _setValues(GetSpotPrice_FuzzScenario memory _fuzz) internal {
-    _setRecord(_fuzz.tokenIn, IBPool.Record({bound: true, index: 0, denorm: _fuzz.tokenInDenorm}));
+    bPool.set__records(_fuzz.tokenIn, IBPool.Record({bound: true, index: 0, denorm: _fuzz.tokenInDenorm}));
     _mockPoolBalance(_fuzz.tokenIn, _fuzz.tokenInBalance);
-    _setRecord(_fuzz.tokenOut, IBPool.Record({bound: true, index: 0, denorm: _fuzz.tokenOutDenorm}));
+    bPool.set__records(_fuzz.tokenOut, IBPool.Record({bound: true, index: 0, denorm: _fuzz.tokenOutDenorm}));
     _mockPoolBalance(_fuzz.tokenOut, _fuzz.tokenOutBalance);
     _setSwapFee(_fuzz.swapFee);
   }
@@ -763,9 +759,9 @@ contract BPool_Unit_GetSpotPriceSansFee is BasePoolTest {
   }
 
   function _setValues(GetSpotPriceSansFee_FuzzScenario memory _fuzz) internal {
-    _setRecord(_fuzz.tokenIn, IBPool.Record({bound: true, index: 0, denorm: _fuzz.tokenInDenorm}));
+    bPool.set__records(_fuzz.tokenIn, IBPool.Record({bound: true, index: 0, denorm: _fuzz.tokenInDenorm}));
     _mockPoolBalance(_fuzz.tokenIn, _fuzz.tokenInBalance);
-    _setRecord(_fuzz.tokenOut, IBPool.Record({bound: true, index: 0, denorm: _fuzz.tokenOutDenorm}));
+    bPool.set__records(_fuzz.tokenOut, IBPool.Record({bound: true, index: 0, denorm: _fuzz.tokenOutDenorm}));
     _mockPoolBalance(_fuzz.tokenOut, _fuzz.tokenOutBalance);
     _setSwapFee(0);
   }
@@ -840,7 +836,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     _mockTransfer(tokenOut);
 
     // Set balances
-    _setRecord(
+    bPool.set__records(
       tokenIn,
       IBPool.Record({
         bound: true,
@@ -850,7 +846,7 @@ contract BPool_Unit_SwapExactAmountOut is BasePoolTest {
     );
     _mockPoolBalance(tokenIn, _fuzz.tokenInBalance);
 
-    _setRecord(
+    bPool.set__records(
       tokenOut,
       IBPool.Record({
         bound: true,
@@ -1187,7 +1183,7 @@ contract BPool_Unit_JoinswapExternAmountIn is BasePoolTest {
     _mockTransferFrom(tokenIn);
 
     // Set balances
-    _setRecord(
+    bPool.set__records(
       tokenIn,
       IBPool.Record({
         bound: true,
@@ -1367,7 +1363,7 @@ contract BPool_Unit_JoinswapPoolAmountOut is BasePoolTest {
     _mockTransferFrom(tokenIn);
 
     // Set balances
-    _setRecord(
+    bPool.set__records(
       tokenIn,
       IBPool.Record({
         bound: true,
@@ -1599,7 +1595,7 @@ contract BPool_Unit_ExitswapPoolAmountIn is BasePoolTest {
     _mockTransfer(tokenOut);
 
     // Set balances
-    _setRecord(
+    bPool.set__records(
       tokenOut,
       IBPool.Record({
         bound: true,
@@ -1847,7 +1843,7 @@ contract BPool_Unit_ExitswapExternAmountOut is BasePoolTest {
     _mockTransfer(tokenOut);
 
     // Set balances
-    _setRecord(
+    bPool.set__records(
       tokenOut,
       IBPool.Record({
         bound: true,
