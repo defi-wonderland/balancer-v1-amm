@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile --network-concurrency 1
 
-      - name: Precompile using 0.8.14 and via-ir=false
+      - name: Precompile contracts
         run: yarn build
 
       - name: Run tests
@@ -45,9 +45,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1.2.0
+        uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
+          cache: false
 
       - name: Use Node.js
         uses: actions/setup-node@v3
