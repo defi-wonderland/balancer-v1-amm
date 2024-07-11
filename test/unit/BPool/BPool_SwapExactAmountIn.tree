@@ -13,6 +13,8 @@ BPool::SwapExactAmountIn
 │   └── it should revert
 ├── when calculated token amount out is less than minAmountOut
 │   └── it should revert
+├── when spot price after swap exceeds spot price before swap
+│   └── it should revert
 ├── when spot price after swap exceeds maxPrice
 │   └── it should revert
 ├── when spot price before swap exceeds token ratio after swap

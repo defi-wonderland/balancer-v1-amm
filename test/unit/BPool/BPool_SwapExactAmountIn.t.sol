@@ -87,6 +87,16 @@ contract BPoolSwapExactAmountIn is BPoolBase, BNum {
     bPool.swapExactAmountIn(tokenIn, tokenAmountIn, tokenOut, expectedAmountOut + 1, spotPriceAfterSwap);
   }
 
+  function test_RevertWhen_SpotPriceAfterSwapExceedsSpotPriceBeforeSwap() external {
+    // it should revert
+    // skipping since the code for this is unreachable without manually
+    // overriding `calcSpotPrice` in a mock:
+    // P_{sb} = \frac{\frac{b_i}{w_i}}{\frac{b_o}{w_o}}
+    // P_{sa} = \frac{\frac{b_i + a_i}{w_i}}{\frac{b_o - a_o}{w_o}}
+    // ...and both a_i (amount in) and a_o (amount out) are uints
+    vm.skip(true);
+  }
+
   function test_RevertWhen_SpotPriceAfterSwapExceedsMaxPrice() external {
     // it should revert
     vm.expectRevert(IBPool.BPool_SpotPriceAboveMaxPrice.selector);
