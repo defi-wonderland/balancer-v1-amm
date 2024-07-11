@@ -1,0 +1,23 @@
+BCoWPool::Verify
+├── when buyToken is not bound
+│   └── it should revert
+├── when sellToken is not bound
+│   └── it should revert
+├── when order receiver is not RECEIVER_SAME_AS_OWNER flag
+│   └── it should revert
+├── when order is valid for more than MAX_ORDER_DURATION
+│   └── it should revert
+├── when fee amount is not zero
+│   └── it should revert
+├── when order kind is not KIND_SELL
+│   └── it should revert
+├── when TokenBalance marker for buy token is not direct ERC20 balances
+│   └── it should revert
+├── when TokenBalance marker for sell token is not direct ERC20 balances
+│   └── it should revert
+├── when order buy amount exceeds MAX_IN_RATIO
+│   └── it should revert
+├── when computed token amount out is less than order min sell amount
+│   └── it should revert
+└── when preconditions are met
+    └── it should return
