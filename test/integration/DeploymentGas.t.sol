@@ -16,8 +16,10 @@ contract DeploymentIntegrationGasTest is Test, GasSnapshot {
   BFactory public bFactory;
   BCoWFactory public bCowFactory;
   address solutionSettler;
+  address deployer = makeAddr('deployer');
 
   function setUp() public {
+    vm.startPrank(deployer);
     bFactory = new BFactory();
 
     solutionSettler = address(new MockSolutionSettler());
