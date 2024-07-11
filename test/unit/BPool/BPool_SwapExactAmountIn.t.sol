@@ -104,8 +104,20 @@ contract BPoolSwapExactAmountIn is BPoolBase, BNum {
   }
 
   function test_RevertWhen_SpotPriceBeforeSwapExceedsTokenRatioAfterSwap() external {
+    uint256 tokenAmountIn_ = 30e18;
+    uint256 balanceTokenIn_ = 36_830_000_000_000_000_000_000_000_000_000;
+    uint256 weightTokenIn_ = 1e18;
+    uint256 balanceTokenOut_ = 18_100_000_000_000_000_000_000_000_000_000;
+    uint256 weightTokenOut_ = 1e18;
+    uint256 swapFee_ = 0.019e18;
+    vm.mockCall(tokenIn, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(balanceTokenIn_)));
+    vm.mockCall(tokenOut, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(balanceTokenOut_)));
+    bPool.set__records(tokenIn, IBPool.Record({bound: true, index: 0, denorm: weightTokenIn_}));
+    bPool.set__records(tokenOut, IBPool.Record({bound: true, index: 1, denorm: weightTokenOut_}));
+    bPool.set__swapFee(swapFee_);
     // it should revert
-    vm.skip(true);
+    vm.expectRevert(IBPool.BPool_SpotPriceBeforeAboveTokenRatio.selector);
+    bPool.swapExactAmountIn(tokenIn, tokenAmountIn_, tokenOut, 0, type(uint256).max);
   }
 
   function test_WhenPreconditionsAreMet() external {
