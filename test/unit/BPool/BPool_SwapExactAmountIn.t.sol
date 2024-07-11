@@ -9,7 +9,7 @@ import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BPoolSwapExactAmountIn is BPoolBase, BNum {
   // Valid scenario
-  address public tokenIn = token;
+  address public tokenIn;
   uint256 public tokenAmountIn = 3e18;
 
   uint256 public tokenInBalance = 10e18;
@@ -18,7 +18,7 @@ contract BPoolSwapExactAmountIn is BPoolBase, BNum {
   uint256 public tokenInWeight = 2e18;
   uint256 public tokenOutWeight = 1e18;
 
-  address public tokenOut = secondToken;
+  address public tokenOut;
   // (tokenInBalance / tokenInWeight) / (tokenOutBalance/ tokenOutWeight)
   uint256 public spotPriceBeforeSwapWithoutFee = 0.125e18;
   uint256 public spotPriceBeforeSwap = bmul(spotPriceBeforeSwapWithoutFee, bdiv(BONE, bsub(BONE, MIN_FEE)));
@@ -31,11 +31,10 @@ contract BPoolSwapExactAmountIn is BPoolBase, BNum {
 
   function setUp() public virtual override {
     super.setUp();
+    tokenIn = tokens[0];
+    tokenOut = tokens[1];
     bPool.set__finalized(true);
-    address[] memory _tokens = new address[](2);
-    _tokens[0] = tokenIn;
-    _tokens[1] = tokenOut;
-    bPool.set__tokens(_tokens);
+    bPool.set__tokens(tokens);
     _setRecord(tokenIn, IBPool.Record({bound: true, index: 0, denorm: tokenInWeight}));
     _setRecord(tokenOut, IBPool.Record({bound: true, index: 1, denorm: tokenOutWeight}));
 
