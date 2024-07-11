@@ -53,7 +53,10 @@ contract EchidnaTest is AgentsHandler {
   constructor() AgentsHandler(5) {}
 
   function clamp(uint256 _value, uint256 _min, uint256 _max) internal returns (uint256) {
-    return _min + (_value % (_max - _min));
+    if (_value < _min || _value > _max) {
+      return _min + (_value % (_max - _min + 1));
+    }
+    return _value;
   }
 }
 
