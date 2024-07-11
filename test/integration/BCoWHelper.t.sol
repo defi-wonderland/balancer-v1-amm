@@ -76,7 +76,7 @@ contract ConstantProductHelperForkedTest is Test {
     vm.stopPrank();
   }
 
-  // NOTE: 1 ETH = 1000e6 DAI
+  // NOTE: 1 ETH = 1000 DAI
   uint256 constant INITIAL_SPOT_PRICE = 0.001e18;
 
   function testBasicOrder() public {
@@ -157,7 +157,7 @@ contract ConstantProductHelperForkedTest is Test {
     assertEq(preInteractions.length, 1);
     assertEq(postInteractions.length, 0);
 
-    // Because of how we changed the price, we expect to buy DAI
+    // Because of how we changed the price, we expect to buy WETH
     assertEq(address(ammOrder.sellToken), address(DAI));
     assertEq(address(ammOrder.buyToken), address(WETH));
 
