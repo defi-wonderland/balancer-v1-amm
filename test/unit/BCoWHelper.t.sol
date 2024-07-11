@@ -143,7 +143,8 @@ contract BCoWHelperTest is Test {
     assertEq(preInteractions.length, 1);
     assertEq(preInteractions[0].target, address(pool));
     assertEq(preInteractions[0].value, 0);
-    assertEq(bytes4(preInteractions[0].callData), IBCoWPool.commit.selector);
+    bytes memory commitment = abi.encodeCall(IBCoWPool.commit, GPv2Order.hash(order_, domainSeparator));
+    assertEq(keccak256(preInteractions[0].callData), keccak256(commitment));
 
     // it should return an empty post-interaction
     assertTrue(postInteractions.length == 0);
