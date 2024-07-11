@@ -603,9 +603,9 @@ cosmiconfig@^9.0.0:
     js-yaml "^4.1.0"
     parse-json "^5.2.0"
 
-"cow-amm@github:cowprotocol/cow-amm.git#2b5f973":
+"cow-amm@github:cowprotocol/cow-amm.git#6566128":
   version "0.0.0"
-  resolved "https://codeload.github.com/cowprotocol/cow-amm/tar.gz/2b5f9733ef7df905ce73fe2bed1be5f6cf407afc"
+  resolved "https://codeload.github.com/cowprotocol/cow-amm/tar.gz/6566128b6c73008062cf4a6d1957db602409b719"
 
 cross-spawn@^7.0.3:
   version "7.0.3"
