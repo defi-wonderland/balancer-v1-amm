@@ -280,8 +280,6 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-    return (tokenAmountOut, spotPriceAfter);
   }
 
   /// @inheritdoc IBPool
@@ -339,8 +337,6 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-    return (tokenAmountIn, spotPriceAfter);
   }
 
   /// @inheritdoc IBPool
@@ -370,8 +366,6 @@ contract BPool is BToken, BMath, IBPool {
     _mintPoolShare(poolAmountOut);
     _pushPoolShare(msg.sender, poolAmountOut);
     _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-
-    return poolAmountOut;
   }
 
   /// @inheritdoc IBPool
@@ -405,8 +399,6 @@ contract BPool is BToken, BMath, IBPool {
     _mintPoolShare(poolAmountOut);
     _pushPoolShare(msg.sender, poolAmountOut);
     _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-
-    return tokenAmountIn;
   }
 
   /// @inheritdoc IBPool
@@ -440,8 +432,6 @@ contract BPool is BToken, BMath, IBPool {
     _burnPoolShare(bsub(poolAmountIn, exitFee));
     _pushPoolShare(FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-    return tokenAmountOut;
   }
 
   /// @inheritdoc IBPool
@@ -477,8 +467,6 @@ contract BPool is BToken, BMath, IBPool {
     _burnPoolShare(bsub(poolAmountIn, exitFee));
     _pushPoolShare(FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-    return poolAmountIn;
   }
 
   /// @inheritdoc IBPool
