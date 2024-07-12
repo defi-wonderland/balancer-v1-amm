@@ -86,6 +86,7 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
     // A signature is valid according to EIP-1271 if this function returns
     // its selector as the so-called "magic value".
     magicValue = this.isValidSignature.selector;
+    return magicValue;
   }
 
   /// @inheritdoc IBCoWPool
