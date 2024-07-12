@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.25;
+pragma solidity 0.8.23;
 
 import {BPoolIntegrationTest} from './BPool.t.sol';
 import {GPv2TradeEncoder} from '@composable-cow/test/vendored/GPv2TradeEncoder.sol';

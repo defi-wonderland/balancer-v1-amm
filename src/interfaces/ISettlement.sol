@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.25;
+pragma solidity 0.8.23;
 
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';

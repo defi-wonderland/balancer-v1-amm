@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.25;
+pragma solidity 0.8.23;
 
 import {BasePoolTest, SwapExactAmountInUtils} from './BPool.t.sol';
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';

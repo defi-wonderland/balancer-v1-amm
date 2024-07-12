@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.25;
+pragma solidity 0.8.23;
 
 import {BMath} from './BMath.sol';
 import {BToken} from './BToken.sol';
@@ -29,6 +29,10 @@ contract BPool is BToken, BMath, IBPool {
   mapping(address => Record) internal _records;
   /// @dev Sum of all token weights
   uint256 internal _totalWeight;
+
+  /// TEST TEST TEST TEST TEST TEST TEST TEST
+  bytes32 internal _reenteringMutex;
+  /// TEST TEST TEST TEST TEST TEST TEST TEST
 
   /// @dev Logs the call data
   modifier _logs_() {
@@ -148,8 +152,8 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullUnderlying(token, msg.sender, balance);
   }
-
   /// @inheritdoc IBPool
+
   function unbind(address token) external _logs_ _lock_ _controller_ _notFinalized_ {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
@@ -597,9 +601,10 @@ contract BPool is BToken, BMath, IBPool {
    * be interpreted as locked
    */
   function _setLock(bytes32 value) internal virtual {
-    assembly ("memory-safe") {
-      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, value)
-    }
+    // assembly ("memory-safe") {
+    //   tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, value)
+    // }
+    _reenteringMutex = value;
   }
 
   /**
@@ -670,8 +675,9 @@ contract BPool is BToken, BMath, IBPool {
    * allowing calls
    */
   function _getLock() internal view virtual returns (bytes32 value) {
-    assembly ("memory-safe") {
-      value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
-    }
+    // assembly ("memory-safe") {
+    //   value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
+    // }
+    value = _reenteringMutex;
   }
 }

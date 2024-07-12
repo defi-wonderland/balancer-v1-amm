@@ -1,7 +1,7 @@
 | Properties                                                                                  | Type                | Id  | Halmos | Echidna |
 | ------------------------------------------------------------------------------------------- | ------------------- | --- | ------ | ------- |
-| BFactory should always be able to deploy new pools                                          | Unit                | 1   | [ ]    | [ ]     |
-| BFactory's blab should always be modifiable by the current blabs                            | Unit                | 2   | [ ]    | [ ]     |
+| BFactory should always be able to deploy new pools                                          | Unit                | 1   | [ ]    | [x]     |
+| BFactory's blab should always be modifiable by the current blabs                            | Unit                | 2   | [ ]    | [x]     |
 | BFactory should always be able to transfer the BToken to the blab, if called by it          | Unit                | 3   | [ ]    | [ ]     |
 | the amount received can never be less than min amount out                                   | Unit                | 4   | [ ]    | [ ]     |
 | the amount spent can never be greater than max amount in                                    | Unit                | 5   | [ ]    | [ ]     |

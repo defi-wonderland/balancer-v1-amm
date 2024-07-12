@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.25;
+pragma solidity 0.8.23;
 
 import {GPv2Interaction, GPv2Trade, IERC20, ISettlement} from 'interfaces/ISettlement.sol';
 
