@@ -20,7 +20,8 @@ contract EchidnaBalancer is EchidnaTest {
 
   FuzzERC20[] tokens;
   BCoWPool pool;
-  bool poolIsFinalized;
+
+  IBPool[] poolsToFinalize;
 
   constructor() {
     solutionSettler = address(new MockSettler());
@@ -35,14 +36,6 @@ contract EchidnaBalancer is EchidnaTest {
       _token.initialize('', '', 18);
       tokens.push(_token);
     }
-  }
-
-  function provideEnoughTokenCaller(FuzzERC20 _token, uint256 _amount) internal {
-    _token.mint(currentCaller, _amount);
-  }
-
-  function setup_poolLiquidity() public {
-    if (poolIsFinalized) return;
 
     pool = BCoWPool(address(factory.newBPool()));
 
@@ -63,16 +56,8 @@ contract EchidnaBalancer is EchidnaTest {
     }
 
     pool.finalize();
-
-    poolIsFinalized = true;
   }
 
-  // function test_test() public {
-  //   fuzz_BFactoryAlwaysDeploy();
-  //   setup_poolLiquidity(2, 0, 1000);
-  // }
-
-  // Probably wants to have a pool setup with more than 2 tokens too + swap
   /// @custom:property-id 1
   /// @custom:property BFactory should always be able to deploy new pools
   function fuzz_BFactoryAlwaysDeploy() public AgentOrDeployer {
@@ -85,6 +70,7 @@ contract EchidnaBalancer is EchidnaTest {
       assert(address(_newPool).code.length > 0);
       assert(factory.isBPool(address(_newPool)));
       assert(!_newPool.isFinalized());
+      poolsToFinalize.push(_newPool);
     } catch {
       assert(false);
     }
@@ -130,9 +116,14 @@ contract EchidnaBalancer is EchidnaTest {
 
   /// @custom:property-id 4
   /// @custom:property the amount received can never be less than min amount out
+  /// @custom:property-id 13
+  /// @custom:property an exact amount in should always earn the amount out calculated in bmath
   /// @custom:property-id 15
   /// @custom:property there can't be any amount out for a 0 amount in
-  function amountReceivedFloored(
+  /// @custom:property-id 19
+  /// @custom:property a swap can only happen when the pool is finalized
+
+  function fuzz_swapExactIn(
     uint256 _minAmountOut,
     uint256 _amountIn,
     uint256 _tokenIn,
@@ -154,6 +145,15 @@ contract EchidnaBalancer is EchidnaTest {
 
     uint256 _balanceOutBefore = tokens[_tokenOut].balanceOf(currentCaller);
 
+    uint256 _outComputed = bmath.calcOutGivenIn(
+      tokens[_tokenIn].balanceOf(address(pool)),
+      pool.getDenormalizedWeight(address(tokens[_tokenIn])),
+      tokens[_tokenOut].balanceOf(address(pool)),
+      pool.getDenormalizedWeight(address(tokens[_tokenOut])),
+      _amountIn,
+      bconst.MIN_FEE()
+    );
+
     hevm.prank(currentCaller);
 
     // Action
@@ -163,10 +163,16 @@ contract EchidnaBalancer is EchidnaTest {
       // Postcondition
       uint256 _balanceOutAfter = tokens[_tokenOut].balanceOf(currentCaller);
 
+      // 13
+      assert(_balanceOutAfter - _balanceOutBefore == _outComputed);
+
       // 4
       if (_amountIn != 0) assert(_balanceOutBefore <= _balanceOutAfter + _minAmountOut);
       // 15
       else assert(_balanceOutBefore == _balanceOutAfter);
+
+      // 19
+      assert(pool.isFinalized());
     } catch {}
   }
 
@@ -174,7 +180,10 @@ contract EchidnaBalancer is EchidnaTest {
   /// @custom:property the amount spent can never be greater than max amount in
   /// @custom:property-id 15
   /// @custom:property there can't be any amount out for a 0 amount in
-  function amountSpentCapped(
+  /// @custom:property-id 19
+  /// @custom:property a swap can only happen when the pool is finalized
+
+  function fuzz_swapExactOut(
     uint256 _maxAmountIn,
     uint256 _amountOut,
     uint256 _tokenIn,
@@ -196,6 +205,15 @@ contract EchidnaBalancer is EchidnaTest {
     uint256 _balanceInBefore = tokens[_tokenIn].balanceOf(currentCaller);
     uint256 _balanceOutBefore = tokens[_tokenOut].balanceOf(currentCaller);
 
+    uint256 _inComputed = bmath.calcInGivenOut(
+      tokens[_tokenIn].balanceOf(address(pool)),
+      pool.getDenormalizedWeight(address(tokens[_tokenIn])),
+      tokens[_tokenOut].balanceOf(address(pool)),
+      pool.getDenormalizedWeight(address(tokens[_tokenOut])),
+      _amountOut,
+      bconst.MIN_FEE()
+    );
+
     hevm.prank(currentCaller);
 
     // Action
@@ -209,8 +227,14 @@ contract EchidnaBalancer is EchidnaTest {
       // 5
       assert(_balanceInBefore - _balanceInAfter <= _maxAmountIn);
 
+      // 14
+      assert(_balanceInBefore - _balanceInAfter == _inComputed);
+
       // 15
-      if (_maxAmountIn == 0) assert(_balanceOutBefore == _balanceOutAfter);
+      if (_balanceInBefore == _balanceInAfter) assert(_balanceOutBefore == _balanceOutAfter);
+
+      // 19
+      assert(pool.isFinalized());
     } catch {}
   }
 
@@ -222,7 +246,7 @@ contract EchidnaBalancer is EchidnaTest {
 
   /// @custom:property-id 7
   /// @custom:property total weight can be up to 50e18
-  function totalWeightMax(uint256 _numberTokens, uint256[8] calldata _weights) public {
+  function fuzz_totalWeightMax(uint256 _numberTokens, uint256[8] calldata _weights) public {
     // Precondition
     BCoWPool _pool = BCoWPool(address(factory.newBPool()));
 
@@ -256,27 +280,95 @@ contract EchidnaBalancer is EchidnaTest {
 
   /// @custom:property-id 10
   /// @custom:property a pool can either be finalized or not finalized
+  /// @dev included to be exhaustive/future-proof if more states are added, as rn, it
+  /// basically tests the tautological (a || !a)
+  function fuzz_poolFinalized() public {
+    assert(pool.isFinalized() || !pool.isFinalized());
+  }
 
   /// @custom:property-id 11
   /// @custom:property a finalized pool cannot switch back to non-finalized
+  function fuzz_poolFinalizedOnce() public {
+    assert(pool.isFinalized());
+  }
 
   /// @custom:property-id 12
   /// @custom:property a non-finalized pool can only be finalized when the controller calls finalize()
+  function fuzz_poolFinalizedByController() public AgentOrDeployer {
+    // Precondition
+    if (poolsToFinalize.length == 0) {
+      return;
+    }
 
-  /// @custom:property-id 13
-  /// @custom:property an exact amount in should always earn the amount out calculated in bmath
+    IBPool _pool = poolsToFinalize[poolsToFinalize.length - 1];
 
-  /// @custom:property-id 14
-  /// @custom:property an exact amount out is earned only if the amount in calculated in bmath is transfered
+    hevm.prank(currentCaller);
 
-  /// @custom:property there can't be any amount out for a 0 amount in
+    // Action
+    try _pool.finalize() {
+      // Postcondition
+      assert(currentCaller == _pool.getController());
+      poolsToFinalize.pop();
+    } catch {
+      assert(currentCaller != _pool.getController());
+    }
+  }
+
+  /// @custom:property-id 16
   /// @custom:property the pool btoken can only be minted/burned in the join and exit operations
+
   /// @custom:property a direct token transfer can never reduce the underlying amount of a given token per BPT
+  function fuzz_directTransfer(uint256 _amount, uint256 _token) public AgentOrDeployer {
+    // Mint bpt
+    // get quote
+    // transfer token to the pool
+    // compare new quote
+  }
+
   /// @custom:property the amount of underlying token when exiting should always be the amount calculated in bmath
-  /// @custom:property a swap can only happen when the pool is finalized
+
+  /// @custom:property-id 20
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
+  function fuzz_boundOnlyNotFinalized() public AgentOrDeployer {
+    // Precondition
+    if (poolsToFinalize.length == 0) {
+      return;
+    }
+
+    IBPool _pool = poolsToFinalize[poolsToFinalize.length - 1];
+
+    for (uint256 i; i < 4; i++) {
+      tokens[i].mint(address(this), 10 ether);
+      tokens[i].approve(address(pool), 10 ether);
+
+      uint256 _poolWeight = bconst.MAX_WEIGHT() / 5;
+
+      hevm.prank(currentCaller);
+
+      // Action
+      try _pool.bind(address(tokens[i]), 10 ether, _poolWeight) {
+        // Postcondition
+        assert(currentCaller == pool.getController());
+        assert(!_pool.isFinalized());
+      } catch {
+        assert(currentCaller != pool.getController());
+      }
+    }
+  }
+
+  /// @custom:property-id 21
   /// @custom:property there always should be between MIN_BOUND_TOKENS and MAX_BOUND_TOKENS bound in a pool
+  function fuzz_minMaxBoundToken() public {
+    assert(pool.getNumTokens() >= bconst.MIN_BOUND_TOKENS());
+    assert(pool.getNumTokens() <= bconst.MAX_BOUND_TOKENS());
+
+    for (uint256 i; i < poolsToFinalize.length; i++) {
+      assert(poolsToFinalize[i].getNumTokens() >= bconst.MIN_BOUND_TOKENS());
+      assert(poolsToFinalize[i].getNumTokens() <= bconst.MAX_BOUND_TOKENS());
+    }
+  }
+
   /// @custom:property only the settler can commit a hash
+
   /// @custom:property when a hash has been commited, only this order can be settled
-  /// @custom:property BToken should not break the ToB ERC20 properties*
 }
