@@ -2,4 +2,4 @@
 testMode: assertion
 corpusDir: test/invariants/fuzz/corpus/
 coverageFormats: ["html","lcov"]
-allContracts: false
+allContracts: true

@@ -2,30 +2,32 @@
 | ------------------------------------------------------------------------------------------- | ------------------- | --- | ------ | ------- |
 | BFactory should always be able to deploy new pools                                          | Unit                | 1   | [ ]    | [x]     |
 | BFactory's blab should always be modifiable by the current blabs                            | Unit                | 2   | [ ]    | [x]     |
-| BFactory should always be able to transfer the BToken to the blab, if called by it          | Unit                | 3   | [ ]    | [ ]     |
-| the amount received can never be less than min amount out                                   | Unit                | 4   | [ ]    | [ ]     |
-| the amount spent can never be greater than max amount in                                    | Unit                | 5   | [ ]    | [ ]     |
-| swap fee can only be 0 (cow pool)                                                           | Valid state         | 6   | [ ]    | [ ]     |
-| total weight can be up to 50e18                                                             | Variable transition | 7   | [ ]    | [ ]     |
-| BToken increaseApproval should increase the approval of the address by the amount           | Variable transition | 8   | [ ]    | [ ]     |
-| BToken decreaseApproval should decrease the approval to max(old-amount, 0)                  | Variable transition | 9   | [ ]    | [ ]     |
-| a pool can either be finalized or not finalized                                             | Valid state         | 10  | [ ]    | [ ]     |
-| a finalized pool cannot switch back to non-finalized                                        | State transition    | 11  | [ ]    | [ ]     |
-| a non-finalized pool can only be finalized when the controller calls finalize()             | State transition    | 12  | [ ]    | [ ]     |
-| an exact amount in should always earn the amount out calculated in bmath                    | High level          | 13  | [ ]    | [ ]     |
-| an exact amount out is earned only if the amount in calculated in bmath is transfered       | High level          | 14  | [ ]    | [ ]     |
-| there can't be any amount out for a 0 amount in                                             | High level          | 15  | [ ]    | [ ]     |
-| the pool btoken can only be minted/burned in the join and exit operations                   | High level          | 16  | [ ]    | [ ]     |
-| a direct token transfer can never reduce the underlying amount of a given token per BPT     | High level          | 17  | [ ]    | [ ]     |
-| the amount of underlying token when exiting should always be the amount calculated in bmath | High level          | 18  | [ ]    | [ ]     |
-| a swap can only happen when the pool is finalized                                           | High level          | 19  | [ ]    | [ ]     |
-| bounding and unbounding token can only be done on a non-finalized pool, by the controller   | High level          | 20  | [ ]    | [ ]     |
-| there always should be between MIN_BOUND_TOKENS and MAX_BOUND_TOKENS bound in a pool        | High level          | 21  | [ ]    | [ ]     |
-| only the settler can commit a hash                                                          | High level          | 22  | [ ]    | [ ]     |
-| when a hash has been commited, only this order can be settled                               | High level          | 23  | [ ]    | [ ]     |
-| BToken should not break the ToB ERC20 properties*                                           | High level          | 24  | [ ]    | [ ]     |
+| BFactory should always be able to transfer the BToken to the blab, if called by it          | Unit                | 3   | [ ]    | [x]     |
+| the amount received can never be less than min amount out                                   | Unit                | 4   | [ ]    | [x]     |
+| the amount spent can never be greater than max amount in                                    | Unit                | 5   | [ ]    | [x]     |
+| swap fee can only be 0 (cow pool)                                                           | Valid state         | 6   | [ ]    | [x]     |
+| total weight can be up to 50e18                                                             | Variable transition | 7   | [ ]    | [x]     |
+| BToken increaseApproval should increase the approval of the address by the amount*          | Variable transition | 8   | [ ]    | [x]     |
+| BToken decreaseApproval should decrease the approval to max(old-amount, 0)*                 | Variable transition | 9   | [ ]    | [x]     |
+| a pool can either be finalized or not finalized                                             | Valid state         | 10  | [ ]    | [x]     |
+| a finalized pool cannot switch back to non-finalized                                        | State transition    | 11  | [ ]    | [x]     |
+| a non-finalized pool can only be finalized when the controller calls finalize()             | State transition    | 12  | [ ]    | [x]     |
+| an exact amount in should always earn the amount out calculated in bmath                    | High level          | 13  | [ ]    | [x]     |
+| an exact amount out is earned only if the amount in calculated in bmath is transfered       | High level          | 14  | [ ]    | [x]     |
+| there can't be any amount out for a 0 amount in                                             | High level          | 15  | [ ]    | [x]     |
+| the pool btoken can only be minted/burned in the join and exit operations                   | High level          | 16  | [ ]    | [x]     |
+| a direct token transfer can never reduce the underlying amount of a given token per BPT     | High level          | 17  | [ ]    | [x]     |
+| the amount of underlying token when exiting should always be the amount calculated in bmath | High level          | 18  | [ ]    | [x]     |
+| a swap can only happen when the pool is finalized                                           | High level          | 19  | [ ]    | [x]     |
+| bounding and unbounding token can only be done on a non-finalized pool, by the controller   | High level          | 20  | [ ]    | [x]     |
+| there always should be between MIN_BOUND_TOKENS and MAX_BOUND_TOKENS bound in a pool        | High level          | 21  | [ ]    | [x]     |
+| only the settler can commit a hash                                                          | High level          | 22  | [ ]    | [x]     |
+| when a hash has been commited, only this order can be settled                               | High level          | 23  | [ ]    |         |
+| BToken should not break the ToB ERC20 properties**                                          | High level          | 24  | [ ]    | [x]     |
 
-* ERC20 properties
+* Bundled with 24
+
+** ERC20 properties
 (https://github.com/crytic/properties?tab=readme-ov-file#erc20-tests)
 
 # Unit for the math libs (BNum and BMath):
