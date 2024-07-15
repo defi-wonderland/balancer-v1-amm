@@ -26,10 +26,6 @@ contract BPoolBase is Test, BConst, Utils {
     for (uint256 i = 0; i < _length; i++) {
       bPool.set__records(_tokensToAdd[i], IBPool.Record({bound: true, index: i, denorm: 0}));
     }
-    _setTokens(_tokensToAdd);
-  }
-
-  function _setTokens(address[] memory _tokens) internal {
-    bPool.set__tokens(_tokens);
+    bPool.set__tokens(_tokensToAdd);
   }
 }
