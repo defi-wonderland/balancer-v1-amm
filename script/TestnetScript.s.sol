@@ -11,7 +11,7 @@ import {Params} from 'script/Params.s.sol';
 
 contract TestnetScript is Script, Params {
   /// @notice BFactory contract deployment address
-  IBFactory public bFactory = IBFactory(address(0x25E497A2930788e0ecb97D0aA3E1274793F83A91));
+  IBFactory public bFactory = IBFactory(address(0x9F2D5C967DfF57Ede89269C8Fe1dbE2e836BE591));
 
   function run() public {
     vm.startBroadcast();

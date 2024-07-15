@@ -60,5 +60,5 @@ yarn test    # run the tests
 
 # Deployments
 Sepolia:
-  - BCoWFactory: (0x25E497A2930788e0ecb97D0aA3E1274793F83A91)[https://sepolia.etherscan.io/address/0x25E497A2930788e0ecb97D0aA3E1274793F83A91#code]
-  - BCoWPool: (0x2a64Ce865730b26b61e8A92021dCd3cd2F20a2F0)[https://sepolia.etherscan.io/address/0x2a64Ce865730b26b61e8A92021dCd3cd2F20a2F0#code]
+  - BCoWFactory: (0x9F2D5C967DfF57Ede89269C8Fe1dbE2e836BE591)[https://sepolia.etherscan.io/address/0x9F2D5C967DfF57Ede89269C8Fe1dbE2e836BE591#code]
+  - BCoWPool: (0xFe1ce255D68B3Bff95E71DDef1c8fc55459aaCd7)[https://sepolia.etherscan.io/address/0xFe1ce255D68B3Bff95E71DDef1c8fc55459aaCd7#code]
