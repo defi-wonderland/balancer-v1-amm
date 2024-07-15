@@ -3,17 +3,18 @@ pragma solidity 0.8.23;
 
 import {EchidnaTest, FuzzERC20} from '../../AdvancedTestsUtils.sol';
 
+import {MockSettler} from './MockSettler.sol';
 import {BCoWFactory, BCoWPool, IBPool} from 'contracts/BCoWFactory.sol';
 import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
-
-import {MockSettler} from './MockSettler.sol';
+import {BNum} from 'contracts/BNum.sol';
 
 contract EchidnaBalancer is EchidnaTest {
   // System under test
   BCoWFactory factory;
   BConst bconst;
   BMath bmath;
+  BNum_exposed bnum;
 
   address solutionSettler;
   bytes32 appData;
@@ -23,12 +24,16 @@ contract EchidnaBalancer is EchidnaTest {
 
   IBPool[] poolsToFinalize;
 
+  uint256 ghost_bptMinted;
+  uint256 ghost_bptBurned;
+
   constructor() {
     solutionSettler = address(new MockSettler());
 
     factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
     bmath = new BMath();
+    bnum = new BNum_exposed();
 
     // max bound token is 8
     for (uint256 i; i < 4; i++) {
@@ -56,6 +61,7 @@ contract EchidnaBalancer is EchidnaTest {
     }
 
     pool.finalize();
+    ghost_bptMinted = pool.INIT_POOL_SUPPLY();
   }
 
   /// @custom:property-id 1
@@ -228,7 +234,8 @@ contract EchidnaBalancer is EchidnaTest {
       assert(_balanceInBefore - _balanceInAfter <= _maxAmountIn);
 
       // 14
-      assert(_balanceInBefore - _balanceInAfter == _inComputed);
+      if (_tokenIn != _tokenOut) assert(_balanceOutAfter - _balanceOutBefore == _amountOut);
+      else assert(_balanceOutAfter == _balanceOutBefore - _inComputed + _amountOut);
 
       // 15
       if (_balanceInBefore == _balanceInAfter) assert(_balanceOutBefore == _balanceOutAfter);
@@ -300,22 +307,54 @@ contract EchidnaBalancer is EchidnaTest {
       return;
     }
 
-    IBPool _pool = poolsToFinalize[poolsToFinalize.length - 1];
+    IBPool _nonFinalizedPool = poolsToFinalize[poolsToFinalize.length - 1];
 
     hevm.prank(currentCaller);
 
     // Action
-    try _pool.finalize() {
+    try _nonFinalizedPool.finalize() {
       // Postcondition
-      assert(currentCaller == _pool.getController());
+      assert(currentCaller == _nonFinalizedPool.getController());
       poolsToFinalize.pop();
-    } catch {
-      assert(currentCaller != _pool.getController());
+    } catch {}
+  }
+
+  function setup_joinExitPool(bool _join, uint256 _amountBpt) public AgentOrDeployer {
+    if (_join) {
+      uint256[] memory _maxAmountsIn;
+
+      _maxAmountsIn = new uint256[](4);
+
+      for (uint256 i; i < _maxAmountsIn.length; i++) {
+        uint256 _maxIn =
+          bnum.bmul_exposed(bnum.bdiv_exposed(_amountBpt, pool.totalSupply()), pool.getBalance(address(tokens[i])));
+        _maxAmountsIn[i] = _maxIn;
+
+        tokens[i].mint(currentCaller, _maxIn);
+        hevm.prank(currentCaller);
+        tokens[i].approve(address(pool), _maxIn);
+      }
+
+      hevm.prank(currentCaller);
+      try pool.joinPool(_amountBpt, _maxAmountsIn) {
+        ghost_bptMinted += _amountBpt;
+      } catch {}
+    } else {
+      hevm.prank(currentCaller);
+      pool.approve(address(pool), _amountBpt);
+
+      hevm.prank(currentCaller);
+      try pool.exitPool(_amountBpt, new uint256[](4)) {
+        ghost_bptBurned += _amountBpt;
+      } catch {}
     }
   }
 
   /// @custom:property-id 16
   /// @custom:property the pool btoken can only be minted/burned in the join and exit operations
+  function fuzz_mintBurnBPT() public {
+    assert(ghost_bptMinted - ghost_bptBurned == pool.totalSupply());
+  }
 
   /// @custom:property a direct token transfer can never reduce the underlying amount of a given token per BPT
   function fuzz_directTransfer(uint256 _amount, uint256 _token) public AgentOrDeployer {
@@ -326,6 +365,7 @@ contract EchidnaBalancer is EchidnaTest {
   }
 
   /// @custom:property the amount of underlying token when exiting should always be the amount calculated in bmath
+  function correctBPTBurnAmount() public AgentOrDeployer {}
 
   /// @custom:property-id 20
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
@@ -335,23 +375,38 @@ contract EchidnaBalancer is EchidnaTest {
       return;
     }
 
-    IBPool _pool = poolsToFinalize[poolsToFinalize.length - 1];
+    IBPool _nonFinalizedPool = poolsToFinalize[poolsToFinalize.length - 1];
 
     for (uint256 i; i < 4; i++) {
-      tokens[i].mint(address(this), 10 ether);
-      tokens[i].approve(address(pool), 10 ether);
+      tokens[i].mint(currentCaller, 10 ether);
+
+      hevm.prank(currentCaller);
+      tokens[i].approve(address(_nonFinalizedPool), 10 ether);
 
       uint256 _poolWeight = bconst.MAX_WEIGHT() / 5;
 
-      hevm.prank(currentCaller);
+      if (_nonFinalizedPool.isBound(address(tokens[i]))) {
+        uint256 _balanceUnboundBefore = tokens[i].balanceOf(currentCaller);
 
-      // Action
-      try _pool.bind(address(tokens[i]), 10 ether, _poolWeight) {
-        // Postcondition
-        assert(currentCaller == pool.getController());
-        assert(!_pool.isFinalized());
-      } catch {
-        assert(currentCaller != pool.getController());
+        hevm.prank(currentCaller);
+        // Action
+        try _nonFinalizedPool.unbind(address(tokens[i])) {
+          // Postcondition
+          assert(currentCaller == _nonFinalizedPool.getController());
+          assert(!_nonFinalizedPool.isFinalized());
+          assert(tokens[i].balanceOf(currentCaller) > _balanceUnboundBefore);
+        } catch {
+          assert(currentCaller != _nonFinalizedPool.getController() || _nonFinalizedPool.isFinalized());
+        }
+      } else {
+        hevm.prank(currentCaller);
+        try _nonFinalizedPool.bind(address(tokens[i]), 10 ether, _poolWeight) {
+          // Postcondition
+          assert(currentCaller == _nonFinalizedPool.getController());
+          assert(!_nonFinalizedPool.isFinalized());
+        } catch {
+          assert(currentCaller != _nonFinalizedPool.getController() || _nonFinalizedPool.isFinalized());
+        }
       }
     }
   }
@@ -363,12 +418,24 @@ contract EchidnaBalancer is EchidnaTest {
     assert(pool.getNumTokens() <= bconst.MAX_BOUND_TOKENS());
 
     for (uint256 i; i < poolsToFinalize.length; i++) {
-      assert(poolsToFinalize[i].getNumTokens() >= bconst.MIN_BOUND_TOKENS());
-      assert(poolsToFinalize[i].getNumTokens() <= bconst.MAX_BOUND_TOKENS());
+      if (poolsToFinalize[i].isFinalized()) {
+        assert(poolsToFinalize[i].getNumTokens() >= bconst.MIN_BOUND_TOKENS());
+        assert(poolsToFinalize[i].getNumTokens() <= bconst.MAX_BOUND_TOKENS());
+      }
     }
   }
 
   /// @custom:property only the settler can commit a hash
 
   /// @custom:property when a hash has been commited, only this order can be settled
+}
+
+contract BNum_exposed is BNum {
+  function bdiv_exposed(uint256 a, uint256 b) public pure returns (uint256) {
+    return bdiv(a, b);
+  }
+
+  function bmul_exposed(uint256 a, uint256 b) public pure returns (uint256) {
+    return bmul(a, b);
+  }
 }

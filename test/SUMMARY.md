@@ -24,6 +24,9 @@ Then slither-mutate on the whole test base
 
 Setup for protocol-wide *looks* pretty simple (using the factory) - tbc
 
+nb 14 means if token in == token out, people just give tokens to the pool, intended?
+
+
 ## Notes
 The bmath corresponding equations are:
 
