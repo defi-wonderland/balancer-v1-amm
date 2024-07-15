@@ -11,12 +11,14 @@ import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {GPv2Interaction} from '@cowprotocol/libraries/GPv2Interaction.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 
+import {BMath} from 'contracts/BMath.sol';
+
 /**
  * @title BCoWHelper
  * @notice Helper contract that allows to trade on CoW Swap Protocol.
  * @dev This contract supports only 2-token equal-weights pools.
  */
-contract BCoWHelper is ICOWAMMPoolHelper {
+contract BCoWHelper is ICOWAMMPoolHelper, BMath {
   using GPv2Order for GPv2Order.Data;
 
   /// @notice The app data used by this helper's factory.
@@ -60,6 +62,26 @@ contract BCoWHelper is ICOWAMMPoolHelper {
     });
 
     order_ = GetTradeableOrder.getTradeableOrder(params);
+
+    {
+      // NOTE: Using calcOutGivenIn for the sell amount in order to avoid possible rounding
+      // issues that may cause invalid orders. This prevents CoW Protocol back-end from generating
+      // orders that may be ignored due to rounding-induced reverts.
+
+      uint256 balanceToken0 = IERC20(tokens_[0]).balanceOf(pool);
+      uint256 balanceToken1 = IERC20(tokens_[1]).balanceOf(pool);
+      (uint256 balanceIn, uint256 balanceOut) =
+        address(order_.buyToken) == tokens_[0] ? (balanceToken0, balanceToken1) : (balanceToken1, balanceToken0);
+
+      order_.sellAmount = calcOutGivenIn({
+        tokenBalanceIn: balanceIn,
+        tokenWeightIn: 1e18,
+        tokenBalanceOut: balanceOut,
+        tokenWeightOut: 1e18,
+        tokenAmountIn: order_.buyAmount,
+        swapFee: 0
+      });
+    }
 
     // A ERC-1271 signature on CoW Protocol is composed of two parts: the
     // signer address and the valid ERC-1271 signature data for that signer.
