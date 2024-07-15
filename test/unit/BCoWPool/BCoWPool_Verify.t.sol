@@ -120,7 +120,9 @@ contract BCoWPoolVerify is BCoWPoolBase {
     bCoWPool.verify(correctOrder);
   }
 
-  function test_WhenPreconditionsAreMet() external {
+  function test_WhenPreconditionsAreMet(uint256 _sellAmount) external {
+    _sellAmount = bound(_sellAmount, 0, correctOrder.sellAmount);
+    correctOrder.sellAmount = _sellAmount;
     // it should return
     bCoWPool.verify(correctOrder);
   }
