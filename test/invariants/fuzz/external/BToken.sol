@@ -1,6 +1,6 @@
 pragma solidity 0.8.23;
 
-import {EchidnaTest} from '../../AdvancedTestsUtils.sol';
+import {EchidnaTest} from '../../helpers/AdvancedTestsUtils.sol';
 import {CryticERC20ExternalBasicProperties} from
   '@crytic/properties/contracts/ERC20/external/properties/ERC20ExternalBasicProperties.sol';
 import {ITokenMock} from '@crytic/properties/contracts/ERC20/external/util/ITokenMock.sol';

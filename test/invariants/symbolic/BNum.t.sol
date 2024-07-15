@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {HalmosTest} from '../AdvancedTestsUtils.sol';
+import {HalmosTest} from '../helpers/AdvancedTestsUtils.sol';
 import {BNum} from 'contracts/BNum.sol';
-import {Test} from 'forge-std/Test.sol';
 
-contract SymbolicBNum is BNum, Test, HalmosTest {
+contract SymbolicBNum is BNum, HalmosTest {
   /////////////////////////////////////////////////////////////////////
   //                           Bnum::btoi                            //
   /////////////////////////////////////////////////////////////////////

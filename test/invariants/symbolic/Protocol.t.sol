@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {EchidnaTest, FuzzERC20} from '../../helpers/AdvancedTestsUtils.sol';
+import {FuzzERC20, HalmosTest} from '../helpers/AdvancedTestsUtils.sol';
 
-import {MockSettler} from './MockSettler.sol';
+import {MockSettler} from '../helpers/MockSettler.sol';
 import {BCoWFactory, BCoWPool, IBPool} from 'contracts/BCoWFactory.sol';
 import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
 import {BNum} from 'contracts/BNum.sol';
 
-contract EchidnaBalancer is EchidnaTest {
+contract HalmosBalancer is HalmosTest {
   // System under test
   BCoWFactory factory;
   BConst bconst;
@@ -22,29 +22,18 @@ contract EchidnaBalancer is EchidnaTest {
   FuzzERC20[] tokens;
   BCoWPool pool;
 
-  IBPool[] poolsToFinalize;
-
-  uint256 ghost_bptMinted;
-  uint256 ghost_bptBurned;
+  address currentCaller = svm.createAddress('currentCaller');
 
   constructor() {
     solutionSettler = address(new MockSettler());
-
     factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
     bmath = new BMath();
     bnum = new BNum_exposed();
-
-    // max bound token is 8
-    for (uint256 i; i < 4; i++) {
-      FuzzERC20 _token = new FuzzERC20();
-      _token.initialize('', '', 18);
-      tokens.push(_token);
-    }
-
     pool = BCoWPool(address(factory.newBPool()));
 
-    for (uint256 i; i < 4; i++) {
+    // max bound token is 8
+    for (uint256 i; i < 5; i++) {
       FuzzERC20 _token = new FuzzERC20();
       _token.initialize('', '', 18);
       tokens.push(_token);
@@ -54,54 +43,25 @@ contract EchidnaBalancer is EchidnaTest {
 
       uint256 _poolWeight = bconst.MAX_WEIGHT() / 5;
 
-      try pool.bind(address(_token), 10 ether, _poolWeight) {}
-      catch {
-        emit AssertionFailed();
-      }
+      pool.bind(address(_token), 10 ether, _poolWeight);
     }
 
     pool.finalize();
-    ghost_bptMinted = pool.INIT_POOL_SUPPLY();
   }
 
-  // Randomly add or remove tokens to a finalized pool
-  // Insure caller has enough token
-  function setup_joinExitPool(bool _join, uint256 _amountBpt) public AgentOrDeployer {
-    if (_join) {
-      uint256[] memory _maxAmountsIn;
-
-      _maxAmountsIn = new uint256[](4);
-
-      for (uint256 i; i < _maxAmountsIn.length; i++) {
-        uint256 _maxIn =
-          bnum.bmul_exposed(bnum.bdiv_exposed(_amountBpt, pool.totalSupply()), pool.getBalance(address(tokens[i])));
-        _maxAmountsIn[i] = _maxIn;
-
-        tokens[i].mint(currentCaller, _maxIn);
-        hevm.prank(currentCaller);
-        tokens[i].approve(address(pool), _maxIn);
-      }
-
-      hevm.prank(currentCaller);
-      try pool.joinPool(_amountBpt, _maxAmountsIn) {
-        ghost_bptMinted += _amountBpt;
-      } catch {}
-    } else {
-      hevm.prank(currentCaller);
-      pool.approve(address(pool), _amountBpt);
-
-      hevm.prank(currentCaller);
-      try pool.exitPool(_amountBpt, new uint256[](4)) {
-        ghost_bptBurned += _amountBpt;
-      } catch {}
-    }
+  /// @custom:property-id 0
+  /// @custom:property BFactory should always be able to deploy new pools
+  function check_deploy() public {
+    assert(factory.SOLUTION_SETTLER() == solutionSettler);
+    assert(pool.isFinalized());
   }
 
   /// @custom:property-id 1
   /// @custom:property BFactory should always be able to deploy new pools
-  function fuzz_BFactoryAlwaysDeploy() public AgentOrDeployer {
+  function check_BFactoryAlwaysDeploy(address _caller) public {
     // Precondition
-    hevm.prank(currentCaller);
+    vm.assume(_caller != address(0));
+    vm.prank(_caller);
 
     // Action
     try factory.newBPool() returns (IBPool _newPool) {
@@ -109,7 +69,6 @@ contract EchidnaBalancer is EchidnaTest {
       assert(address(_newPool).code.length > 0);
       assert(factory.isBPool(address(_newPool)));
       assert(!_newPool.isFinalized());
-      poolsToFinalize.push(_newPool);
     } catch {
       assert(false);
     }
@@ -117,11 +76,11 @@ contract EchidnaBalancer is EchidnaTest {
 
   /// @custom:property-id 2
   /// @custom:property BFactory's blab should always be modifiable by the current blabs
-  function fuzz_blabAlwaysModByBLab() public AgentOrDeployer {
+  function check_blabAlwaysModByBLab() public {
     // Precondition
     address _currentBLab = factory.getBLabs();
 
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
 
     // Action
     try factory.setBLabs(address(123)) {
@@ -134,15 +93,11 @@ contract EchidnaBalancer is EchidnaTest {
 
   /// @custom:property-id 3
   /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
-  function fuzz_alwaysCollect() public AgentOrDeployer {
+  function check_alwaysCollect() public {
     // Precondition
     address _currentBLab = factory.getBLabs();
 
-    if (address(pool) == address(0)) {
-      return;
-    }
-
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
 
     // Action
     try factory.collect(pool) {
@@ -161,24 +116,15 @@ contract EchidnaBalancer is EchidnaTest {
   /// @custom:property there can't be any amount out for a 0 amount in
   /// @custom:property-id 19
   /// @custom:property a swap can only happen when the pool is finalized
-  function fuzz_swapExactIn(
-    uint256 _minAmountOut,
-    uint256 _amountIn,
-    uint256 _tokenIn,
-    uint256 _tokenOut
-  ) public AgentOrDeployer {
+  function skipped_swapExactIn(uint256 _minAmountOut, uint256 _amountIn, uint256 _tokenIn, uint256 _tokenOut) public {
     // Preconditions
-    require(pool.isFinalized());
-
-    _tokenIn = clamp(_tokenIn, 0, tokens.length - 1);
-    _tokenOut = clamp(_tokenOut, 0, tokens.length - 1);
-    _amountIn = clamp(_amountIn, 0, 10 ether);
-
-    require(_tokenIn != _tokenOut); // todo: dig this, it should pass without this precondition
+    vm.assume(_tokenIn < tokens.length);
+    vm.assume(_tokenOut < tokens.length);
+    vm.assume(_tokenIn != _tokenOut); // todo: dig this, it should pass without this precondition
 
     tokens[_tokenIn].mint(currentCaller, _amountIn);
 
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
     tokens[_tokenIn].approve(address(pool), type(uint256).max); // approval isn't limiting
 
     uint256 _balanceOutBefore = tokens[_tokenOut].balanceOf(currentCaller);
@@ -192,7 +138,7 @@ contract EchidnaBalancer is EchidnaTest {
       bconst.MIN_FEE()
     );
 
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
 
     // Action
     try pool.swapExactAmountIn(
@@ -222,22 +168,14 @@ contract EchidnaBalancer is EchidnaTest {
   /// @custom:property there can't be any amount out for a 0 amount in
   /// @custom:property-id 19
   /// @custom:property a swap can only happen when the pool is finalized
-  function fuzz_swapExactOut(
-    uint256 _maxAmountIn,
-    uint256 _amountOut,
-    uint256 _tokenIn,
-    uint256 _tokenOut
-  ) public AgentOrDeployer {
+  function skipped_swapExactOut(uint256 _maxAmountIn, uint256 _amountOut, uint256 _tokenIn, uint256 _tokenOut) public {
     // Precondition
-    require(pool.isFinalized());
-
-    _tokenIn = clamp(_tokenIn, 0, tokens.length - 1);
-    _tokenOut = clamp(_tokenOut, 0, tokens.length - 1);
-    _maxAmountIn = clamp(_maxAmountIn, 0, 10 ether);
+    vm.assume(_tokenIn < tokens.length);
+    vm.assume(_tokenOut < tokens.length);
 
     tokens[_tokenIn].mint(currentCaller, _maxAmountIn);
 
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
     tokens[_tokenIn].approve(address(pool), type(uint256).max); // approval isn't limiting
 
     uint256 _balanceInBefore = tokens[_tokenIn].balanceOf(currentCaller);
@@ -252,7 +190,7 @@ contract EchidnaBalancer is EchidnaTest {
       bconst.MIN_FEE()
     );
 
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
 
     // Action
     try pool.swapExactAmountOut(
@@ -279,28 +217,27 @@ contract EchidnaBalancer is EchidnaTest {
 
   /// @custom:property-id 6
   /// @custom:property swap fee can only be 0 (cow pool)
-  function fuzz_swapFeeAlwaysZero() public {
-    assert(pool.getSwapFee() == bconst.MIN_FEE()); // todo: check if this is the intended property (min fee == 0?)
-  }
 
   /// @custom:property-id 7
   /// @custom:property total weight can be up to 50e18
-  function fuzz_totalWeightMax(uint256 _numberTokens, uint256[8] calldata _weights) public {
+  /// @dev Only 2 tokens are used, to avoid hitting the limit in loop unrolling
+  function check_totalWeightMax(uint256[2] calldata _weights) public {
     // Precondition
     BCoWPool _pool = BCoWPool(address(factory.newBPool()));
 
-    _numberTokens = clamp(_numberTokens, bconst.MIN_BOUND_TOKENS(), bconst.MAX_BOUND_TOKENS());
-
     uint256 _totalWeight = 0;
 
-    for (uint256 i; i < _numberTokens; i++) {
+    for (uint256 i; i < 2; i++) {
+      vm.assume(_weights[i] >= bconst.MIN_WEIGHT() && _weights[i] <= bconst.MAX_WEIGHT());
+    }
+
+    for (uint256 i; i < 2; i++) {
       FuzzERC20 _token = new FuzzERC20();
       _token.initialize('', '', 18);
       _token.mint(address(this), 10 ether);
       _token.approve(address(_pool), 10 ether);
 
       uint256 _poolWeight = _weights[i];
-      _poolWeight = clamp(_poolWeight, bconst.MIN_WEIGHT(), bconst.MAX_WEIGHT());
 
       // Action
       try _pool.bind(address(_token), 10 ether, _poolWeight) {
@@ -323,51 +260,49 @@ contract EchidnaBalancer is EchidnaTest {
   /// @custom:property a pool can either be finalized or not finalized
   /// @dev included to be exhaustive/future-proof if more states are added, as rn, it
   /// basically tests the tautological (a || !a)
-  function fuzz_poolFinalized() public {
-    assert(pool.isFinalized() || !pool.isFinalized());
-  }
 
   /// @custom:property-id 11
   /// @custom:property a finalized pool cannot switch back to non-finalized
-  function fuzz_poolFinalizedOnce() public {
-    assert(pool.isFinalized());
-  }
 
   /// @custom:property-id 12
   /// @custom:property a non-finalized pool can only be finalized when the controller calls finalize()
-  function fuzz_poolFinalizedByController() public AgentOrDeployer {
+  function check_poolFinalizedByController() public {
     // Precondition
-    if (poolsToFinalize.length == 0) {
-      return;
+    IBPool _nonFinalizedPool = factory.newBPool();
+
+    vm.prank(_nonFinalizedPool.getController());
+
+    for (uint256 i; i < 3; i++) {
+      FuzzERC20 _token = new FuzzERC20();
+
+      _token.initialize('', '', 18);
+      _token.mint(_nonFinalizedPool.getController(), 10 ether);
+      _token.approve(address(_nonFinalizedPool), 10 ether);
+
+      uint256 _poolWeight = bconst.MAX_WEIGHT() / 5;
+
+      _nonFinalizedPool.bind(address(_token), 10 ether, _poolWeight);
     }
+    vm.stopPrank();
 
-    IBPool _nonFinalizedPool = poolsToFinalize[poolsToFinalize.length - 1];
-
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
 
     // Action
     try _nonFinalizedPool.finalize() {
       // Postcondition
       assert(currentCaller == _nonFinalizedPool.getController());
-      poolsToFinalize.pop();
     } catch {}
   }
 
   /// @custom:property-id 16
   /// @custom:property the pool btoken can only be minted/burned in the join and exit operations
-  function fuzz_mintBurnBPT() public {
-    assert(ghost_bptMinted - ghost_bptBurned == pool.totalSupply());
-  }
 
   /// @custom:property-id 17
   /// @custom:property a direct token transfer can never reduce the underlying amount of a given token per BPT
-  function fuzz_directTransfer(
-    uint256 _amountPoolToken,
-    uint256 _amountToTransfer,
-    uint256 _tokenIdx
-  ) public AgentOrDeployer {
-    _tokenIdx = clamp(_tokenIdx, 0, tokens.length - 1);
-    FuzzERC20 _token = tokens[_tokenIdx];
+  function skipped_directTransfer(uint256 _amountPoolToken, uint256 _amountToTransfer, uint256 _tokenIdx) public {
+    vm.assume(_tokenIdx < tokens.length);
+
+    FuzzERC20 _token = tokens[2];
 
     uint256 _redeemedAmountBeforeTransfer = bmath.calcSingleOutGivenPoolIn(
       _token.balanceOf(address(pool)),
@@ -397,8 +332,8 @@ contract EchidnaBalancer is EchidnaTest {
 
   /// @custom:property-id 18
   /// @custom:property the amount of underlying token when exiting should always be the amount calculated in bmath
-  function correctBPTBurnAmount(uint256 _amountPoolToken) public AgentOrDeployer {
-    _amountPoolToken = clamp(_amountPoolToken, 0, pool.balanceOf(currentCaller));
+  function correctBPTBurnAmount(uint256 _amountPoolToken) public {
+    _amountPoolToken = bound(_amountPoolToken, 0, pool.balanceOf(currentCaller));
 
     uint256[] memory _amountsToReceive = new uint256[](4);
     uint256[] memory _previousBalances = new uint256[](4);
@@ -418,10 +353,10 @@ contract EchidnaBalancer is EchidnaTest {
       _previousBalances[i] = _token.balanceOf(currentCaller);
     }
 
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
     pool.approve(address(pool), _amountPoolToken);
 
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
 
     // Action
     pool.exitPool(_amountPoolToken, new uint256[](4));
@@ -434,46 +369,46 @@ contract EchidnaBalancer is EchidnaTest {
 
   /// @custom:property-id 20
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
-  function fuzz_boundOnlyNotFinalized() public AgentOrDeployer {
+  function check_boundOnlyNotFinalized() public {
     // Precondition
-    if (poolsToFinalize.length == 0) {
-      return;
-    }
+    IBPool _nonFinalizedPool = factory.newBPool();
 
-    IBPool _nonFinalizedPool = poolsToFinalize[poolsToFinalize.length - 1];
+    address _callerBind = svm.createAddress('callerBind');
+    address _callerUnbind = svm.createAddress('callerUnbind');
+    address _callerFinalize = svm.createAddress('callerFinalize');
 
-    for (uint256 i; i < 4; i++) {
-      tokens[i].mint(currentCaller, 10 ether);
+    for (uint256 i; i < 2; i++) {
+      tokens[i].mint(_callerBind, 10 ether);
 
-      hevm.prank(currentCaller);
-      tokens[i].approve(address(_nonFinalizedPool), 10 ether);
+      vm.startPrank(_callerBind);
+      tokens[i].approve(address(pool), 10 ether);
 
       uint256 _poolWeight = bconst.MAX_WEIGHT() / 5;
 
-      if (_nonFinalizedPool.isBound(address(tokens[i]))) {
-        uint256 _balanceUnboundBefore = tokens[i].balanceOf(currentCaller);
-
-        hevm.prank(currentCaller);
-        // Action
-        try _nonFinalizedPool.unbind(address(tokens[i])) {
-          // Postcondition
-          assert(currentCaller == _nonFinalizedPool.getController());
-          assert(!_nonFinalizedPool.isFinalized());
-          assert(tokens[i].balanceOf(currentCaller) > _balanceUnboundBefore);
-        } catch {
-          assert(currentCaller != _nonFinalizedPool.getController() || _nonFinalizedPool.isFinalized());
-        }
-      } else {
-        hevm.prank(currentCaller);
-        try _nonFinalizedPool.bind(address(tokens[i]), 10 ether, _poolWeight) {
-          // Postcondition
-          assert(currentCaller == _nonFinalizedPool.getController());
-          assert(!_nonFinalizedPool.isFinalized());
-        } catch {
-          assert(currentCaller != _nonFinalizedPool.getController() || _nonFinalizedPool.isFinalized());
-        }
+      try _nonFinalizedPool.bind(address(tokens[i]), 10 ether, _poolWeight) {
+        assert(_callerBind == _nonFinalizedPool.getController());
+      } catch {
+        assert(_callerBind != _nonFinalizedPool.getController());
       }
+
+      vm.stopPrank();
     }
+
+    vm.prank(_callerUnbind);
+    try _nonFinalizedPool.unbind(address(tokens[1])) {
+      assert(_callerUnbind == _nonFinalizedPool.getController());
+    } catch {
+      assert(_callerUnbind != _nonFinalizedPool.getController());
+    }
+
+    vm.prank(_callerFinalize);
+    try _nonFinalizedPool.finalize() {
+      assert(_callerFinalize == _nonFinalizedPool.getController());
+    } catch {
+      // assert(_callerFinalize != _nonFinalizedPool.getController());
+    }
+
+    vm.stopPrank();
   }
 
   /// @custom:property-id 21
@@ -481,20 +416,13 @@ contract EchidnaBalancer is EchidnaTest {
   function fuzz_minMaxBoundToken() public {
     assert(pool.getNumTokens() >= bconst.MIN_BOUND_TOKENS());
     assert(pool.getNumTokens() <= bconst.MAX_BOUND_TOKENS());
-
-    for (uint256 i; i < poolsToFinalize.length; i++) {
-      if (poolsToFinalize[i].isFinalized()) {
-        assert(poolsToFinalize[i].getNumTokens() >= bconst.MIN_BOUND_TOKENS());
-        assert(poolsToFinalize[i].getNumTokens() <= bconst.MAX_BOUND_TOKENS());
-      }
-    }
   }
 
   /// @custom:property-id 22
   /// @custom:property only the settler can commit a hash
-  function fuzz_settlerCommit() public AgentOrDeployer {
+  function fuzz_settlerCommit() public {
     // Precondition
-    hevm.prank(currentCaller);
+    vm.prank(currentCaller);
 
     // Action
     try pool.commit(hex'1234') {

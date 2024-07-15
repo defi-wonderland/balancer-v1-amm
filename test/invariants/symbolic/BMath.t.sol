@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {HalmosTest} from '../AdvancedTestsUtils.sol';
+import {HalmosTest} from '../helpers/AdvancedTestsUtils.sol';
 import {BMath} from 'contracts/BMath.sol';
 
 contract SymbolicBMath is BMath, HalmosTest {

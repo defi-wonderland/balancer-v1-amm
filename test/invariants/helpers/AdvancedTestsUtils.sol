@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {Test} from 'forge-std/Test.sol';
 import {MockERC20} from 'forge-std/mocks/MockERC20.sol';
 import {SymTest} from 'halmos-cheatcodes/src/SymTest.sol';
 
@@ -60,4 +61,4 @@ contract EchidnaTest is AgentsHandler {
   }
 }
 
-contract HalmosTest is SymTest {}
+contract HalmosTest is SymTest, Test {}
