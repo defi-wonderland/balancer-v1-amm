@@ -18,7 +18,7 @@ contract BCoWPoolVerify is BCoWPoolBase {
   uint256 public tokenOutWeight = 1e18;
   // from bmath: (with fee zero) 80*(1-(100/(100+1))^(4))
   uint256 public expectedAmountOut = 3.12157244137469736e18;
-  GPv2Order.Data correctOrder;
+  GPv2Order.Data validOrder;
 
   function setUp() public virtual override {
     super.setUp();
@@ -28,7 +28,7 @@ contract BCoWPoolVerify is BCoWPoolBase {
     vm.mockCall(tokenIn, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(tokenInBalance)));
     vm.mockCall(tokenOut, abi.encodePacked(IERC20.balanceOf.selector), abi.encode(uint256(tokenOutBalance)));
 
-    correctOrder = GPv2Order.Data({
+    validOrder = GPv2Order.Data({
       sellToken: IERC20(tokenOut),
       buyToken: IERC20(tokenIn),
       receiver: GPv2Order.RECEIVER_SAME_AS_OWNER,
@@ -45,85 +45,85 @@ contract BCoWPoolVerify is BCoWPoolBase {
   }
 
   function test_RevertWhen_BuyTokenIsNotBound() external {
-    correctOrder.buyToken = IERC20(makeAddr('unknown token'));
+    validOrder.buyToken = IERC20(makeAddr('unknown token'));
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_SellTokenIsNotBound() external {
-    correctOrder.sellToken = IERC20(makeAddr('unknown token'));
+    validOrder.sellToken = IERC20(makeAddr('unknown token'));
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_OrderReceiverFlagIsNotSameAsOwner() external {
-    correctOrder.receiver = makeAddr('somebodyElse');
+    validOrder.receiver = makeAddr('somebodyElse');
     // it should revert
     vm.expectRevert(IBCoWPool.BCoWPool_ReceiverIsNotBCoWPool.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_OrderValidityIsTooLong(uint256 _timeOffset) external {
     _timeOffset = bound(_timeOffset, MAX_ORDER_DURATION + 1, type(uint32).max - block.timestamp);
-    correctOrder.validTo = uint32(block.timestamp + _timeOffset);
+    validOrder.validTo = uint32(block.timestamp + _timeOffset);
     // it should revert
     vm.expectRevert(IBCoWPool.BCoWPool_OrderValidityTooLong.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_FeeAmountIsNotZero(uint256 _fee) external {
     _fee = bound(_fee, 1, type(uint256).max);
-    correctOrder.feeAmount = _fee;
+    validOrder.feeAmount = _fee;
     // it should revert
     vm.expectRevert(IBCoWPool.BCoWPool_FeeMustBeZero.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_OrderKindIsNotKIND_SELL(bytes32 _orderKind) external {
     vm.assume(_orderKind != GPv2Order.KIND_SELL);
-    correctOrder.kind = _orderKind;
+    validOrder.kind = _orderKind;
     // it should revert
     vm.expectRevert(IBCoWPool.BCoWPool_InvalidOperation.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_BuyTokenBalanceFlagIsNotERC20Balances(bytes32 _balanceKind) external {
     vm.assume(_balanceKind != GPv2Order.BALANCE_ERC20);
-    correctOrder.buyTokenBalance = _balanceKind;
+    validOrder.buyTokenBalance = _balanceKind;
     // it should revert
     vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_SellTokenBalanceFlagIsNotERC20Balances(bytes32 _balanceKind) external {
     vm.assume(_balanceKind != GPv2Order.BALANCE_ERC20);
-    correctOrder.sellTokenBalance = _balanceKind;
+    validOrder.sellTokenBalance = _balanceKind;
     // it should revert
     vm.expectRevert(IBCoWPool.BCoWPool_InvalidBalanceMarker.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_OrderBuyAmountExceedsMaxRatio(uint256 _buyAmount) external {
     _buyAmount = bound(_buyAmount, bmul(tokenInBalance, MAX_IN_RATIO) + 1, type(uint256).max);
-    correctOrder.buyAmount = _buyAmount;
+    validOrder.buyAmount = _buyAmount;
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenAmountInAboveMaxRatio.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_RevertWhen_CalculatedTokenAmountOutIsLessThanOrderSellAmount() external {
-    correctOrder.sellAmount += 1;
+    validOrder.sellAmount += 1;
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenAmountOutBelowMinOut.selector);
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 
   function test_WhenPreconditionsAreMet(uint256 _sellAmount) external {
-    _sellAmount = bound(_sellAmount, 0, correctOrder.sellAmount);
-    correctOrder.sellAmount = _sellAmount;
+    _sellAmount = bound(_sellAmount, 0, validOrder.sellAmount);
+    validOrder.sellAmount = _sellAmount;
     // it should return
-    bCoWPool.verify(correctOrder);
+    bCoWPool.verify(validOrder);
   }
 }
