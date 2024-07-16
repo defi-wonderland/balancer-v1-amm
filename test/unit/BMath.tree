@@ -121,8 +121,10 @@ BMathTest::calcSingleOutGivenPoolIn
 BMathTest::calcPoolInGivenSingleOut
 ├── when token balance out is zero
 │   └── it should revert // subtraction underflow
-├── when swap fee greater than BONE
+├── when swap fee equals BONE and token weight out is zero
 │   └── it should revert // division by zero
+├── when swap fee greater than BONE
+│   └── it should revert // subtraction underflow
 ├── when token amount out is zero
 │   └── it should return zero
 ├── when pool supply is zero
