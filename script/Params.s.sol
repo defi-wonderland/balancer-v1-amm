@@ -34,8 +34,8 @@ contract Params {
   /// @notice BCoWFactory deployment parameters
   BCoWFactoryDeploymentParams internal _bCoWFactoryDeploymentParams;
 
-  constructor(uint256 _chainId) {
-    if (_chainId == 1 || _chainId == 11_155_111) {
+  constructor(uint256 chainId) {
+    if (chainId == 1 || chainId == 11_155_111) {
       // Ethereum Mainnet & Ethereum Sepolia [Testnet]
       _bFactoryDeploymentParams = BFactoryDeploymentParams({bDao: _B_DAO});
       _bCoWFactoryDeploymentParams = BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});

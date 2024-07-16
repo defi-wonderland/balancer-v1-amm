@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IBPool} from 'contracts/BPool.sol';
-import {IBFactory} from 'interfaces/IBFactory.sol';
 import {IFaucet} from 'interfaces/IFaucet.sol';
 
 import {Script} from 'forge-std/Script.sol';
