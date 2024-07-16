@@ -7,8 +7,30 @@ import {BCoWPoolBase} from './BCoWPoolBase.sol';
 
 import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
+import {ISettlement} from 'interfaces/ISettlement.sol';
+import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
 
-contract BCoWPoolFinalize is BCoWPoolBase {
+contract BCoWPool is BCoWPoolBase {
+  function test_ConstructorWhenCalled(
+    address _settler,
+    bytes32 _separator,
+    address _relayer,
+    bytes32 _appData
+  ) external {
+    assumeNotForgeAddress(_settler);
+    vm.mockCall(_settler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(_separator));
+    vm.mockCall(_settler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(_relayer));
+    MockBCoWPool pool = new MockBCoWPool(_settler, _appData);
+    // it should set the solution settler
+    assertEq(address(pool.SOLUTION_SETTLER()), _settler);
+    // it should set the domain separator
+    assertEq(pool.SOLUTION_SETTLER_DOMAIN_SEPARATOR(), _separator);
+    // it should set the vault relayer
+    assertEq(pool.VAULT_RELAYER(), _relayer);
+    // it should set the app data
+    assertEq(pool.APP_DATA(), _appData);
+  }
+
   modifier whenPreconditionsAreMet() {
     bCoWPool.set__tokens(tokens);
     bCoWPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
@@ -23,7 +45,7 @@ contract BCoWPoolFinalize is BCoWPoolBase {
     _;
   }
 
-  function test_WhenPreconditionsAreMet() external whenPreconditionsAreMet {
+  function test_FinalizeWhenPreconditionsAreMet() external whenPreconditionsAreMet {
     // it calls approve on every bound token
     vm.expectCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     vm.expectCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
@@ -32,12 +54,12 @@ contract BCoWPoolFinalize is BCoWPoolBase {
     bCoWPool.finalize();
   }
 
-  function test_WhenFactorysLogBCoWPoolDoesNotRevert() external whenPreconditionsAreMet {
+  function test_FinalizeWhenFactorysLogBCoWPoolDoesNotRevert() external whenPreconditionsAreMet {
     // it returns
     bCoWPool.finalize();
   }
 
-  function test_WhenFactorysLogBCoWPoolReverts(bytes memory revertData) external whenPreconditionsAreMet {
+  function test_FinalizeWhenFactorysLogBCoWPoolReverts(bytes memory revertData) external whenPreconditionsAreMet {
     vm.mockCallRevert(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()), revertData);
     // it emits a COWAMMPoolCreated event
     vm.expectEmit(address(bCoWPool));
