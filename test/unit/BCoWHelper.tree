@@ -18,9 +18,11 @@ BCoWHelperTest::tokens
 BCoWHelperTest::order
 ├── when the pool is not supported
 │   └── it should revert
-└── when the pool is supported
-    ├── it should query the domain separator from the pool
-    ├── it should return a valid pool order
-    ├── it should return a commit pre-interaction
-    ├── it should return an empty post-interaction
-    └── it should return a valid signature
+├── when the pool is supported
+│   ├── it should query the domain separator from the pool
+│   ├── it should return a valid pool order
+│   ├── it should return a commit pre-interaction
+│   ├── it should return an empty post-interaction
+│   └── it should return a valid signature
+└── given a price vector
+    └── it should return a valid pool order

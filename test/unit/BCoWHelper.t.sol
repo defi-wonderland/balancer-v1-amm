@@ -51,7 +51,7 @@ contract BCoWHelperTest is Test {
     pool.set__finalized(true);
 
     priceVector[0] = 1e18;
-    priceVector[1] = 1e18;
+    priceVector[1] = 1.05e18;
 
     vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(priceVector[0]));
     vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(priceVector[1]));
@@ -71,9 +71,10 @@ contract BCoWHelperTest is Test {
   }
 
   function test_TokensRevertWhen_PoolIsNotRegisteredInFactory() external {
+    factory.mock_call_isBPool(address(pool), false);
     // it should revert
     vm.expectRevert(ICOWAMMPoolHelper.PoolDoesNotExist.selector);
-    helper.tokens(invalidPool);
+    helper.tokens(address(pool));
   }
 
   function test_TokensRevertWhen_PoolHasLessThan2Tokens() external {
@@ -152,5 +153,26 @@ contract BCoWHelperTest is Test {
     // it should return a valid signature
     bytes memory validSig = abi.encodePacked(pool, abi.encode(order_));
     assertEq(keccak256(validSig), keccak256(sig));
+  }
+
+  function test_OrderGivenAPriceVector(uint256 priceSkewness, uint256 balanceToken0, uint256 balanceToken1) external {
+    // skew the price by max 50% (more could result in reverts bc of max swap ratio)
+    priceSkewness = bound(priceSkewness, 5000, 15_000);
+    vm.assume(priceSkewness != 10_000); // avoids no-skewness revert
+
+    balanceToken0 = bound(balanceToken0, 1e18, 1e36);
+    balanceToken1 = bound(balanceToken1, 1e18, 1e36);
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceToken0));
+    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceToken1));
+
+    uint256[] memory prices = new uint256[](2);
+    prices[0] = balanceToken1;
+    prices[1] = balanceToken0 * priceSkewness / 10_000;
+
+    // it should return a valid pool order
+    (GPv2Order.Data memory ammOrder,,,) = helper.order(address(pool), prices);
+
+    // this call should not revert
+    pool.verify(ammOrder);
   }
 }
