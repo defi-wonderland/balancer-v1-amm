@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-contract Params {
+/// @notice Deployment parameters
+abstract contract Params {
   struct BFactoryDeploymentParams {
     address bDao;
   }

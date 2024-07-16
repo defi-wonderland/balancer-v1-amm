@@ -6,8 +6,11 @@ import {BFactory} from 'contracts/BFactory.sol';
 
 import {Params} from 'script/Params.s.sol';
 
-contract Registry is Params {
+/// @notice Registry of deployed contracts
+abstract contract Registry is Params {
+  /// @notice Balancer Pool Factory
   BFactory public bFactory;
+  /// @notice Balancer CoW Pool Factory
   BCoWFactory public bCoWFactory;
 
   constructor(uint256 chainId) Params(chainId) {
