@@ -11,9 +11,6 @@ contract Params {
     bytes32 appData;
   }
 
-  uint256 internal constant _CHAIN_ID_MAINNET = 1;
-  uint256 internal constant _CHAIN_ID_TESTNET = 11_155_111;
-
   /// @notice Settlement address
   address internal constant _GPV2_SETTLEMENT = 0x9008D19f58AAbD9eD0D60971565AA8510560ab41;
   /// @notice Balancer DAO address (has controller permission to collect fees from BFactory pools)

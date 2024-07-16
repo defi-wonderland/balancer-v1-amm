@@ -15,7 +15,7 @@ abstract contract BaseScript is Registry, Script {
 contract MainnetScript is BaseScript {
   /// @notice This script will be executed by `yarn script:mainnet`
   function run() public {
-    assert(block.chainid == _CHAIN_ID_MAINNET);
+    assert(block.chainid == 1);
     vm.startBroadcast();
 
     // script logic here
@@ -34,7 +34,7 @@ contract TestnetScript is BaseScript {
   /// @notice This script will be executed by `yarn script:testnet`
   /// @dev The following is an example of a script that deploys a Balancer CoW pool
   function run() public {
-    assert(block.chainid == _CHAIN_ID_TESTNET);
+    assert(block.chainid == 11_155_111);
     vm.startBroadcast();
 
     // NOTE: dripping can be called by anyone but only once a day (per address)
