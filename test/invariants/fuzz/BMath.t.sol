@@ -5,7 +5,7 @@ import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
 
 import {BMath} from 'contracts/BMath.sol';
 
-contract EchidnaBMath is BMath, EchidnaTest {
+contract FuzzBMath is BMath, EchidnaTest {
   // calcOutGivenIn should be inverse of calcInGivenOut
   function testCalcInGivenOut_InvCalcInGivenOut(
     uint256 tokenBalanceIn,

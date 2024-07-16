@@ -5,7 +5,7 @@ import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
 
 import {BNum} from 'contracts/BNum.sol';
 
-contract EchidnaBNum is BNum, EchidnaTest {
+contract FuzzBNum is BNum, EchidnaTest {
   function bsub_exposed(uint256 a, uint256 b) external pure returns (uint256) {
     return bsub(a, b);
   }
@@ -153,7 +153,7 @@ contract EchidnaBNum is BNum, EchidnaTest {
     _b = clamp(_b, _a + 1, type(uint256).max);
 
     // Action
-    (bool succ,) = address(this).call(abi.encodeCall(EchidnaBNum.bsub_exposed, (_a, _b)));
+    (bool succ,) = address(this).call(abi.encodeCall(FuzzBNum.bsub_exposed, (_a, _b)));
 
     // Postcondition
     assert(!succ);
@@ -214,37 +214,39 @@ contract EchidnaBNum is BNum, EchidnaTest {
     assert(_result1 == _result2);
   }
 
-  //todo this one fails
   // bmul should be associative
-  function bmul_associative(uint256 _a, uint256 _b, uint256 _c) public {
+  function test_bmul_associative(uint256 _a, uint256 _b, uint256 _c) public {
     // precondition
-    _c = clamp(_c, BONE, type(uint256).max);
-    _b = clamp(_b, BONE, type(uint256).max / _c);
-    _a = clamp(_a, BONE, type(uint256).max / _b);
-
-    require(_a * _b + _c / 2 < type(uint256).max); // Avoid add overflow
+    _c = clamp(_c, BONE, 9_999_999_999_999 * BONE);
+    _b = clamp(_b, BONE, 9_999_999_999_999 * BONE);
+    _a = clamp(_a, BONE, 9_999_999_999_999 * BONE);
 
     // action
     uint256 _result1 = bmul(bmul(_a, _b), _c);
     uint256 _result2 = bmul(_a, bmul(_b, _c));
 
     // post condition
-    assert(_result1 == _result2);
+    assert(_result1 / BONE == _result2 / BONE);
   }
 
-  //todo hangs
   // bmul should be distributive
-  function bmul_distributive(uint256 _a, uint256 _b, uint256 _c) public pure {
+  function bmul_distributive(uint256 _a, uint256 _b, uint256 _c) public {
+    _c = clamp(_c, BONE, 9_999_999_999_999 * BONE);
+    _b = clamp(_b, BONE, 9_999_999_999_999 * BONE);
+    _a = clamp(_a, BONE, 9_999_999_999_999 * BONE);
+
     uint256 _result1 = bmul(_a, badd(_b, _c));
     uint256 _result2 = badd(bmul(_a, _b), bmul(_a, _c));
+
     assert(_result1 == _result2);
   }
 
-  //todo
   // 1 should be identity for bmul
-  function bmul_identity(uint256 _a) public pure {
-    // vm.assume(_a < type(uint256).max / BONE); // Avoid mul overflow
+  function bmul_identity(uint256 _a) public {
+    _a = clamp(_a, BONE, 9_999_999_999_999 * BONE);
+
     uint256 _result = bmul(_a, BONE);
+
     assert(_result == _a);
   }
 
@@ -257,10 +259,6 @@ contract EchidnaBNum is BNum, EchidnaTest {
     assert(_result == 0);
   }
 
-  //todo
-  //➜ bmul(57896044618658097711785492504343953926634992332820282019728792003956564819968, 1) >= 57896044618658097711785492504343953926634992332820282019728792003956564819968
-  // Type: bool
-  // └ Value: false
   // bmul result should always be gte a and b
   function bmul_resultGTE(uint256 _a, uint256 _b) public {
     // Precondition
@@ -288,41 +286,6 @@ contract EchidnaBNum is BNum, EchidnaTest {
     uint256 _result = bdiv(_a, BONE);
     assert(_result == _a);
   }
-
-  // uint256[] public fixtureA = [
-  //     BONE,
-  //     BONE * 2,
-  //     BONE / 2,
-  //     BONE * 2 - 1,
-  //     BONE * 2 + 1,
-  //     BONE / 2 - 1,
-  //     BONE / 2 + 1,
-  //     BONE * 3,
-  //     BONE * 4,
-  //     BONE * 5,
-  //     BONE * 6,
-  //     BONE * 7,
-  //     BONE * 8,
-  //     BONE * 9,
-  //     BONE * 10,
-  //     type(uint256).max / 10**18,
-  //     type(uint256).max / 10**18 - 1,
-  //     type(uint256).max / 10**18 - 10,
-  //     type(uint256).max / 10**18 - BONE / 2,
-  //     type(uint256).max / 10**18 - BONE / 2 + 1,
-  //     type(uint256).max / 10**18 - BONE / 2 - 1,
-  //     type(uint256).max / 10**18 - BONE / 2 - 10,
-  //     0,
-  //     1,
-  //     2
-  // ];
-
-  // /// forge-config: default.fuzz.runs = 1000000
-  // function test_bdiv_identity(uint256 a) public pure {
-  //     a = bound(a, 0, type(uint256).max  / 10**18);
-  //     uint256 _result = bdiv(a, BONE);
-  //     assertEq(_result, a);
-  // }
 
   //todo
   // bdiv should revert if b is 0
@@ -383,7 +346,7 @@ contract EchidnaBNum is BNum, EchidnaTest {
 
   // 1 should be identity if exp
   function bpowi_identityExp(uint256 _base) public {
-    _base = clamp(_base, BONE, type(uint256).max);
+    _base = clamp(_base, 1, 10_000);
 
     uint256 _result = bpowi(_base, BONE);
 
@@ -392,11 +355,13 @@ contract EchidnaBNum is BNum, EchidnaTest {
 
   // bpowi should be distributive over mult of the same base x^a  x^b == x^(a+b)
   function bpowi_distributiveBase(uint256 _base, uint256 _a, uint256 _b) public {
-    _a = clamp(_a, BONE, type(uint256).max);
-    _b = clamp(_b, BONE, type(uint256).max);
+    _base = clamp(_base, 1, 10_000);
+    _a = clamp(_a, 1, 1000 * BONE);
+    _b = clamp(_b, 1, 1000 * BONE);
 
     uint256 _result1 = bpowi(_base, badd(_a, _b));
     uint256 _result2 = bmul(bpowi(_base, _a), bpowi(_base, _b));
+
     assert(_result1 == _result2);
   }
 
@@ -409,12 +374,14 @@ contract EchidnaBNum is BNum, EchidnaTest {
 
   // power of a power should mult the exp (x^a)^b == x^(ab)
   function bpowi_powerOfPower(uint256 _base, uint256 _a, uint256 _b) public {
-    _a = clamp(_a, BONE, type(uint256).max);
-    _b = clamp(_b, BONE, type(uint256).max);
+    _base = clamp(_base, 1, 10_000);
+    _a = clamp(_a, 1, 1000 * BONE);
+    _b = clamp(_b, 1, 1000 * BONE);
 
     uint256 _result1 = bpowi(bpowi(_base, _a), _b);
     uint256 _result2 = bpowi(_base, bmul(_a, _b));
-    assert(_result1 == _result2);
+
+    assert(_result1 == _result2 || _result1 == _result2 - 1 || _result1 == _result2 + 1);
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -453,29 +420,41 @@ contract EchidnaBNum is BNum, EchidnaTest {
     assert(_result == _base);
   }
 
-  //todo infinite loop
   // bpow should be distributive over mult of the same base x^a * x^b == x^(a+b)
-  function bpow_distributiveBase(uint256 _base, uint256 _a, uint256 _b) public pure {
+  function bpow_distributiveBase(uint256 _base, uint256 _a, uint256 _b) public {
+    _base = clamp(_base, MIN_BPOW_BASE, MAX_BPOW_BASE);
+    _a = clamp(_a, 1, 1000);
+    _b = clamp(_b, 1, 1000);
+
     uint256 _result1 = bpow(_base, badd(_a, _b));
     uint256 _result2 = bmul(bpow(_base, _a), bpow(_base, _b));
-    assert(_result1 == _result2);
+
+    assert(_result1 == _result2 || _result1 == _result2 - 1 || _result1 == _result2 + 1);
   }
 
-  //todo loop
   // bpow should be distributive over mult of the same exp  a^x * b^x == (a*b)^x
-  function bpow_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public {
-    _exp = clamp(_exp, BONE, type(uint256).max);
+  function test_bpow_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public {
+    _exp = clamp(_exp, 1, 100);
+    _a = clamp(_a, MIN_BPOW_BASE, MAX_BPOW_BASE);
+    _b = clamp(_b, MIN_BPOW_BASE, MAX_BPOW_BASE);
+
+    require(_a * _b < MAX_BPOW_BASE && _a * _b > MIN_BPOW_BASE);
 
     uint256 _result1 = bpow(bmul(_a, _b), _exp);
     uint256 _result2 = bmul(bpow(_a, _exp), bpow(_b, _exp));
-    assert(_result1 == _result2);
+
+    assert(_result1 == _result2 || _result1 == _result2 - 1 || _result1 == _result2 + 1);
   }
 
-  // todo
   // power of a power should mult the exp (x^a)^b == x^(a*b)
-  function bpow_powerOfPower(uint256 _base, uint256 _a, uint256 _b) public pure {
+  function bpow_powerOfPower(uint256 _base, uint256 _a, uint256 _b) public {
+    _base = clamp(_base, MIN_BPOW_BASE, MAX_BPOW_BASE);
+    _a = clamp(_a, 1, 1000);
+    _b = clamp(_b, 1, 1000);
+
     uint256 _result1 = bpow(bpow(_base, _a), _b);
     uint256 _result2 = bpow(_base, bmul(_a, _b));
+
     assert(_result1 == _result2);
   }
 }

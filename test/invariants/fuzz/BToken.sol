@@ -7,7 +7,7 @@ import {ITokenMock} from '@crytic/properties/contracts/ERC20/external/util/IToke
 import {PropertiesConstants} from '@crytic/properties/contracts/util/PropertiesConstants.sol';
 import 'contracts/BToken.sol';
 
-contract EchidnaBToken is CryticERC20ExternalBasicProperties, EchidnaTest {
+contract FuzzBToken is CryticERC20ExternalBasicProperties, EchidnaTest {
   constructor() {
     // Deploy ERC20
     token = ITokenMock(address(new CryticTokenMock()));

@@ -9,7 +9,7 @@ import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
 import {BNum} from 'contracts/BNum.sol';
 
-contract EchidnaBalancer is EchidnaTest {
+contract FuzzBalancer is EchidnaTest {
   // System under test
   BCoWFactory factory;
   BConst bconst;
