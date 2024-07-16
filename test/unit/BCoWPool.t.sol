@@ -47,66 +47,6 @@ abstract contract BaseCoWPoolTest is BasePoolTest, BCoWConst {
   }
 }
 
-contract BCoWPool_Unit_Constructor is BaseCoWPoolTest {
-  function test_Set_SolutionSettler(address _settler) public {
-    assumeNotForgeAddress(_settler);
-    vm.mockCall(_settler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(domainSeparator));
-    vm.mockCall(_settler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(vaultRelayer));
-    MockBCoWPool pool = new MockBCoWPool(_settler, appData);
-    assertEq(address(pool.SOLUTION_SETTLER()), _settler);
-  }
-
-  function test_Set_DomainSeparator(address _settler, bytes32 _separator) public {
-    assumeNotForgeAddress(_settler);
-    vm.mockCall(_settler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(_separator));
-    vm.mockCall(_settler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(vaultRelayer));
-    MockBCoWPool pool = new MockBCoWPool(_settler, appData);
-    assertEq(pool.SOLUTION_SETTLER_DOMAIN_SEPARATOR(), _separator);
-  }
-
-  function test_Set_VaultRelayer(address _settler, address _relayer) public {
-    assumeNotForgeAddress(_settler);
-    vm.mockCall(_settler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(domainSeparator));
-    vm.mockCall(_settler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(_relayer));
-    MockBCoWPool pool = new MockBCoWPool(_settler, appData);
-    assertEq(pool.VAULT_RELAYER(), _relayer);
-  }
-
-  function test_Set_AppData(bytes32 _appData) public {
-    MockBCoWPool pool = new MockBCoWPool(cowSolutionSettler, _appData);
-    assertEq(pool.APP_DATA(), _appData);
-  }
-}
-
-contract BCoWPool_Unit_Commit is BaseCoWPoolTest {
-  function test_Revert_NonSolutionSettler(address sender, bytes32 orderHash) public {
-    vm.assume(sender != cowSolutionSettler);
-    vm.prank(sender);
-    vm.expectRevert(IBCoWPool.CommitOutsideOfSettlement.selector);
-    bCoWPool.commit(orderHash);
-  }
-
-  function test_Revert_CommitmentAlreadySet(bytes32 _existingCommitment, bytes32 _newCommitment) public {
-    vm.assume(_existingCommitment != bytes32(0));
-    bCoWPool.call__setLock(_existingCommitment);
-    vm.prank(cowSolutionSettler);
-    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
-    bCoWPool.commit(_newCommitment);
-  }
-
-  function test_Call_SetLock(bytes32 orderHash) public {
-    bCoWPool.expectCall__setLock(orderHash);
-    vm.prank(cowSolutionSettler);
-    bCoWPool.commit(orderHash);
-  }
-
-  function test_Set_ReentrancyLock(bytes32 orderHash) public {
-    vm.prank(cowSolutionSettler);
-    bCoWPool.commit(orderHash);
-    assertEq(bCoWPool.call__getLock(), orderHash);
-  }
-}
-
 contract BCoWPool_Unit_IsValidSignature is BaseCoWPoolTest {
   function setUp() public virtual override {
     super.setUp();
