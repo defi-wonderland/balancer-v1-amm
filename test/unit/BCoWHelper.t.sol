@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-import {BCoWHelper} from 'contracts/BCoWHelper.sol';
 import {Test} from 'forge-std/Test.sol';
+import {MockBCoWHelper} from 'test/manual-smock/MockBCoWHelper.sol';
 
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
@@ -18,7 +18,7 @@ import {MockBCoWFactory} from 'test/manual-smock/MockBCoWFactory.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
 
 contract BCoWHelperTest is Test {
-  BCoWHelper helper;
+  MockBCoWHelper helper;
 
   MockBCoWFactory factory;
   MockBCoWPool pool;
@@ -57,17 +57,17 @@ contract BCoWHelperTest is Test {
     vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(priceVector[1]));
 
     factory.mock_call_APP_DATA(bytes32('appData'));
-    helper = new BCoWHelper(address(factory));
+    helper = new MockBCoWHelper(address(factory));
   }
 
   function test_ConstructorWhenCalled(bytes32 _appData) external {
     factory.expectCall_APP_DATA();
     factory.mock_call_APP_DATA(_appData);
-    helper = new BCoWHelper(address(factory));
+    helper = new MockBCoWHelper(address(factory));
     // it should set factory
     assertEq(helper.factory(), address(factory));
     // it should set app data from factory
-    assertEq(helper.APP_DATA(), _appData);
+    assertEq(helper.call__APP_DATA(), _appData);
   }
 
   function test_TokensRevertWhen_PoolIsNotRegisteredInFactory() external {

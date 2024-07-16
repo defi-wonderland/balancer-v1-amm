@@ -38,11 +38,14 @@ contract ConstantProductHelperForkedTest is Test {
   IBPool private basicPool;
 
   IERC20 private constant DAI = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-  IERC20 private constant USDC = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
   IERC20 private constant WETH = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
+  // NOTE: minimum balance amount of any token to initialize a pool with
   uint256 constant VALID_AMOUNT = 1e6;
   uint256 constant TEN_PERCENT = 0.1 ether;
+
+  // NOTE: 1 ETH = 1000 DAI
+  uint256 constant INITIAL_SPOT_PRICE = 0.001e18;
 
   function setUp() public {
     vm.createSelectFork('mainnet', 20_012_063);
@@ -75,9 +78,6 @@ contract ConstantProductHelperForkedTest is Test {
 
     vm.stopPrank();
   }
-
-  // NOTE: 1 ETH = 1000 DAI
-  uint256 constant INITIAL_SPOT_PRICE = 0.001e18;
 
   function testBasicOrder() public {
     IBCoWPool pool = IBCoWPool(address(basicPool));
