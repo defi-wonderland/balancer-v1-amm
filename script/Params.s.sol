@@ -11,11 +11,8 @@ contract Params {
     bytes32 appData;
   }
 
-  /// @notice ERC20 and Faucet addresses
-  address internal constant _SEPOLIA_FAUCET = 0x26bfAecAe4D5fa93eE1737ce1Ce7D53F2a0E9b2d;
-  address internal constant _SEPOLIA_BAL_TOKEN = 0xb19382073c7A0aDdbb56Ac6AF1808Fa49e377B75;
-  address internal constant _SEPOLIA_DAI_TOKEN = 0xB77EB1A70A96fDAAeB31DB1b42F2b8b5846b2613;
-  address internal constant _SEPOLIA_USDC_TOKEN = 0x80D6d3946ed8A1Da4E226aa21CCdDc32bd127d1A;
+  uint256 internal constant _CHAIN_ID_MAINNET = 1;
+  uint256 internal constant _CHAIN_ID_TESTNET = 11_155_111;
 
   /// @notice Settlement address
   address internal constant _GPV2_SETTLEMENT = 0x9008D19f58AAbD9eD0D60971565AA8510560ab41;
@@ -31,20 +28,17 @@ contract Params {
    */
   bytes32 internal constant _APP_DATA = 0x362e5182440b52aa8fffe70a251550fbbcbca424740fe5a14f59bf0c1b06fe1d;
 
-  /// @notice BFactory deployment parameters for each chain
-  mapping(uint256 _chainId => BFactoryDeploymentParams _params) internal _bFactoryDeploymentParams;
+  /// @notice BFactory deployment parameters
+  BFactoryDeploymentParams internal _bFactoryDeploymentParams;
 
-  /// @notice BCoWFactory deployment parameters for each chain
-  mapping(uint256 _chainId => BCoWFactoryDeploymentParams _params) internal _bCoWFactoryDeploymentParams;
+  /// @notice BCoWFactory deployment parameters
+  BCoWFactoryDeploymentParams internal _bCoWFactoryDeploymentParams;
 
-  constructor() {
-    // Mainnet
-    _bFactoryDeploymentParams[1] = BFactoryDeploymentParams({bDao: _B_DAO});
-    _bCoWFactoryDeploymentParams[1] = BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});
-
-    // Sepolia
-    _bFactoryDeploymentParams[11_155_111] = BFactoryDeploymentParams({bDao: _B_DAO});
-    _bCoWFactoryDeploymentParams[11_155_111] =
-      BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});
+  constructor(uint256 _chainId) {
+    if (_chainId == 1 || _chainId == 11_155_111) {
+      // Ethereum Mainnet & Ethereum Sepolia [Testnet]
+      _bFactoryDeploymentParams = BFactoryDeploymentParams({bDao: _B_DAO});
+      _bCoWFactoryDeploymentParams = BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});
+    }
   }
 }

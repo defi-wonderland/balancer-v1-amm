@@ -9,9 +9,12 @@ import {Script} from 'forge-std/Script.sol';
 import {Params} from 'script/Params.s.sol';
 
 abstract contract DeployBaseFactory is Script, Params {
+  constructor() Params(block.chainid) {}
+
   function run() public {
     vm.startBroadcast();
-    _deployFactory();
+    IBFactory bFactory = _deployFactory();
+    bFactory.setBDao(_bFactoryDeploymentParams.bDao);
     vm.stopBroadcast();
   }
 
@@ -20,17 +23,15 @@ abstract contract DeployBaseFactory is Script, Params {
 
 contract DeployBFactory is DeployBaseFactory {
   function _deployFactory() internal override returns (IBFactory bFactory) {
-    BFactoryDeploymentParams memory bParams = _bFactoryDeploymentParams[block.chainid];
     bFactory = new BFactory();
-    bFactory.setBDao(bParams.bDao);
   }
 }
 
 contract DeployBCoWFactory is DeployBaseFactory {
   function _deployFactory() internal override returns (IBFactory bFactory) {
-    BFactoryDeploymentParams memory bParams = _bFactoryDeploymentParams[block.chainid];
-    BCoWFactoryDeploymentParams memory bCoWParams = _bCoWFactoryDeploymentParams[block.chainid];
-    bFactory = new BCoWFactory(bCoWParams.settlement, bCoWParams.appData);
-    bFactory.setBDao(bParams.bDao);
+    bFactory = new BCoWFactory({
+      solutionSettler: _bCoWFactoryDeploymentParams.settlement,
+      appData: _bCoWFactoryDeploymentParams.appData
+    });
   }
 }
