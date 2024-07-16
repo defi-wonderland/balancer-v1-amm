@@ -25,10 +25,9 @@
 | when a hash has been commited, only this order can be settled                               | High level          | 23  | [ ]    | [ ]     |
 | BToken should not break the ToB ERC20 properties**                                          | High level          | 24  |        | [x]     |
 
-* Bundled with 24
+(*) Bundled with 24
 
-** ERC20 properties
-(https://github.com/crytic/properties?tab=readme-ov-file#erc20-tests)
+(**) [Trail of Bits ERC20 properties](https://github.com/crytic/properties?tab=readme-ov-file#erc20-tests)
 
 [ ] planed to implement and still to do
 <br>[x] implemented and tested 
@@ -38,10 +37,12 @@
 # Unit-test properties for the math libs (BNum and BMath):
 
 btoi should always return the floor(a / BONE) == (a - a%BONE) / BONE
+ 
 bfloor should always return (a - a % BONE)
+
 badd should be commutative
 badd should be associative
-0 should be identity for badd
+badd should have 0 as identity
 badd result should always be gte its terms
 badd should never sum terms which have a sum gt uint max
 badd should have bsub as reverse operation

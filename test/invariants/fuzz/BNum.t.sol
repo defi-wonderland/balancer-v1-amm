@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {EchidnaTest} from '../../helpers/AdvancedTestsUtils.sol';
+import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
 
 import {BNum} from 'contracts/BNum.sol';
 
@@ -81,9 +81,6 @@ contract EchidnaBNum is BNum, EchidnaTest {
 
   // badd should never sum terms which have a sum gt uint max
   function badd_overflow(uint256 _a, uint256 _b) public pure {
-    // precondition
-    // vm.assume(_a != type(uint256).max);
-
     // action
     uint256 _result = badd(_a, _b);
 
@@ -152,9 +149,13 @@ contract EchidnaBNum is BNum, EchidnaTest {
 
   // bsub should alway revert if b > a
   function bsub_revert(uint256 _a, uint256 _b) public {
-    require(_b > _a);
+    // Precondition
+    _b = clamp(_b, _a + 1, type(uint256).max);
 
+    // Action
     (bool succ,) = address(this).call(abi.encodeCall(EchidnaBNum.bsub_exposed, (_a, _b)));
+
+    // Postcondition
     assert(!succ);
   }
 
@@ -163,9 +164,9 @@ contract EchidnaBNum is BNum, EchidnaTest {
   /////////////////////////////////////////////////////////////////////
 
   // bsubSign result should always be negative if b > a
-  function bsubSign_negative(uint256 _a, uint256 _b) public pure {
+  function bsubSign_negative(uint256 _a, uint256 _b) public {
     // precondition
-    require(_b > _a);
+    _b = clamp(_b, _a + 1, type(uint256).max);
 
     // action
     (uint256 _result, bool _flag) = bsubSign(_a, _b);
@@ -176,9 +177,10 @@ contract EchidnaBNum is BNum, EchidnaTest {
   }
 
   // bsubSign result should always be positive if a > b
-  function bsubSign_positive(uint256 _a, uint256 _b) public pure {
+  function bsubSign_positive(uint256 _a, uint256 _b) public {
     // precondition
-    require(_a > _b);
+    _b = clamp(_b, 0, type(uint256).max - 1);
+    _a = clamp(_a, _b + 1, type(uint256).max);
 
     // action
     (uint256 _result, bool _flag) = bsubSign(_a, _b);
@@ -214,14 +216,12 @@ contract EchidnaBNum is BNum, EchidnaTest {
 
   //todo this one fails
   // bmul should be associative
-  function bmul_associative(uint256 _a, uint256 _b, uint256 _c) public pure {
+  function bmul_associative(uint256 _a, uint256 _b, uint256 _c) public {
     // precondition
-    require(_a >= BONE);
-    require(_b >= BONE);
-    require(_c >= BONE);
+    _c = clamp(_c, BONE, type(uint256).max);
+    _b = clamp(_b, BONE, type(uint256).max / _c);
+    _a = clamp(_a, BONE, type(uint256).max / _b);
 
-    require(_a < type(uint256).max / _b); // Avoid mul overflow
-    require(_b < type(uint256).max / _c); // Avoid mul overflow
     require(_a * _b + _c / 2 < type(uint256).max); // Avoid add overflow
 
     // action
@@ -262,14 +262,17 @@ contract EchidnaBNum is BNum, EchidnaTest {
   // Type: bool
   // └ Value: false
   // bmul result should always be gte a and b
-  function bmul_resultGTE(uint256 _a, uint256 _b) public pure {
-    require(_a >= BONE && _b >= BONE); // Avoid absorbing
-    require(_a < type(uint256).max / BONE); // Avoid mul overflow
-    require(_b < type(uint256).max / BONE); // Avoid mul overflow
+  function bmul_resultGTE(uint256 _a, uint256 _b) public {
+    // Precondition
+    _a = clamp(_a, BONE, type(uint256).max / BONE);
+    _b = clamp(_b, BONE, type(uint256).max / BONE);
+
     require(_a * BONE + _b / 2 < type(uint256).max); // Avoid add overflow
 
+    // Action
     uint256 _result = bmul(_a, _b);
 
+    // Postcondition
     assert(_result >= _a);
     assert(_result >= _b);
   }
@@ -340,9 +343,9 @@ contract EchidnaBNum is BNum, EchidnaTest {
 
   //todo hangs
   // bdiv should be bmul reverse operation
-  function bdiv_bmul(uint256 _a, uint256 _b) public pure {
-    require(_b > 0);
-    require(_a > _b); // todo: overconstrained?
+  function bdiv_bmul(uint256 _a, uint256 _b) public {
+    _a = clamp(_a, 2, type(uint256).max);
+    _b = clamp(_b, 1, _a - 1);
 
     uint256 _bdivResult = bdiv(_a, _b);
     uint256 _result = bmul(_bdivResult, _b);
@@ -364,8 +367,8 @@ contract EchidnaBNum is BNum, EchidnaTest {
   }
 
   // 0 should be absorbing if base
-  function bpowi_absorbingBase(uint256 _exp) public pure {
-    require(_exp != 0); // Consider 0^0 as undetermined
+  function bpowi_absorbingBase(uint256 _exp) public {
+    _exp = clamp(_exp, 1, type(uint256).max);
 
     uint256 _result = bpowi(0, _exp);
     assert(_result == 0);
@@ -379,8 +382,8 @@ contract EchidnaBNum is BNum, EchidnaTest {
   }
 
   // 1 should be identity if exp
-  function bpowi_identityExp(uint256 _base) public pure {
-    require(_base >= BONE);
+  function bpowi_identityExp(uint256 _base) public {
+    _base = clamp(_base, BONE, type(uint256).max);
 
     uint256 _result = bpowi(_base, BONE);
 
@@ -388,8 +391,9 @@ contract EchidnaBNum is BNum, EchidnaTest {
   }
 
   // bpowi should be distributive over mult of the same base x^a  x^b == x^(a+b)
-  function bpowi_distributiveBase(uint256 _base, uint256 _a, uint256 _b) public pure {
-    require(_a >= BONE && _b >= BONE);
+  function bpowi_distributiveBase(uint256 _base, uint256 _a, uint256 _b) public {
+    _a = clamp(_a, BONE, type(uint256).max);
+    _b = clamp(_b, BONE, type(uint256).max);
 
     uint256 _result1 = bpowi(_base, badd(_a, _b));
     uint256 _result2 = bmul(bpowi(_base, _a), bpowi(_base, _b));
@@ -404,9 +408,9 @@ contract EchidnaBNum is BNum, EchidnaTest {
   }
 
   // power of a power should mult the exp (x^a)^b == x^(ab)
-  function bpowi_powerOfPower(uint256 _base, uint256 _a, uint256 _b) public pure {
-    require(_a >= BONE);
-    require(_b >= BONE);
+  function bpowi_powerOfPower(uint256 _base, uint256 _a, uint256 _b) public {
+    _a = clamp(_a, BONE, type(uint256).max);
+    _b = clamp(_b, BONE, type(uint256).max);
 
     uint256 _result1 = bpowi(bpowi(_base, _a), _b);
     uint256 _result2 = bpowi(_base, bmul(_a, _b));
@@ -459,8 +463,8 @@ contract EchidnaBNum is BNum, EchidnaTest {
 
   //todo loop
   // bpow should be distributive over mult of the same exp  a^x * b^x == (a*b)^x
-  function bpow_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public pure {
-    require(_exp >= BONE);
+  function bpow_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public {
+    _exp = clamp(_exp, BONE, type(uint256).max);
 
     uint256 _result1 = bpow(bmul(_a, _b), _exp);
     uint256 _result2 = bmul(bpow(_a, _exp), bpow(_b, _exp));

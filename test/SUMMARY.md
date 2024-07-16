@@ -34,7 +34,7 @@ We identified 24 properties. We challenged these either in a long-running fuzzin
 
 ## Fuzzing campaign
 
-We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath), insuring the operation properties were holding.
+We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath), insuring the operation properties were holding. 
 
 Limitations/future improvements
 Currently, the swap logic are tested against the swap in/out functions (and, in a similar way, liquidity management via the join/exit function). The combined equivalent (joinswapExternAmountIn, joinswapPoolAmountOut, etc) should be tested too.

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {EchidnaTest, FuzzERC20} from '../../helpers/AdvancedTestsUtils.sol';
+import {EchidnaTest, FuzzERC20} from '../helpers/AdvancedTestsUtils.sol';
 
-import {MockSettler} from './MockSettler.sol';
+import {MockSettler} from '../helpers/MockSettler.sol';
 import {BCoWFactory, BCoWPool, IBPool} from 'contracts/BCoWFactory.sol';
 import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';

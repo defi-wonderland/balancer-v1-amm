@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {EchidnaTest} from '../../helpers/AdvancedTestsUtils.sol';
+import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
 
 import {BMath} from 'contracts/BMath.sol';
 
