@@ -1,0 +1,12 @@
+// as we previously did in fuzzed tests, here we only test the new behaviour
+// introduced by the extension, however we don't go as far as just testing the
+// _afterFinalize hook to avoid an internal change to BPool.finalize from
+// inadvertedly breaking the derived method
+BCoWPool::finalize
+└── when preconditions are met
+    ├── it calls approve on every bound token
+    ├── it calls logBCoWPool on the factory
+    ├── when factorys logBCoWPool does not revert
+    │   └── it returns
+    └── when factorys logBCoWPool reverts
+        └── it emits a COWAMMPoolCreated event
