@@ -1,8 +1,4 @@
-// as we previously did in fuzzed tests, here we only test the new behaviour
-// introduced by the extension, however we don't go as far as just testing the
-// _afterFinalize hook to avoid an internal change to BPool.finalize from
-// inadvertedly breaking the derived method
-BCoWPool::finalize
+BCoWPool::Finalize
 └── when preconditions are met
     ├── it calls approve on every bound token
     ├── it calls logBCoWPool on the factory

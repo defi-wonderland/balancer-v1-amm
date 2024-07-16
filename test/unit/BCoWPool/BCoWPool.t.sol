@@ -8,7 +8,7 @@ import {BCoWPoolBase} from './BCoWPoolBase.sol';
 import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
-contract BCoWPoolfinalize is BCoWPoolBase {
+contract BCoWPoolFinalize is BCoWPoolBase {
   modifier whenPreconditionsAreMet() {
     bCoWPool.set__tokens(tokens);
     bCoWPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
