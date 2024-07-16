@@ -65,7 +65,10 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
    * @inheritdoc IERC1271
    * @dev this function reverts if the order hash does not match the current commitment
    */
-  function isValidSignature(bytes32 orderHash, bytes memory signature) external view returns (bytes4 magicValue) {
+  function isValidSignature(
+    bytes32 orderHash,
+    bytes memory signature
+  ) external view _finalized_ returns (bytes4 magicValue) {
     (GPv2Order.Data memory order) = abi.decode(signature, (GPv2Order.Data));
 
     if (order.appData != APP_DATA) {

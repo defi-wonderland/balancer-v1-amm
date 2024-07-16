@@ -1,4 +1,6 @@
 BCoWPool::IsValidSignature
+├── when pool is not finalized
+│   └── it should revert
 ├── when orders appdata is different
 │   └── it should revert
 ├── when orderHash does not match hashed order

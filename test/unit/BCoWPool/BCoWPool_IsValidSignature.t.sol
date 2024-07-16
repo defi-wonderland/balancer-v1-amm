@@ -8,6 +8,7 @@ import {IERC1271} from '@openzeppelin/contracts/interfaces/IERC1271.sol';
 
 import {BCoWPoolBase} from './BCoWPoolBase.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BCoWPoolIsValidSignature is BCoWPoolBase {
   GPv2Order.Data validOrder;
@@ -20,6 +21,14 @@ contract BCoWPoolIsValidSignature is BCoWPoolBase {
     validHash = GPv2Order.hash(validOrder, domainSeparator);
 
     bCoWPool.mock_call_verify(validOrder);
+    bCoWPool.set__finalized(true);
+  }
+
+  function test_RevertWhen_PoolIsNotFinalized() external {
+    bCoWPool.set__finalized(false);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_PoolNotFinalized.selector);
+    bCoWPool.isValidSignature(validHash, abi.encode(validOrder));
   }
 
   function test_RevertWhen_OrdersAppdataIsDifferent(bytes32 appData_) external {
