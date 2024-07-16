@@ -5,9 +5,11 @@ import {FuzzERC20, HalmosTest} from '../helpers/AdvancedTestsUtils.sol';
 
 import {MockSettler} from '../helpers/MockSettler.sol';
 import {BCoWFactory, BCoWPool, IBPool} from 'contracts/BCoWFactory.sol';
+
 import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
 import {BNum} from 'contracts/BNum.sol';
+import {BToken} from 'contracts/BToken.sol';
 
 contract HalmosBalancer is HalmosTest {
   // System under test
@@ -23,6 +25,7 @@ contract HalmosBalancer is HalmosTest {
   BCoWPool pool;
 
   address currentCaller = svm.createAddress('currentCaller');
+  // address currentCaller = address(234);
 
   constructor() {
     solutionSettler = address(new MockSettler());
@@ -107,120 +110,10 @@ contract HalmosBalancer is HalmosTest {
       assert(_currentBLab != currentCaller);
     }
   }
-
-  /// @custom:property-id 4
-  /// @custom:property the amount received can never be less than min amount out
-  /// @custom:property-id 13
-  /// @custom:property an exact amount in should always earn the amount out calculated in bmath
-  /// @custom:property-id 15
-  /// @custom:property there can't be any amount out for a 0 amount in
-  /// @custom:property-id 19
-  /// @custom:property a swap can only happen when the pool is finalized
-  function skipped_swapExactIn(uint256 _minAmountOut, uint256 _amountIn, uint256 _tokenIn, uint256 _tokenOut) public {
-    // Preconditions
-    vm.assume(_tokenIn < tokens.length);
-    vm.assume(_tokenOut < tokens.length);
-    vm.assume(_tokenIn != _tokenOut); // todo: dig this, it should pass without this precondition
-
-    tokens[_tokenIn].mint(currentCaller, _amountIn);
-
-    vm.prank(currentCaller);
-    tokens[_tokenIn].approve(address(pool), type(uint256).max); // approval isn't limiting
-
-    uint256 _balanceOutBefore = tokens[_tokenOut].balanceOf(currentCaller);
-
-    uint256 _outComputed = bmath.calcOutGivenIn(
-      tokens[_tokenIn].balanceOf(address(pool)),
-      pool.getDenormalizedWeight(address(tokens[_tokenIn])),
-      tokens[_tokenOut].balanceOf(address(pool)),
-      pool.getDenormalizedWeight(address(tokens[_tokenOut])),
-      _amountIn,
-      bconst.MIN_FEE()
-    );
-
-    vm.prank(currentCaller);
-
-    // Action
-    try pool.swapExactAmountIn(
-      address(tokens[_tokenIn]), _amountIn, address(tokens[_tokenOut]), _minAmountOut, type(uint256).max
-    ) {
-      // Postcondition
-      uint256 _balanceOutAfter = tokens[_tokenOut].balanceOf(currentCaller);
-
-      // 13
-      assert(_balanceOutAfter - _balanceOutBefore == _outComputed);
-
-      // 4
-      if (_amountIn != 0) assert(_balanceOutBefore <= _balanceOutAfter + _minAmountOut);
-      // 15
-      else assert(_balanceOutBefore == _balanceOutAfter);
-
-      // 19
-      assert(pool.isFinalized());
-    } catch {}
-  }
-
-  /// @custom:property-id 5
-  /// @custom:property the amount spent can never be greater than max amount in
-  /// @custom:property-id 14
-  /// @custom:property an exact amount out is earned only if the amount in calculated in bmath is transfere
-  /// @custom:property-id 15
-  /// @custom:property there can't be any amount out for a 0 amount in
-  /// @custom:property-id 19
-  /// @custom:property a swap can only happen when the pool is finalized
-  function skipped_swapExactOut(uint256 _maxAmountIn, uint256 _amountOut, uint256 _tokenIn, uint256 _tokenOut) public {
-    // Precondition
-    vm.assume(_tokenIn < tokens.length);
-    vm.assume(_tokenOut < tokens.length);
-
-    tokens[_tokenIn].mint(currentCaller, _maxAmountIn);
-
-    vm.prank(currentCaller);
-    tokens[_tokenIn].approve(address(pool), type(uint256).max); // approval isn't limiting
-
-    uint256 _balanceInBefore = tokens[_tokenIn].balanceOf(currentCaller);
-    uint256 _balanceOutBefore = tokens[_tokenOut].balanceOf(currentCaller);
-
-    uint256 _inComputed = bmath.calcInGivenOut(
-      tokens[_tokenIn].balanceOf(address(pool)),
-      pool.getDenormalizedWeight(address(tokens[_tokenIn])),
-      tokens[_tokenOut].balanceOf(address(pool)),
-      pool.getDenormalizedWeight(address(tokens[_tokenOut])),
-      _amountOut,
-      bconst.MIN_FEE()
-    );
-
-    vm.prank(currentCaller);
-
-    // Action
-    try pool.swapExactAmountOut(
-      address(tokens[_tokenIn]), _maxAmountIn, address(tokens[_tokenOut]), _amountOut, type(uint256).max
-    ) {
-      // Postcondition
-      uint256 _balanceInAfter = tokens[_tokenIn].balanceOf(currentCaller);
-      uint256 _balanceOutAfter = tokens[_tokenOut].balanceOf(currentCaller);
-
-      // 5
-      assert(_balanceInBefore - _balanceInAfter <= _maxAmountIn);
-
-      // 14
-      if (_tokenIn != _tokenOut) assert(_balanceOutAfter - _balanceOutBefore == _amountOut);
-      else assert(_balanceOutAfter == _balanceOutBefore - _inComputed + _amountOut);
-
-      // 15
-      if (_balanceInBefore == _balanceInAfter) assert(_balanceOutBefore == _balanceOutAfter);
-
-      // 19
-      assert(pool.isFinalized());
-    } catch {}
-  }
-
-  /// @custom:property-id 6
-  /// @custom:property swap fee can only be 0 (cow pool)
-
   /// @custom:property-id 7
   /// @custom:property total weight can be up to 50e18
   /// @dev Only 2 tokens are used, to avoid hitting the limit in loop unrolling
+
   function check_totalWeightMax(uint256[2] calldata _weights) public {
     // Precondition
     BCoWPool _pool = BCoWPool(address(factory.newBPool()));
@@ -254,15 +147,37 @@ contract HalmosBalancer is HalmosTest {
     }
   }
 
-  /// properties 8 and 9 are tested with the BToken internal tests
+  /// @custom:property-id 8
+  /// @custom:property  BToken increaseApproval should increase the approval of the address by the amount
+  function check_increaseApproval(uint256 _approvalToAdd, address _owner, address _spender) public {
+    // Precondition
+    uint256 _approvalBefore = pool.allowance(_owner, _spender);
 
-  /// @custom:property-id 10
-  /// @custom:property a pool can either be finalized or not finalized
-  /// @dev included to be exhaustive/future-proof if more states are added, as rn, it
-  /// basically tests the tautological (a || !a)
+    vm.prank(_owner);
 
-  /// @custom:property-id 11
-  /// @custom:property a finalized pool cannot switch back to non-finalized
+    // Action
+    BToken(address(pool)).increaseApproval(_spender, _approvalToAdd);
+
+    // Postcondition
+    assert(pool.allowance(_owner, _spender) == _approvalBefore + _approvalToAdd);
+  }
+  /// @custom:property-id 9
+  /// @custom:property BToken decreaseApproval should decrease the approval to max(old-amount, 0)
+
+  function check_decreaseApproval(uint256 _approvalToLower, address _owner, address _spender) public {
+    // Precondition
+    uint256 _approvalBefore = pool.allowance(_owner, _spender);
+
+    vm.prank(_owner);
+
+    // Action
+    BToken(address(pool)).decreaseApproval(_spender, _approvalToLower);
+
+    // Postcondition
+    assert(
+      pool.allowance(_owner, _spender) == (_approvalBefore > _approvalToLower ? _approvalBefore - _approvalToLower : 0)
+    );
+  }
 
   /// @custom:property-id 12
   /// @custom:property a non-finalized pool can only be finalized when the controller calls finalize()
@@ -294,79 +209,6 @@ contract HalmosBalancer is HalmosTest {
     } catch {}
   }
 
-  /// @custom:property-id 16
-  /// @custom:property the pool btoken can only be minted/burned in the join and exit operations
-
-  /// @custom:property-id 17
-  /// @custom:property a direct token transfer can never reduce the underlying amount of a given token per BPT
-  function skipped_directTransfer(uint256 _amountPoolToken, uint256 _amountToTransfer, uint256 _tokenIdx) public {
-    vm.assume(_tokenIdx < tokens.length);
-
-    FuzzERC20 _token = tokens[2];
-
-    uint256 _redeemedAmountBeforeTransfer = bmath.calcSingleOutGivenPoolIn(
-      _token.balanceOf(address(pool)),
-      pool.getDenormalizedWeight(address(_token)),
-      pool.totalSupply(),
-      pool.getTotalDenormalizedWeight(),
-      _amountPoolToken,
-      bconst.MIN_FEE()
-    );
-
-    _token.mint(address(this), _amountToTransfer);
-    // Action
-    _token.transfer(address(pool), _amountToTransfer);
-
-    // Postcondition
-    uint256 _redeemedAmountAfter = bmath.calcSingleOutGivenPoolIn(
-      _token.balanceOf(address(pool)),
-      pool.getDenormalizedWeight(address(_token)),
-      pool.totalSupply(),
-      pool.getTotalDenormalizedWeight(),
-      _amountPoolToken,
-      bconst.MIN_FEE()
-    );
-
-    assert(_redeemedAmountAfter >= _redeemedAmountBeforeTransfer);
-  }
-
-  /// @custom:property-id 18
-  /// @custom:property the amount of underlying token when exiting should always be the amount calculated in bmath
-  function correctBPTBurnAmount(uint256 _amountPoolToken) public {
-    _amountPoolToken = bound(_amountPoolToken, 0, pool.balanceOf(currentCaller));
-
-    uint256[] memory _amountsToReceive = new uint256[](4);
-    uint256[] memory _previousBalances = new uint256[](4);
-
-    for (uint256 i; i < tokens.length; i++) {
-      FuzzERC20 _token = tokens[i];
-
-      _amountsToReceive[i] = bmath.calcSingleOutGivenPoolIn(
-        _token.balanceOf(address(pool)),
-        pool.getDenormalizedWeight(address(_token)),
-        pool.totalSupply(),
-        pool.getTotalDenormalizedWeight(),
-        _amountPoolToken,
-        bconst.MIN_FEE()
-      );
-
-      _previousBalances[i] = _token.balanceOf(currentCaller);
-    }
-
-    vm.prank(currentCaller);
-    pool.approve(address(pool), _amountPoolToken);
-
-    vm.prank(currentCaller);
-
-    // Action
-    pool.exitPool(_amountPoolToken, new uint256[](4));
-
-    // PostCondition
-    for (uint256 i; i < tokens.length; i++) {
-      assert(tokens[i].balanceOf(currentCaller) == _previousBalances[i] + _amountsToReceive[i]);
-    }
-  }
-
   /// @custom:property-id 20
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
   function check_boundOnlyNotFinalized() public {
@@ -377,50 +219,67 @@ contract HalmosBalancer is HalmosTest {
     address _callerUnbind = svm.createAddress('callerUnbind');
     address _callerFinalize = svm.createAddress('callerFinalize');
 
-    for (uint256 i; i < 2; i++) {
-      tokens[i].mint(_callerBind, 10 ether);
+    // Avoid hitting the max unrolled loop limit
 
-      vm.startPrank(_callerBind);
-      tokens[i].approve(address(pool), 10 ether);
+    // Bind 3 tokens
+    tokens[0].mint(_callerBind, 10 ether);
+    tokens[1].mint(_callerBind, 10 ether);
+    tokens[2].mint(_callerBind, 10 ether);
 
-      uint256 _poolWeight = bconst.MAX_WEIGHT() / 5;
+    vm.startPrank(_callerBind);
+    tokens[0].approve(address(_nonFinalizedPool), 10 ether);
+    tokens[1].approve(address(_nonFinalizedPool), 10 ether);
+    tokens[2].approve(address(_nonFinalizedPool), 10 ether);
 
-      try _nonFinalizedPool.bind(address(tokens[i]), 10 ether, _poolWeight) {
-        assert(_callerBind == _nonFinalizedPool.getController());
-      } catch {
-        assert(_callerBind != _nonFinalizedPool.getController());
-      }
+    uint256 _poolWeight = bconst.MAX_WEIGHT() / 4;
+    uint256 _bindCount;
 
-      vm.stopPrank();
+    try _nonFinalizedPool.bind(address(tokens[0]), 10 ether, _poolWeight) {
+      assert(_callerBind == _nonFinalizedPool.getController());
+      _bindCount++;
+    } catch {
+      assert(_callerBind != _nonFinalizedPool.getController());
     }
 
-    vm.prank(_callerUnbind);
-    try _nonFinalizedPool.unbind(address(tokens[1])) {
-      assert(_callerUnbind == _nonFinalizedPool.getController());
+    try _nonFinalizedPool.bind(address(tokens[1]), 10 ether, _poolWeight) {
+      assert(_callerBind == _nonFinalizedPool.getController());
+      _bindCount++;
     } catch {
-      assert(_callerUnbind != _nonFinalizedPool.getController());
+      assert(_callerBind != _nonFinalizedPool.getController());
     }
 
-    vm.prank(_callerFinalize);
-    try _nonFinalizedPool.finalize() {
-      assert(_callerFinalize == _nonFinalizedPool.getController());
+    try _nonFinalizedPool.bind(address(tokens[2]), 10 ether, _poolWeight) {
+      assert(_callerBind == _nonFinalizedPool.getController());
+      _bindCount++;
     } catch {
-      // assert(_callerFinalize != _nonFinalizedPool.getController());
+      assert(_callerBind != _nonFinalizedPool.getController());
     }
 
     vm.stopPrank();
-  }
 
-  /// @custom:property-id 21
-  /// @custom:property there always should be between MIN_BOUND_TOKENS and MAX_BOUND_TOKENS bound in a pool
-  function fuzz_minMaxBoundToken() public {
-    assert(pool.getNumTokens() >= bconst.MIN_BOUND_TOKENS());
-    assert(pool.getNumTokens() <= bconst.MAX_BOUND_TOKENS());
+    if (_bindCount == 3) {
+      vm.prank(_callerUnbind);
+      // Action
+      // Unbind one
+      try _nonFinalizedPool.unbind(address(tokens[0])) {
+        assert(_callerUnbind == _nonFinalizedPool.getController());
+      } catch {
+        assert(_callerUnbind != _nonFinalizedPool.getController());
+      }
+    }
+
+    vm.prank(_callerFinalize);
+    // Action
+    try _nonFinalizedPool.finalize() {
+      assert(_callerFinalize == _nonFinalizedPool.getController());
+    } catch {
+      assert(_callerFinalize != _nonFinalizedPool.getController() || _bindCount < 2);
+    }
   }
 
   /// @custom:property-id 22
   /// @custom:property only the settler can commit a hash
-  function fuzz_settlerCommit() public {
+  function check_settlerCommit() public {
     // Precondition
     vm.prank(currentCaller);
 
@@ -430,11 +289,6 @@ contract HalmosBalancer is HalmosTest {
       assert(currentCaller == solutionSettler);
     } catch {}
   }
-
-  /// @custom:property-id 23
-  /// @custom:property when a hash has been commited, only this order can be settled
-  /// @custom:property-not-implemented
-  function fuzz_settlerSettle() public {}
 }
 
 contract BNum_exposed is BNum {

@@ -1,13 +1,19 @@
-# Outline
+# Tests Summary
 
-There are 7 files to cover (B(cow)Const are contracts containing public protocol-wide constants):
-BCoWFactory: deployer for cow pools
-BCoWPool: adding signature validation to BPool
-BFactory: deployer, approx 40sloc
-BMath: contract wrapping math logic
-BNum: contract wrapping arithmetic op
-BPool: the main contract, roughly 400sloc
-BToken: extends erc20
+There are 9 solidity files, totalling 939 sloc.
+
+| filename                      | language | code | comment | blank | total |
+| :---------------------------- | :------- | :--- | :------ | :---- | :---- |
+| src/contracts/BCoWConst.sol   | solidity | 4    | 10      | 2     | 16    |
+| src/contracts/BCoWFactory.sol | solidity | 20   | 13      | 7     | 40    |
+| src/contracts/BCoWPool.sol    | solidity | 90   | 41      | 24    | 155   |
+| src/contracts/BConst.sol      | solidity | 23   | 29      | 9     | 61    |
+| src/contracts/BFactory.sol    | solidity | 44   | 17      | 11    | 72    |
+| src/contracts/BMath.sol       | solidity | 128  | 156     | 18    | 302   |
+| src/contracts/BNum.sol        | solidity | 133  | 40      | 28    | 201   |
+| src/contracts/BPool.sol       | solidity | 473  | 104     | 107   | 684   |
+| src/contracts/BToken.sol      | solidity | 24   | 27      | 7     | 58    |
+
 
 ## Interdependencies
 BCoWFactory deploys a bcowpool
@@ -16,15 +22,27 @@ Factory deploys a pool and can "collect" from the pool
 Pool inherit btoken (which represents a LP) and bmath
 Bmath uses bnum
 
-## Approach
+# Unit tests
+Current coverage is XXX % for the 9 contracts, accross XXX tests. All tests are passing. Unit tests are writtent using the branched-tree technique and Bulloak as templating tool.
 
-Echidna should be prioritized, then halmos should be particularly easy especially for the math libs, for which the implementations will be pretty similar.
+< TABLE >
 
-Then slither-mutate on the whole test base
+# Integration tests
 
-Setup for protocol-wide *looks* pretty simple (using the factory) - tbc
+# Property tests
+We identified 24 properties. We challenged these either in a long-running fuzzing campaign (targeting 23 of these in XXX runs) or via symbolic execution (for 8 properties).
 
-nb 14 means if token in == token out, people just give tokens to the pool, intended?
+## Fuzzing campaign
+
+We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath), insuring the operation properties were holding.
+
+Limitations/future improvements
+Currently, the swap logic are tested against the swap in/out functions (and, in a similar way, liquidity management via the join/exit function). The combined equivalent (joinswapExternAmountIn, joinswapPoolAmountOut, etc) should be tested too.
+
+## Formal verification: Symbolic Execution
+We managed to test 10 properties out of the 23. Properties not tested are either not easily challenged with symbolic execution (statefullness needed) or limited by Halmos itself (hitting loops in the implementation for instance).
+
+Additional properties from BNum were tested independently too (with severe limitations due to loop unrolling boundaries).
 
 
 ## Notes
