@@ -22,7 +22,7 @@ contract BCoWHelper is ICOWAMMPoolHelper, BMath {
   using GPv2Order for GPv2Order.Data;
 
   /// @notice The app data used by this helper's factory.
-  bytes32 public immutable APP_DATA;
+  bytes32 internal immutable _APP_DATA;
 
   /// @inheritdoc ICOWAMMPoolHelper
   // solhint-disable-next-line style-guide-casing
@@ -30,7 +30,7 @@ contract BCoWHelper is ICOWAMMPoolHelper, BMath {
 
   constructor(address factory_) {
     factory = factory_;
-    APP_DATA = IBCoWFactory(factory_).APP_DATA();
+    _APP_DATA = IBCoWFactory(factory_).APP_DATA();
   }
 
   /// @inheritdoc ICOWAMMPoolHelper
@@ -58,7 +58,7 @@ contract BCoWHelper is ICOWAMMPoolHelper, BMath {
       // expressed the other way around.
       priceNumerator: prices[1],
       priceDenominator: prices[0],
-      appData: APP_DATA
+      appData: _APP_DATA
     });
 
     order_ = GetTradeableOrder.getTradeableOrder(params);
@@ -106,16 +106,20 @@ contract BCoWHelper is ICOWAMMPoolHelper, BMath {
   /// @inheritdoc ICOWAMMPoolHelper
   function tokens(address pool) public view returns (address[] memory tokens_) {
     // reverts in case pool is not deployed by the helper's factory
-    if (!IBCoWFactory(factory).isBPool(pool)) revert PoolDoesNotExist();
+    if (!IBCoWFactory(factory).isBPool(pool)) {
+      revert PoolDoesNotExist();
+    }
+
     // call reverts with `BPool_PoolNotFinalized()` in case pool is not finalized
     tokens_ = IBCoWPool(pool).getFinalTokens();
+
     // reverts in case pool is not supported (non-2-token pool)
-    if (tokens_.length != 2) revert PoolDoesNotExist();
+    if (tokens_.length != 2) {
+      revert PoolDoesNotExist();
+    }
     // reverts in case pool is not supported (non-equal weights)
     if (IBCoWPool(pool).getNormalizedWeight(tokens_[0]) != IBCoWPool(pool).getNormalizedWeight(tokens_[1])) {
       revert PoolDoesNotExist();
     }
-
-    return tokens_;
   }
 }
