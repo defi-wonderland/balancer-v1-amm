@@ -24,12 +24,11 @@ BPool::getNumTokens
 BPool::finalize
 ├── when caller is not controller
 │   └── it should revert
-└── when caller is controller
-    ├── when pool is finalized
-    │   └── it should revert
-    ├── when there are too few tokens bound
-    │   └── it should revert
-    └── when preconditions are met
-        ├── it finalizes the pool
-        ├── it mints initial pool supply to controller
-        └── it calls _afterFinalize hook
+├── when pool is finalized
+│   └── it should revert
+├── when there are too few tokens bound
+│   └── it should revert
+└── when preconditions are met
+    ├── it finalizes the pool
+    ├── it mints initial pool supply to controller
+    └── it calls _afterFinalize hook

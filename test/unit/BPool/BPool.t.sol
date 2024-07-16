@@ -52,26 +52,21 @@ contract BPool is BPoolBase {
   }
 
   function test_FinalizeRevertWhen_CallerIsNotController(address _caller) external {
-    vm.assume(_caller != deployer);
+    vm.assume(_caller != address(this));
     vm.prank(_caller);
     // it should revert
     vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
     bPool.finalize();
   }
 
-  modifier whenCallerIsController() {
-    vm.startPrank(deployer);
-    _;
-  }
-
-  function test_FinalizeRevertWhen_PoolIsFinalized() external whenCallerIsController {
+  function test_FinalizeRevertWhen_PoolIsFinalized() external {
     bPool.set__finalized(true);
     // it should revert
     vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
     bPool.finalize();
   }
 
-  function test_FinalizeRevertWhen_ThereAreTooFewTokensBound() external whenCallerIsController {
+  function test_FinalizeRevertWhen_ThereAreTooFewTokensBound() external {
     address[] memory tokens_ = new address[](1);
     tokens_[0] = tokens[0];
     bPool.set__tokens(tokens_);
@@ -80,18 +75,18 @@ contract BPool is BPoolBase {
     bPool.finalize();
   }
 
-  function test_FinalizeWhenPreconditionsAreMet() external whenCallerIsController {
+  function test_FinalizeWhenPreconditionsAreMet() external {
     bPool.set__tokens(tokens);
     bPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
     bPool.set__records(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
     bPool.mock_call__mintPoolShare(INIT_POOL_SUPPLY);
-    bPool.mock_call__pushPoolShare(deployer, INIT_POOL_SUPPLY);
+    bPool.mock_call__pushPoolShare(address(this), INIT_POOL_SUPPLY);
 
     // it calls _afterFinalize hook
     bPool.expectCall__afterFinalize();
     // it mints initial pool supply to controller
     bPool.expectCall__mintPoolShare(INIT_POOL_SUPPLY);
-    bPool.expectCall__pushPoolShare(deployer, INIT_POOL_SUPPLY);
+    bPool.expectCall__pushPoolShare(address(this), INIT_POOL_SUPPLY);
 
     bPool.finalize();
     // it finalizes the pool
