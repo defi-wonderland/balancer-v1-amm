@@ -172,6 +172,8 @@ contract BCoWHelperTest is Test {
     // it should return a valid pool order
     (GPv2Order.Data memory ammOrder,,,) = helper.order(address(pool), prices);
 
+    assertEq(address(ammOrder.buyToken), priceSkewness > 10_000 ? tokens[0] : tokens[1]);
+
     // this call should not revert
     pool.verify(ammOrder);
   }
