@@ -9,7 +9,8 @@ import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BCoWPoolFinalize is BCoWPoolBase {
-  modifier whenPreconditionsAreMet() {
+  function setUp() public virtual override {
+    super.setUp();
     bCoWPool.set__tokens(tokens);
     bCoWPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
     bCoWPool.set__records(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
@@ -20,10 +21,9 @@ contract BCoWPoolFinalize is BCoWPoolBase {
 
     vm.mockCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), abi.encode(true));
     vm.mockCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), abi.encode(true));
-    _;
   }
 
-  function test_WhenPreconditionsAreMet() external whenPreconditionsAreMet {
+  function test_WhenCalled() external {
     // it calls approve on every bound token
     vm.expectCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     vm.expectCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
@@ -32,12 +32,12 @@ contract BCoWPoolFinalize is BCoWPoolBase {
     bCoWPool.finalize();
   }
 
-  function test_WhenFactorysLogBCoWPoolDoesNotRevert() external whenPreconditionsAreMet {
+  function test_WhenFactorysLogBCoWPoolDoesNotRevert() external {
     // it returns
     bCoWPool.finalize();
   }
 
-  function test_WhenFactorysLogBCoWPoolReverts(bytes memory revertData) external whenPreconditionsAreMet {
+  function test_WhenFactorysLogBCoWPoolReverts(bytes memory revertData) external {
     vm.mockCallRevert(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()), revertData);
     // it emits a COWAMMPoolCreated event
     vm.expectEmit(address(bCoWPool));
