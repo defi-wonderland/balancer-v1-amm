@@ -20,7 +20,7 @@ import {GPv2TradeEncoder} from '@composable-cow/test/vendored/GPv2TradeEncoder.s
 import {BCoWFactory} from 'contracts/BCoWFactory.sol';
 import {BCoWHelper} from 'contracts/BCoWHelper.sol';
 
-contract ConstantProductHelperForkedTest is Test {
+contract BCoWHelperIntegrationTest is Test {
   using GPv2Order for GPv2Order.Data;
 
   BCoWHelper private helper;
@@ -45,6 +45,9 @@ contract ConstantProductHelperForkedTest is Test {
   uint256 constant INITIAL_DAI_BALANCE = 1000 ether;
   uint256 constant INITIAL_WETH_BALANCE = 1 ether;
   uint256 constant INITIAL_SPOT_PRICE = 0.001e18;
+
+  uint256 constant SKEWENESS_RATIO = 95; // -5% skewness
+  uint256 constant EXPECTED_FINAL_SPOT_PRICE = INITIAL_SPOT_PRICE * 100 / SKEWENESS_RATIO;
 
   function setUp() public {
     vm.createSelectFork('mainnet', 20_012_063);
@@ -88,29 +91,18 @@ contract ConstantProductHelperForkedTest is Test {
     _executeHelperOrder(pool);
 
     uint256 postSpotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
-    assertEq(postSpotPrice, 1_052_631_578_947_368);
+    assertEq(postSpotPrice, EXPECTED_FINAL_SPOT_PRICE);
   }
 
   // NOTE: reverting test, weighted pools are not supported
   function testWeightedOrder() public {
     IBCoWPool pool = IBCoWPool(address(weightedPool));
 
-    uint256 ammWethInitialBalance = 1 ether;
-    uint256 ammDaiInitialBalance = 1000 ether;
-
-    deal(address(WETH), address(pool), ammWethInitialBalance);
-    deal(address(DAI), address(pool), 4 * ammDaiInitialBalance);
-
     uint256 spotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
     assertEq(spotPrice, INITIAL_SPOT_PRICE);
 
     vm.expectRevert(ICOWAMMPoolHelper.PoolDoesNotExist.selector);
     helper.order(address(pool), new uint256[](2));
-
-    // NOTE: not supported
-    // _executeHelperOrder(pool, ammWethInitialBalance, ammDaiInitialBalance);
-    // uint256 postSpotPrice = pool.getSpotPriceSansFee(address(WETH), address(DAI));
-    // assertEq(postSpotPrice, 1_052_631_578_947_368);
   }
 
   function _executeHelperOrder(IBPool pool) internal {
@@ -131,7 +123,7 @@ contract ConstantProductHelperForkedTest is Test {
     // DAI per WETH means a price vector of [1, 3000] (if the decimals are
     // different, as in WETH/USDC, then the atom amount is what counts).
     prices[daiIndex] = INITIAL_WETH_BALANCE;
-    prices[wethIndex] = INITIAL_DAI_BALANCE * 95 / 100;
+    prices[wethIndex] = INITIAL_DAI_BALANCE * SKEWENESS_RATIO / 100;
 
     // The helper generates the AMM order
     GPv2Order.Data memory ammOrder;
