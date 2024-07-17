@@ -8,10 +8,9 @@ BCoWPool::_afterFinalize
     └── it emits a COWAMMPoolCreated event
 
 BCoWPool::Commit
+├── when reentrancy lock is set
+│   └──it should revert
 ├── when sender is not solution settler
 │   └──it should revert
-└── when sender is solution settler
-    ├── when reentrancy lock is set
-    │   └──it should revert
-    └── when called
-        └── it should set the transient reentrancy lock
+└── when preconditions are met
+    └── it should set the transient reentrancy lock

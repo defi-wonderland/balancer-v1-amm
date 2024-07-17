@@ -49,6 +49,14 @@ contract BCoWPool is BCoWPoolBase {
     bCoWPool.call__afterFinalize();
   }
 
+  function test_CommitRevertWhen_ReentrancyLockIsSet(bytes32 lockValue) external {
+    vm.assume(lockValue != _MUTEX_FREE);
+    bCoWPool.call__setLock(lockValue);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
+    bCoWPool.commit(commitmentValue);
+  }
+
   function test_CommitRevertWhen_SenderIsNotSolutionSettler(address caller) external {
     vm.assume(caller != cowSolutionSettler);
     vm.prank(caller);
@@ -57,20 +65,8 @@ contract BCoWPool is BCoWPoolBase {
     bCoWPool.commit(commitmentValue);
   }
 
-  modifier whenSenderIsSolutionSettler() {
-    vm.startPrank(cowSolutionSettler);
-    _;
-  }
-
-  function test_CommitRevertWhen_ReentrancyLockIsSet(bytes32 lockValue) external whenSenderIsSolutionSettler {
-    vm.assume(lockValue != _MUTEX_FREE);
-    bCoWPool.call__setLock(lockValue);
-    // it should revert
-    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
-    bCoWPool.commit(commitmentValue);
-  }
-
-  function test_CommitWhenCalled(bytes32 commitmentValue_) external whenSenderIsSolutionSettler {
+  function test_CommitWhenPreconditionsAreMet(bytes32 commitmentValue_) external {
+    vm.prank(cowSolutionSettler);
     bCoWPool.commit(commitmentValue_);
     // it should set the transient reentrancy lock
     assertEq(bCoWPool.call__getLock(), commitmentValue_);
