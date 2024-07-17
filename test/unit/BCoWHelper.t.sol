@@ -157,8 +157,9 @@ contract BCoWHelperTest is Test {
 
   function test_OrderGivenAPriceVector(uint256 priceSkewness, uint256 balanceToken0, uint256 balanceToken1) external {
     // skew the price by max 50% (more could result in reverts bc of max swap ratio)
-    priceSkewness = bound(priceSkewness, 5000, 15_000);
-    vm.assume(priceSkewness != 10_000); // avoids no-skewness revert
+    uint256 base = 1e18;
+    priceSkewness = bound(priceSkewness, 0.5e18, 1.5e18);
+    vm.assume(priceSkewness != base); // avoids no-skewness revert
 
     balanceToken0 = bound(balanceToken0, 1e18, 1e36);
     balanceToken1 = bound(balanceToken1, 1e18, 1e36);
@@ -167,12 +168,12 @@ contract BCoWHelperTest is Test {
 
     uint256[] memory prices = new uint256[](2);
     prices[0] = balanceToken1;
-    prices[1] = balanceToken0 * priceSkewness / 10_000;
+    prices[1] = balanceToken0 * priceSkewness / base;
 
     // it should return a valid pool order
     (GPv2Order.Data memory ammOrder,,,) = helper.order(address(pool), prices);
 
-    assertEq(address(ammOrder.buyToken), priceSkewness > 10_000 ? tokens[0] : tokens[1]);
+    assertEq(address(ammOrder.buyToken), priceSkewness > 1e18 ? tokens[0] : tokens[1]);
 
     // this call should not revert
     pool.verify(ammOrder);
