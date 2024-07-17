@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {GPv2Order} from '@cowprotocol/libraries/GPv2Order.sol';
 
-import {BCoWPoolBase} from './BCoWPoolBase.sol';
+import {BCoWPoolBase} from './BCoWPoolBase.t.sol';
 import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
