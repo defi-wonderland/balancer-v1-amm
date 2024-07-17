@@ -123,7 +123,10 @@ contract BCoWPoolVerify is BCoWPoolBase {
   function test_WhenPreconditionsAreMet(uint256 _sellAmount) external {
     _sellAmount = bound(_sellAmount, 0, validOrder.sellAmount);
     validOrder.sellAmount = _sellAmount;
-    // it should return
+    // it should ask the balance of the buy token
+    vm.expectCall(tokenIn, abi.encodeCall(IERC20.balanceOf, (address(bCoWPool))));
+    // it should ask the balance of the sell token
+    vm.expectCall(tokenOut, abi.encodeCall(IERC20.balanceOf, (address(bCoWPool))));
     bCoWPool.verify(validOrder);
   }
 }

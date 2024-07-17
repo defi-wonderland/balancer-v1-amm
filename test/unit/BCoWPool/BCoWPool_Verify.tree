@@ -20,4 +20,5 @@ BCoWPool::Verify
 ├── when calculated token amount out is less than order sell amount
 │   └── it should revert
 └── when preconditions are met
-    └── it should return
+    ├── it should ask the balance of the buy token
+    └── it should ask the balance of the sell token
