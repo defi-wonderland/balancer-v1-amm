@@ -19,6 +19,7 @@ BCoWHelperTest::order
 ├── when the pool is not supported
 │   └── it should revert
 ├── when the pool is supported
+│   ├── it should call tokens
 │   ├── it should query the domain separator from the pool
 │   ├── it should return a valid pool order
 │   ├── it should return a commit pre-interaction

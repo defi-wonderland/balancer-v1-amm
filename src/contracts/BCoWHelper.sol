@@ -104,7 +104,7 @@ contract BCoWHelper is ICOWAMMPoolHelper, BMath {
   }
 
   /// @inheritdoc ICOWAMMPoolHelper
-  function tokens(address pool) public view returns (address[] memory tokens_) {
+  function tokens(address pool) public view virtual returns (address[] memory tokens_) {
     // reverts in case pool is not deployed by the helper's factory
     if (!IBCoWFactory(factory).isBPool(pool)) {
       revert PoolDoesNotExist();

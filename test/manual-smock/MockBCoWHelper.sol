@@ -20,6 +20,19 @@ contract MockBCoWHelper is BCoWHelper, Test {
     return _APP_DATA;
   }
 
+  // NOTE: manually added method (public overrides not supported in smock)
+  function tokens(address pool) public view override returns (address[] memory tokens_) {
+    (bool _success, bytes memory _data) = address(this).staticcall(abi.encodeWithSignature('tokens(address)', pool));
+
+    if (_success) return abi.decode(_data, (address[]));
+    else return super.tokens(pool);
+  }
+
+  // NOTE: manually added method (public overrides not supported in smock)
+  function expectCall_tokens(address pool) public {
+    vm.expectCall(address(this), abi.encodeWithSignature('tokens(address)', pool));
+  }
+
   // BCoWHelper methods
   constructor(address factory_) BCoWHelper(factory_) {}
 

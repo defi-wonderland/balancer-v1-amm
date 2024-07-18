@@ -120,6 +120,10 @@ contract BCoWHelperTest is Test {
   }
 
   function test_OrderWhenThePoolIsSupported(bytes32 domainSeparator) external {
+    // it should call tokens
+    helper.mock_call_tokens(address(pool), tokens);
+    helper.expectCall_tokens(address(pool));
+
     // it should query the domain separator from the pool
     pool.expectCall_SOLUTION_SETTLER_DOMAIN_SEPARATOR();
     pool.mock_call_SOLUTION_SETTLER_DOMAIN_SEPARATOR(domainSeparator);
