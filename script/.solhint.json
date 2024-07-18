@@ -1,5 +1,6 @@
 {
   "rules": {
-    "one-contract-per-file": "off"
+    "one-contract-per-file": "off",
+    "custom-errors": "off"
   }
 }

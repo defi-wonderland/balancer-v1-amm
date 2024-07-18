@@ -22,6 +22,8 @@ abstract contract Registry is Params {
       // Ethereum Sepolia [Testnet]
       bFactory = BFactory(0x2bfA24B26B85DD812b2C69E3B1cb4C85C886C8E2);
       bCoWFactory = BCoWFactory(0xe8587525430fFC9193831e1113a672f3133C1B8A);
+    } else {
+      revert('Registry: unknown chain ID');
     }
   }
 }

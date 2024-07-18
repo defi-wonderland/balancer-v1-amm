@@ -37,6 +37,8 @@ abstract contract Params {
       // Ethereum Mainnet & Ethereum Sepolia [Testnet]
       _bFactoryDeploymentParams = BFactoryDeploymentParams({bDao: _B_DAO});
       _bCoWFactoryDeploymentParams = BCoWFactoryDeploymentParams({settlement: _GPV2_SETTLEMENT, appData: _APP_DATA});
+    } else {
+      revert('Params: unknown chain ID');
     }
   }
 }
