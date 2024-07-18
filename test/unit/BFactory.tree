@@ -5,14 +5,11 @@ BFactoryTest::constructor
 BFactoryTest::newBPool
 └── when called
     ├── it should call _newBPool
+    ├── it should deploy a new BPool
     ├── it should add the newBPool to the mapping of pools
     ├── it should return the address of the new BPool
     ├── it should emit a PoolCreated event
     └── it should set the controller of the new BPool to the caller
-
-BFactoryTest::_newBPool
-└── when called
-    └── it should deploy a new BPool
 
 BFactoryTest::setBDao
 ├── when the sender is not the current BDao

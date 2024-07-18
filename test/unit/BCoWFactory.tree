@@ -4,7 +4,7 @@ BCoWFactoryTest::constructor
     ├── it should set app data
     └── it should set BDao
 
-BCoWFactoryTest::_newBPool
+BCoWFactoryTest::newBPool
 └── when called
     ├── it should set BCoWPool solution settler
     ├── it should set BCoWPool app data

@@ -28,10 +28,8 @@ contract BFactoryTest is Test {
     assertEq(newFactory.getBDao(), _bDao);
   }
 
-  function test_NewBPoolWhenCalled(address _deployer, address _newBPool) external {
-    assumeNotForgeAddress(_newBPool);
-    vm.mockCall(_newBPool, abi.encodePacked(IBPool.setController.selector), abi.encode());
-    factory.mock_call__newBPool(IBPool(_newBPool));
+  function test_NewBPoolWhenCalled(address _deployer) external {
+    address _newBPool = vm.computeCreateAddress(address(factory), 1);
     // it should call _newBPool
     factory.expectCall__newBPool();
     // it should set the controller of the newBPool to the caller
@@ -42,22 +40,16 @@ contract BFactoryTest is Test {
 
     vm.prank(_deployer);
     IBPool pool = factory.newBPool();
+    vm.prank(address(factory)); // bpool has immutable FACTORY
+    bytes memory expectedCode = address(new BPool()).code;
+
+    // it should deploy a new BPool
+    assertEq(address(pool).code, expectedCode);
 
     // it should add the newBPool to the list of pools
     assertTrue(factory.isBPool(address(_newBPool)));
     // it should return the address of the new BPool
     assertEq(address(pool), _newBPool);
-  }
-
-  function test__newBPoolWhenCalled() external {
-    vm.prank(address(factory));
-    bytes memory _expectedCode = address(new BPool()).code; // NOTE: uses nonce 1
-    address _futurePool = vm.computeCreateAddress(address(factory), 2);
-
-    address _newBPool = address(factory.call__newBPool());
-    assertEq(_newBPool, _futurePool);
-    // it should deploy a new BPool
-    assertEq(_newBPool.code, _expectedCode);
   }
 
   function test_SetBDaoRevertWhen_TheSenderIsNotTheCurrentBDao(address _caller) external {

@@ -35,13 +35,10 @@ contract BCoWFactoryTest is Test {
     assertEq(_newFactory.getBDao(), _bDao);
   }
 
-  function test__newBPoolWhenCalled() external {
+  function test_NewBPoolWhenCalled() external {
+    IBCoWPool _newPool = IBCoWPool(address(factory.newBPool()));
     vm.prank(address(factory));
-    bytes memory _expectedCode = address(new BCoWPool(solutionSettler, appData)).code; // NOTE: uses nonce 1
-    address _futurePool = vm.computeCreateAddress(address(factory), 2);
-
-    IBCoWPool _newPool = IBCoWPool(address(factory.call__newBPool()));
-    assertEq(address(_newPool), _futurePool);
+    bytes memory _expectedCode = address(new BCoWPool(solutionSettler, appData)).code;
     // it should set the new BCoWPool solution settler
     assertEq(address(_newPool.SOLUTION_SETTLER()), solutionSettler);
     // it should set the new BCoWPool app data
