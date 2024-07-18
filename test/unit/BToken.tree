@@ -1,0 +1,22 @@
+BToken::constructor
+└── when called
+    ├── it sets token name
+    └── it sets token symbol
+
+BToken::increaseApproval
+└── when called
+    └── it increases spender approval
+
+BToken::decreaseApproval
+├── when decrement is bigger than current approval
+│   └── it decreases spender approval to 0
+└── when called
+    └── it decreases spender approval
+
+BToken::_push
+└── when called
+    └── it transfers tokens to recipient
+
+BToken::_pull
+└── when called
+    └── it transfers tokens from sender
