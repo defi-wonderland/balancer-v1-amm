@@ -9,6 +9,7 @@ import {MockBPool} from 'test/smock/MockBPool.sol';
 
 contract BPool is BPoolBase {
   address controller = makeAddr('controller');
+  address randomCaller = makeAddr('random caller');
   address unknownToken = makeAddr('unknown token');
   uint256 swapFee = 0.1e18;
 
@@ -36,6 +37,95 @@ contract BPool is BPoolBase {
     assertEq(_newBPool.call__swapFee(), MIN_FEE);
     // it does NOT finalize the pool
     assertEq(_newBPool.call__finalized(), false);
+  }
+
+  function test_SetSwapFeeRevertWhen_ReentrancyLockIsSet() external {
+    bPool.call__setLock(_MUTEX_TAKEN);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
+    bPool.setSwapFee(0);
+  }
+
+  function test_SetSwapFeeRevertWhen_CallerIsNotController() external {
+    vm.prank(randomCaller);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
+    bPool.setSwapFee(0);
+  }
+
+  function test_SetSwapFeeRevertWhen_PoolIsFinalized() external {
+    vm.prank(controller);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
+    bPool.setSwapFee(0);
+  }
+
+  function test_SetSwapFeeRevertWhen_SwapFeeIsBelowMIN_FEE() external {
+    bPool.set__finalized(false);
+    vm.prank(controller);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_FeeBelowMinimum.selector);
+    bPool.setSwapFee(MIN_FEE - 1);
+  }
+
+  function test_SetSwapFeeRevertWhen_SwapFeeIsAboveMAX_FEE() external {
+    bPool.set__finalized(false);
+    vm.prank(controller);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_FeeAboveMaximum.selector);
+    bPool.setSwapFee(MAX_FEE + 1);
+  }
+
+  function test_SetSwapFeeWhenPreconditionsAreMet(uint256 _swapFee) external {
+    bPool.set__finalized(false);
+    vm.prank(controller);
+    _swapFee = bound(_swapFee, MIN_FEE, MAX_FEE);
+
+    // it emits LOG_CALL event
+    vm.expectEmit();
+    bytes memory _data = abi.encodeWithSelector(IBPool.setSwapFee.selector, _swapFee);
+    emit IBPool.LOG_CALL(IBPool.setSwapFee.selector, controller, _data);
+
+    bPool.setSwapFee(_swapFee);
+
+    // it sets swap fee
+    assertEq(bPool.getSwapFee(), _swapFee);
+  }
+
+  function test_SetControllerRevertWhen_ReentrancyLockIsSet() external {
+    bPool.call__setLock(_MUTEX_TAKEN);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
+    bPool.setController(controller);
+  }
+
+  function test_SetControllerRevertWhen_CallerIsNotController() external {
+    vm.prank(randomCaller);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
+    bPool.setController(controller);
+  }
+
+  function test_SetControllerRevertWhen_NewControllerIsZeroAddress() external {
+    vm.prank(controller);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_AddressZero.selector);
+    bPool.setController(address(0));
+  }
+
+  function test_SetControllerWhenPreconditionsAreMet(address _controller) external {
+    vm.prank(controller);
+    vm.assume(_controller != address(0));
+
+    // it emits LOG_CALL event
+    vm.expectEmit();
+    bytes memory _data = abi.encodeWithSelector(IBPool.setController.selector, _controller);
+    emit IBPool.LOG_CALL(IBPool.setController.selector, controller, _data);
+
+    bPool.setController(_controller);
+
+    // it sets new controller
+    assertEq(bPool.getController(), _controller);
   }
 
   function test_IsFinalizedWhenPoolIsFinalized() external view {
