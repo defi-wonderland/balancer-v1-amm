@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+import {IERC20Errors} from '@openzeppelin/contracts/interfaces/draft-IERC6093.sol';
 import {Test} from 'forge-std/Test.sol';
 import {MockBToken} from 'test/smock/MockBToken.sol';
 
-contract BTokenTest is Test {
+contract BToken is Test {
   MockBToken public bToken;
   uint256 public initialApproval = 100e18;
   uint256 public initialBalance = 100e18;
@@ -28,10 +29,37 @@ contract BTokenTest is Test {
     assertEq(_bToken.symbol(), 'BPT');
   }
 
+  function test_IncreaseApprovalRevertWhen_SenderIsAddressZero() external {
+    vm.startPrank(address(0));
+    // it should revert
+    vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidApprover.selector, address(0)));
+
+    bToken.increaseApproval(spender, 100e18);
+  }
+
+  function test_IncreaseApprovalRevertWhen_SpenderIsAddressZero() external {
+    // it should revert
+    vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidSpender.selector, address(0)));
+    bToken.increaseApproval(address(0), 100e18);
+  }
+
   function test_IncreaseApprovalWhenCalled() external {
     bToken.increaseApproval(spender, 100e18);
     // it increases spender approval
     assertEq(bToken.allowance(caller, spender), 200e18);
+  }
+
+  function test_DecreaseApprovalRevertWhen_SenderIsAddressZero() external {
+    vm.startPrank(address(0));
+    // it should revert
+    vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidApprover.selector, address(0)));
+    bToken.decreaseApproval(spender, 50e18);
+  }
+
+  function test_DecreaseApprovalRevertWhen_SpenderIsAddressZero() external {
+    // it should revert
+    vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidSpender.selector, address(0)));
+    bToken.decreaseApproval(address(0), 50e18);
   }
 
   function test_DecreaseApprovalWhenDecrementIsBiggerThanCurrentApproval() external {

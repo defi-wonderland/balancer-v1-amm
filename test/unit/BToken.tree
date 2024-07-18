@@ -4,10 +4,18 @@ BToken::constructor
     └── it sets token symbol
 
 BToken::increaseApproval
+├── when sender is address zero
+│   └── it should revert
+├── when spender is address zero
+│   └── it should revert
 └── when called
     └── it increases spender approval
 
 BToken::decreaseApproval
+├── when sender is address zero
+│   └── it should revert
+├── when spender is address zero
+│   └── it should revert
 ├── when decrement is bigger than current approval
 │   └── it decreases spender approval to 0
 └── when called
