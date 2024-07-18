@@ -77,3 +77,27 @@ BPool::getController
 │   └── it should revert
 └── when preconditions are met
     └── it returns controller
+
+BPool::getSpotPrice
+├── when reentrancy lock is set
+│   └── it should revert
+├── when token in is not bound
+│   └── it should revert
+├── when token out is not bound
+│   └── it should revert
+└── when preconditions are met
+    ├── it queries token in balance
+    ├── it queries token out balance
+    └── it returns spot price
+
+BPool::getSpotPriceSansFee
+├── when reentrancy lock is set
+│   └── it should revert
+├── when token in is not bound
+│   └── it should revert
+├── when token out is not bound
+│   └── it should revert
+└── when preconditions are met
+    ├── it queries token in balance
+    ├── it queries token out balance
+    └── it returns spot price sans fee

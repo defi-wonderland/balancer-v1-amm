@@ -4,13 +4,18 @@ pragma solidity 0.8.25;
 import {BPoolBase} from './BPoolBase.sol';
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+
+import {BMath} from 'contracts/BMath.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 import {MockBPool} from 'test/smock/MockBPool.sol';
 
-contract BPool is BPoolBase {
+contract BPool is BPoolBase, BMath {
   address controller = makeAddr('controller');
   address unknownToken = makeAddr('unknown token');
   uint256 swapFee = 0.1e18;
+
+  uint256 balanceTokenIn = 10e18;
+  uint256 balanceTokenOut = 20e18;
 
   function setUp() public virtual override {
     super.setUp();
@@ -203,5 +208,67 @@ contract BPool is BPoolBase {
     // it returns controller
     address _controller = bPool.getController();
     assertEq(_controller, controller);
+  }
+
+  function test_GetSpotPriceRevertWhen_ReentrancyLockIsSet() external {
+    bPool.call__setLock(_MUTEX_TAKEN);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
+    bPool.getSpotPrice(tokens[0], tokens[1]);
+  }
+
+  function test_GetSpotPriceRevertWhen_TokenInIsNotBound() external {
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    bPool.getSpotPrice(unknownToken, tokens[1]);
+  }
+
+  function test_GetSpotPriceRevertWhen_TokenOutIsNotBound() external {
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    bPool.getSpotPrice(tokens[0], unknownToken);
+  }
+
+  function test_GetSpotPriceWhenPreconditionsAreMet() external {
+    // it queries token in balance
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceTokenIn));
+    vm.expectCall(tokens[0], abi.encodeWithSelector(IERC20.balanceOf.selector));
+    // it queries token out balance
+    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceTokenOut));
+    vm.expectCall(tokens[1], abi.encodeWithSelector(IERC20.balanceOf.selector));
+    // it returns spot price
+    uint256 _spotPrice = calcSpotPrice(balanceTokenIn, tokenWeight, balanceTokenOut, tokenWeight, swapFee);
+    assertEq(bPool.getSpotPrice(tokens[0], tokens[1]), _spotPrice);
+  }
+
+  function test_GetSpotPriceSansFeeRevertWhen_ReentrancyLockIsSet() external {
+    bPool.call__setLock(_MUTEX_TAKEN);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_Reentrancy.selector);
+    bPool.getSpotPriceSansFee(tokens[0], tokens[1]);
+  }
+
+  function test_GetSpotPriceSansFeeRevertWhen_TokenInIsNotBound() external {
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    bPool.getSpotPriceSansFee(unknownToken, tokens[1]);
+  }
+
+  function test_GetSpotPriceSansFeeRevertWhen_TokenOutIsNotBound() external {
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    bPool.getSpotPriceSansFee(tokens[0], unknownToken);
+  }
+
+  function test_GetSpotPriceSansFeeWhenPreconditionsAreMet() external {
+    // it queries token in balance
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceTokenIn));
+    vm.expectCall(tokens[0], abi.encodeWithSelector(IERC20.balanceOf.selector));
+    // it queries token out balance
+    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceTokenOut));
+    vm.expectCall(tokens[1], abi.encodeWithSelector(IERC20.balanceOf.selector));
+    // it returns spot price
+    uint256 _spotPrice = calcSpotPrice(balanceTokenIn, tokenWeight, balanceTokenOut, tokenWeight, 0);
+    assertEq(bPool.getSpotPriceSansFee(tokens[0], tokens[1]), _spotPrice);
   }
 }
