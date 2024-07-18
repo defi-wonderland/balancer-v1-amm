@@ -20,3 +20,60 @@ BPool::isBound
 BPool::getNumTokens
 └── when called
     └── it returns number of tokens
+
+BPool::getFinalTokens
+├── when reentrancy lock is set
+│   └── it should revert
+├── when pool is not finalized
+│   └── it should revert
+└── when preconditions are met
+    └── it returns pool tokens
+
+BPool::getCurrentTokens
+├── when reentrancy lock is set
+│   └── it should revert
+└── when preconditions are met
+    └── it returns pool tokens
+
+BPool::getDenormalizedWeight
+├── when reentrancy lock is set
+│   └── it should revert
+├── when token is not bound
+│   └── it should revert
+└── when preconditions are met
+    └── it returns token weight
+
+BPool::getTotalDenormalizedWeight
+├── when reentrancy lock is set
+│   └── it should revert
+└── when preconditions are met
+    └── it returns total weight
+
+BPool::getNormalizedWeight
+├── when reentrancy lock is set
+│   └── it should revert
+├── when token is not bound
+│   └── it should revert
+└── when preconditions are met
+    └── it returns normalized weight
+
+BPool::getBalance
+├── when reentrancy lock is set
+│   └── it should revert
+├── when token is not bound
+│   └── it should revert
+└── when preconditions are met
+    ├── it queries token balance
+    └── it returns token balance
+
+BPool::getSwapFee
+├── when reentrancy lock is set
+│   └── it should revert
+└── when preconditions are met
+    └── it returns swap fee
+
+BPool::getController
+├── when reentrancy lock is set
+│   └── it should revert
+└── when preconditions are met
+    └── it returns controller
