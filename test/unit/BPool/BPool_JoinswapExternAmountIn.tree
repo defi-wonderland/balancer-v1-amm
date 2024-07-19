@@ -12,6 +12,7 @@ BPool::JoinswapExternAmountIn
 └── when preconditions are met
     ├── it emits LOG_CALL event
     ├── it sets the reentrancy lock
+    ├── it queries the contracts token in balance
     ├── it emits LOG_JOIN event for token
     ├── it calls _pullUnderlying for token
     ├── it mints the pool shares

@@ -70,6 +70,8 @@ contract BPoolJoinswapExternAmountIn is BPoolBase, BNum {
   function test_WhenPreconditionsAreMet() external {
     // it sets reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
+    // it queries the contracts token in balance
+    vm.expectCall(tokenIn, abi.encodeCall(IERC20.balanceOf, (address(bPool))));
     // it calls _pullUnderlying for token
     bPool.mock_call__pullUnderlying(tokenIn, address(this), tokenAmountIn);
     bPool.expectCall__pullUnderlying(tokenIn, address(this), tokenAmountIn);
