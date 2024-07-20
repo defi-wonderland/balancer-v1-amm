@@ -65,7 +65,7 @@ bmul should have 0 as absorving
 bmul result should always be gte a and b
 
 bdiv should be bmul reverse operation // <-- unsolved
-1 should be identity for bdiv
+bdiv should have 1 as identity
 bdiv should revert if b is 0 // <-- impl with wrapper to have low lvl call
 bdiv result should be lte a
 
