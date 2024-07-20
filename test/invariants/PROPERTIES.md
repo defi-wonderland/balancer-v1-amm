@@ -60,8 +60,8 @@ bsubSign result should always be 0 if a == b
 bmul should be commutative
 bmul should be associative
 bmul should be distributive
-1 should be identity for bmul
-0 should be absorbing for mul
+bmul should have 1 as identity
+bmul should have 0 as absorving
 bmul result should always be gte a and b
 
 bdiv should be bmul reverse operation // <-- unsolved
