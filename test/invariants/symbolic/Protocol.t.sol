@@ -113,7 +113,6 @@ contract HalmosBalancer is HalmosTest {
   /// @custom:property-id 7
   /// @custom:property total weight can be up to 50e18
   /// @dev Only 2 tokens are used, to avoid hitting the limit in loop unrolling
-
   function check_totalWeightMax(uint256[2] calldata _weights) public {
     // Precondition
     BCoWPool _pool = BCoWPool(address(factory.newBPool()));
