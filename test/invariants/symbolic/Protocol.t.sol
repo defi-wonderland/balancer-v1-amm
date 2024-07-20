@@ -162,7 +162,6 @@ contract HalmosBalancer is HalmosTest {
   }
   /// @custom:property-id 9
   /// @custom:property BToken decreaseApproval should decrease the approval to max(old-amount, 0)
-
   function check_decreaseApproval(uint256 _approvalToLower, address _owner, address _spender) public {
     // Precondition
     uint256 _approvalBefore = pool.allowance(_owner, _spender);
