@@ -6,6 +6,8 @@ import {IBPool} from 'interfaces/IBPool.sol';
 import {MockBPool} from 'test/smock/MockBPool.sol';
 
 contract BPool is BPoolBase {
+  uint256 public tokenWeight = 1e18;
+
   function test_ConstructorWhenCalled(address _deployer) external {
     vm.prank(_deployer);
     MockBPool _newBPool = new MockBPool();

@@ -10,9 +10,6 @@ import {Utils} from 'test/utils/Utils.sol';
 contract BPoolBase is Test, BConst, Utils {
   MockBPool public bPool;
 
-  uint256 public tokenWeight = 1e18;
-  uint256 public totalWeight = 10e18;
-
   function setUp() public virtual {
     bPool = new MockBPool();
     tokens.push(makeAddr('token0'));

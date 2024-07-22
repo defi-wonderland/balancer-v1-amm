@@ -9,13 +9,13 @@ import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
 contract BCoWPoolFinalize is BCoWPoolBase {
+  uint256 public tokenWeight = 1e18;
+
   function setUp() public virtual override {
     super.setUp();
     bCoWPool.set__tokens(tokens);
     bCoWPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
     bCoWPool.set__records(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
-    bCoWPool.mock_call__mintPoolShare(INIT_POOL_SUPPLY);
-    bCoWPool.mock_call__pushPoolShare(address(this), INIT_POOL_SUPPLY);
 
     vm.mockCall(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()), abi.encode());
 
