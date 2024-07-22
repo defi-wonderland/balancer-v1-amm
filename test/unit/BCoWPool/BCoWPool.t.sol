@@ -49,7 +49,7 @@ contract BCoWPool is BCoWPoolBase {
     assertEq(pool.APP_DATA(), _appData);
   }
 
-  function test__afterFinalize_WhenCalled() external {
+  function test__afterFinalizeWhenCalled() external {
     // it calls approve on every bound token
     vm.expectCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     vm.expectCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
@@ -58,12 +58,12 @@ contract BCoWPool is BCoWPoolBase {
     bCoWPool.finalize();
   }
 
-  function test__afterFinalize_WhenFactorysLogBCoWPoolDoesNotRevert() external {
+  function test__afterFinalizeWhenFactorysLogBCoWPoolDoesNotRevert() external {
     // it returns
     bCoWPool.call__afterFinalize();
   }
 
-  function test__afterFinalize_WhenFactorysLogBCoWPoolReverts(bytes memory revertData) external {
+  function test__afterFinalizeWhenFactorysLogBCoWPoolReverts(bytes memory revertData) external {
     vm.mockCallRevert(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()), revertData);
     // it emits a COWAMMPoolCreated event
     vm.expectEmit(address(bCoWPool));
