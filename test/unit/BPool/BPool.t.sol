@@ -6,6 +6,8 @@ import {IBPool} from 'interfaces/IBPool.sol';
 import {MockBPool} from 'test/smock/MockBPool.sol';
 
 contract BPool is BPoolBase {
+  uint256 public tokenWeight = 1e18;
+
   function test_ConstructorWhenCalled(address _deployer) external {
     vm.prank(_deployer);
     MockBPool _newBPool = new MockBPool();
@@ -33,13 +35,13 @@ contract BPool is BPoolBase {
   }
 
   function test_IsBoundWhenTokenIsBound(address _token) external {
-    _setRecord(_token, IBPool.Record({bound: true, index: 0, denorm: 0}));
+    bPool.set__records(_token, IBPool.Record({bound: true, index: 0, denorm: 0}));
     // it returns true
     assertTrue(bPool.isBound(_token));
   }
 
   function test_IsBoundWhenTokenIsNOTBound(address _token) external {
-    _setRecord(_token, IBPool.Record({bound: false, index: 0, denorm: 0}));
+    bPool.set__records(_token, IBPool.Record({bound: false, index: 0, denorm: 0}));
     // it returns false
     assertFalse(bPool.isBound(_token));
   }
@@ -49,5 +51,52 @@ contract BPool is BPoolBase {
     _setRandomTokens(_tokensToAdd);
     // it returns number of tokens
     assertEq(bPool.getNumTokens(), _tokensToAdd);
+  }
+
+  function test_FinalizeRevertWhen_CallerIsNotController(address _caller) external {
+    vm.assume(_caller != address(this));
+    vm.prank(_caller);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
+    bPool.finalize();
+  }
+
+  function test_FinalizeRevertWhen_PoolIsFinalized() external {
+    bPool.set__finalized(true);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
+    bPool.finalize();
+  }
+
+  function test_FinalizeRevertWhen_ThereAreTooFewTokensBound() external {
+    address[] memory tokens_ = new address[](1);
+    tokens_[0] = tokens[0];
+    bPool.set__tokens(tokens_);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokensBelowMinimum.selector);
+    bPool.finalize();
+  }
+
+  function test_FinalizeWhenPreconditionsAreMet() external {
+    bPool.set__tokens(tokens);
+    bPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
+    bPool.set__records(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
+    bPool.mock_call__mintPoolShare(INIT_POOL_SUPPLY);
+    bPool.mock_call__pushPoolShare(address(this), INIT_POOL_SUPPLY);
+
+    // it calls _afterFinalize hook
+    bPool.expectCall__afterFinalize();
+    // it mints initial pool shares
+    bPool.expectCall__mintPoolShare(INIT_POOL_SUPPLY);
+    // it sends initial pool shares to controller
+    bPool.expectCall__pushPoolShare(address(this), INIT_POOL_SUPPLY);
+    // it emits a LOG_CALL event
+    bytes memory data = abi.encodeCall(IBPool.finalize, ());
+    vm.expectEmit(address(bPool));
+    emit IBPool.LOG_CALL(IBPool.finalize.selector, address(this), data);
+
+    bPool.finalize();
+    // it finalizes the pool
+    assertEq(bPool.call__finalized(), true);
   }
 }
