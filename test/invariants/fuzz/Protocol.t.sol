@@ -9,7 +9,7 @@ import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
 import {BNum} from 'contracts/BNum.sol';
 
-contract FuzzBalancer is EchidnaTest {
+contract FuzzProtocol is EchidnaTest {
   // System under test
   BCoWFactory factory;
   BConst bconst;
@@ -56,7 +56,7 @@ contract FuzzBalancer is EchidnaTest {
 
       try pool.bind(address(_token), 10 ether, _poolWeight) {}
       catch {
-        emit AssertionFailed();
+        assert(false);
       }
     }
 
@@ -64,8 +64,10 @@ contract FuzzBalancer is EchidnaTest {
     ghost_bptMinted = pool.INIT_POOL_SUPPLY();
   }
 
-  // Randomly add or remove tokens to a finalized pool
+  // Randomly add or remove tokens to a pool
   // Insure caller has enough token
+  // Main objective is to have an arbitrary number of tokens in the pool, peripheral objective is another
+  // test of min/max token bound (properties 20 and 21)
   function setup_joinExitPool(bool _join, uint256 _amountBpt) public AgentOrDeployer {
     if (_join) {
       uint256[] memory _maxAmountsIn;
@@ -85,7 +87,12 @@ contract FuzzBalancer is EchidnaTest {
       hevm.prank(currentCaller);
       try pool.joinPool(_amountBpt, _maxAmountsIn) {
         ghost_bptMinted += _amountBpt;
-      } catch {}
+      } catch {
+        assert(
+          pool.isFinalized() || pool.getCurrentTokens().length > bconst.MAX_BOUND_TOKENS()
+            || currentCaller != pool.getController()
+        );
+      }
     } else {
       hevm.prank(currentCaller);
       pool.approve(address(pool), _amountBpt);
@@ -93,7 +100,9 @@ contract FuzzBalancer is EchidnaTest {
       hevm.prank(currentCaller);
       try pool.exitPool(_amountBpt, new uint256[](4)) {
         ghost_bptBurned += _amountBpt;
-      } catch {}
+      } catch {
+        assert(pool.isFinalized() || pool.getCurrentTokens().length == 0 || currentCaller != pool.getController());
+      }
     }
   }
 
@@ -172,9 +181,7 @@ contract FuzzBalancer is EchidnaTest {
 
     _tokenIn = clamp(_tokenIn, 0, tokens.length - 1);
     _tokenOut = clamp(_tokenOut, 0, tokens.length - 1);
-    _amountIn = clamp(_amountIn, 0, 10 ether);
-
-    require(_tokenIn != _tokenOut); // todo: dig this, it should pass without this precondition
+    _amountIn = clamp(_amountIn, 1 ether, 10 ether);
 
     tokens[_tokenIn].mint(currentCaller, _amountIn);
 
@@ -211,7 +218,14 @@ contract FuzzBalancer is EchidnaTest {
 
       // 19
       assert(pool.isFinalized());
-    } catch {}
+    } catch {
+      assert(
+        // above max ratio
+        _amountIn > bnum.bmul_exposed(tokens[_tokenIn].balanceOf(address(pool)), bconst.MAX_IN_RATIO())
+        // below min amount out
+        || _outComputed < _minAmountOut
+      );
+    }
   }
 
   /// @custom:property-id 5
@@ -233,7 +247,8 @@ contract FuzzBalancer is EchidnaTest {
 
     _tokenIn = clamp(_tokenIn, 0, tokens.length - 1);
     _tokenOut = clamp(_tokenOut, 0, tokens.length - 1);
-    _maxAmountIn = clamp(_maxAmountIn, 0, 10 ether);
+    _amountOut = clamp(_amountOut, 1 ether, 10 ether);
+    _maxAmountIn = clamp(_maxAmountIn, 1 ether, 10 ether);
 
     tokens[_tokenIn].mint(currentCaller, _maxAmountIn);
 
@@ -274,7 +289,9 @@ contract FuzzBalancer is EchidnaTest {
 
       // 19
       assert(pool.isFinalized());
-    } catch {}
+    } catch {
+      assert(_inComputed > _maxAmountIn);
+    }
   }
 
   /// @custom:property-id 6
@@ -350,7 +367,13 @@ contract FuzzBalancer is EchidnaTest {
       // Postcondition
       assert(currentCaller == _nonFinalizedPool.getController());
       poolsToFinalize.pop();
-    } catch {}
+    } catch {
+      assert(
+        currentCaller != _nonFinalizedPool.getController()
+          || _nonFinalizedPool.getCurrentTokens().length > bconst.MAX_BOUND_TOKENS()
+          || _nonFinalizedPool.getCurrentTokens().length < bconst.MIN_BOUND_TOKENS()
+      );
+    }
   }
 
   /// @custom:property-id 16
@@ -397,7 +420,7 @@ contract FuzzBalancer is EchidnaTest {
 
   /// @custom:property-id 18
   /// @custom:property the amount of underlying token when exiting should always be the amount calculated in bmath
-  function correctBPTBurnAmount(uint256 _amountPoolToken) public AgentOrDeployer {
+  function fuzz_correctBPTBurnAmount(uint256 _amountPoolToken) public AgentOrDeployer {
     _amountPoolToken = clamp(_amountPoolToken, 0, pool.balanceOf(currentCaller));
 
     uint256[] memory _amountsToReceive = new uint256[](4);
@@ -500,7 +523,9 @@ contract FuzzBalancer is EchidnaTest {
     try pool.commit(hex'1234') {
       // Postcondition
       assert(currentCaller == solutionSettler);
-    } catch {}
+    } catch {
+      assert(currentCaller != solutionSettler);
+    }
   }
 
   /// @custom:property-id 23
