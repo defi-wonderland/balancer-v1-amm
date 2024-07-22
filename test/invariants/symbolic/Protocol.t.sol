@@ -8,7 +8,6 @@ import {BCoWFactory, BCoWPool, IBPool} from 'contracts/BCoWFactory.sol';
 
 import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
-import {BNum} from 'contracts/BNum.sol';
 import {BToken} from 'contracts/BToken.sol';
 
 contract HalmosBalancer is HalmosTest {
@@ -16,7 +15,6 @@ contract HalmosBalancer is HalmosTest {
   BCoWFactory factory;
   BConst bconst;
   BMath bmath;
-  BNum_exposed bnum;
 
   address solutionSettler;
   bytes32 appData;
@@ -32,7 +30,6 @@ contract HalmosBalancer is HalmosTest {
     factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
     bmath = new BMath();
-    bnum = new BNum_exposed();
     pool = BCoWPool(address(factory.newBPool()));
 
     // max bound token is 8
@@ -113,6 +110,7 @@ contract HalmosBalancer is HalmosTest {
   /// @custom:property-id 7
   /// @custom:property total weight can be up to 50e18
   /// @dev Only 2 tokens are used, to avoid hitting the limit in loop unrolling
+
   function check_totalWeightMax(uint256[2] calldata _weights) public {
     // Precondition
     BCoWPool _pool = BCoWPool(address(factory.newBPool()));
@@ -162,6 +160,7 @@ contract HalmosBalancer is HalmosTest {
   }
   /// @custom:property-id 9
   /// @custom:property BToken decreaseApproval should decrease the approval to max(old-amount, 0)
+
   function check_decreaseApproval(uint256 _approvalToLower, address _owner, address _spender) public {
     // Precondition
     uint256 _approvalBefore = pool.allowance(_owner, _spender);
@@ -286,15 +285,5 @@ contract HalmosBalancer is HalmosTest {
       // Postcondition
       assert(currentCaller == solutionSettler);
     } catch {}
-  }
-}
-
-contract BNum_exposed is BNum {
-  function bdiv_exposed(uint256 a, uint256 b) public pure returns (uint256) {
-    return bdiv(a, b);
-  }
-
-  function bmul_exposed(uint256 a, uint256 b) public pure returns (uint256) {
-    return bmul(a, b);
   }
 }
