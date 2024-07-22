@@ -59,7 +59,7 @@ contract BCoWPool is BCoWPoolBase {
     vm.expectCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     // it calls logBCoWPool on the factory
     vm.expectCall(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()));
-    bCoWPool.finalize();
+    bCoWPool.call__afterFinalize();
   }
 
   function test__afterFinalizeWhenFactorysLogBCoWPoolDoesNotRevert() external {
