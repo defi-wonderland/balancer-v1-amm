@@ -15,8 +15,10 @@ contract BPool is BPoolBase, BMath {
   address unknownToken = makeAddr('unknown token');
   uint256 swapFee = 0.1e18;
 
-  uint256 balanceTokenIn = 10e18;
-  uint256 balanceTokenOut = 20e18;
+  uint256 public tokenWeight = 1e18;
+  uint256 public totalWeight = 2e18;
+  uint256 public balanceTokenIn = 10e18;
+  uint256 public balanceTokenOut = 20e18;
 
   // sP = (tokenInBalance / tokenInWeight) / (tokenOutBalance/ tokenOutWeight) * (1 / (1 - swapFee))
   // tokenInWeight == tokenOutWeight
@@ -30,8 +32,8 @@ contract BPool is BPoolBase, BMath {
 
     bPool.set__finalized(true);
     bPool.set__tokens(tokens);
-    _setRecord(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
-    _setRecord(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
+    bPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
+    bPool.set__records(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
     bPool.set__totalWeight(totalWeight);
     bPool.set__swapFee(swapFee);
     bPool.set__controller(controller);
@@ -152,13 +154,13 @@ contract BPool is BPoolBase, BMath {
   }
 
   function test_IsBoundWhenTokenIsBound(address _token) external {
-    _setRecord(_token, IBPool.Record({bound: true, index: 0, denorm: 0}));
+    bPool.set__records(_token, IBPool.Record({bound: true, index: 0, denorm: 0}));
     // it returns true
     assertTrue(bPool.isBound(_token));
   }
 
   function test_IsBoundWhenTokenIsNOTBound(address _token) external {
-    _setRecord(_token, IBPool.Record({bound: false, index: 0, denorm: 0}));
+    bPool.set__records(_token, IBPool.Record({bound: false, index: 0, denorm: 0}));
     // it returns false
     assertFalse(bPool.isBound(_token));
   }
@@ -367,5 +369,52 @@ contract BPool is BPoolBase, BMath {
     // it returns spot price
     uint256 _spotPrice = 0.5e18;
     assertEq(bPool.getSpotPriceSansFee(tokens[0], tokens[1]), _spotPrice);
+  }
+
+  function test_FinalizeRevertWhen_CallerIsNotController(address _caller) external {
+    vm.assume(_caller != address(this));
+    vm.prank(_caller);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
+    bPool.finalize();
+  }
+
+  function test_FinalizeRevertWhen_PoolIsFinalized() external {
+    bPool.set__finalized(true);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_PoolIsFinalized.selector);
+    bPool.finalize();
+  }
+
+  function test_FinalizeRevertWhen_ThereAreTooFewTokensBound() external {
+    address[] memory tokens_ = new address[](1);
+    tokens_[0] = tokens[0];
+    bPool.set__tokens(tokens_);
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokensBelowMinimum.selector);
+    bPool.finalize();
+  }
+
+  function test_FinalizeWhenPreconditionsAreMet() external {
+    bPool.set__tokens(tokens);
+    bPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
+    bPool.set__records(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
+    bPool.mock_call__mintPoolShare(INIT_POOL_SUPPLY);
+    bPool.mock_call__pushPoolShare(address(this), INIT_POOL_SUPPLY);
+
+    // it calls _afterFinalize hook
+    bPool.expectCall__afterFinalize();
+    // it mints initial pool shares
+    bPool.expectCall__mintPoolShare(INIT_POOL_SUPPLY);
+    // it sends initial pool shares to controller
+    bPool.expectCall__pushPoolShare(address(this), INIT_POOL_SUPPLY);
+    // it emits a LOG_CALL event
+    bytes memory data = abi.encodeCall(IBPool.finalize, ());
+    vm.expectEmit(address(bPool));
+    emit IBPool.LOG_CALL(IBPool.finalize.selector, address(this), data);
+
+    bPool.finalize();
+    // it finalizes the pool
+    assertEq(bPool.call__finalized(), true);
   }
 }

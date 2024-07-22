@@ -9,13 +9,8 @@ import {Utils} from 'test/utils/Utils.sol';
 
 contract BPoolBase is Test, BConst, Utils {
   MockBPool public bPool;
-  address public deployer = makeAddr('deployer');
-
-  uint256 public tokenWeight = 1e18;
-  uint256 public totalWeight = 10e18;
 
   function setUp() public virtual {
-    vm.prank(deployer);
     bPool = new MockBPool();
     tokens.push(makeAddr('token0'));
     tokens.push(makeAddr('token1'));
@@ -24,16 +19,8 @@ contract BPoolBase is Test, BConst, Utils {
   function _setRandomTokens(uint256 _length) internal returns (address[] memory _tokensToAdd) {
     _tokensToAdd = _getDeterministicTokenArray(_length);
     for (uint256 i = 0; i < _length; i++) {
-      _setRecord(_tokensToAdd[i], IBPool.Record({bound: true, index: i, denorm: 0}));
+      bPool.set__records(_tokensToAdd[i], IBPool.Record({bound: true, index: i, denorm: 0}));
     }
-    _setTokens(_tokensToAdd);
-  }
-
-  function _setTokens(address[] memory _tokens) internal {
-    bPool.set__tokens(_tokens);
-  }
-
-  function _setRecord(address _token, IBPool.Record memory _record) internal {
-    bPool.set__records(_token, _record);
+    bPool.set__tokens(_tokensToAdd);
   }
 }

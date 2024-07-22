@@ -127,3 +127,17 @@ BPool::getSpotPriceSansFee
     ├── it queries token in balance
     ├── it queries token out balance
     └── it returns spot price sans fee
+
+BPool::finalize
+├── when caller is not controller
+│   └── it should revert
+├── when pool is finalized
+│   └── it should revert
+├── when there are too few tokens bound
+│   └── it should revert
+└── when preconditions are met
+    ├── it emits LOG_CALL event
+    ├── it finalizes the pool
+    ├── it mints initial pool shares
+    ├── it sends initial pool shares to controller
+    └── it calls _afterFinalize hook
