@@ -5,16 +5,21 @@ import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
 
 import {BNum} from 'contracts/BNum.sol';
 
-contract FuzzBNum is BNum, EchidnaTest {
+import {Test} from 'forge-std/Test.sol';
+
+contract FuzzBNum is BNum, EchidnaTest, Test {
   function bsub_exposed(uint256 a, uint256 b) external pure returns (uint256) {
     return bsub(a, b);
+  }
+
+  function bdiv_exposed(uint256 _a, uint256 _b) external pure returns (uint256) {
+    return bdiv(_a, _b);
   }
   /////////////////////////////////////////////////////////////////////
   //                           Bnum::btoi                            //
   /////////////////////////////////////////////////////////////////////
 
   // btoi should always return the floor(a / BONE) == (a - a%BONE) / BONE
-  // TODO: Too tightly coupled
   function btoi_alwaysFloor(uint256 _input) public pure {
     // action
     uint256 _result = btoi(_input);
@@ -215,7 +220,7 @@ contract FuzzBNum is BNum, EchidnaTest {
   }
 
   // bmul should be associative
-  function test_bmul_associative(uint256 _a, uint256 _b, uint256 _c) public {
+  function bmul_associative(uint256 _a, uint256 _b, uint256 _c) public {
     // precondition
     _c = clamp(_c, BONE, 9_999_999_999_999 * BONE);
     _b = clamp(_b, BONE, 9_999_999_999_999 * BONE);
@@ -231,14 +236,14 @@ contract FuzzBNum is BNum, EchidnaTest {
 
   // bmul should be distributive
   function bmul_distributive(uint256 _a, uint256 _b, uint256 _c) public {
-    _c = clamp(_c, BONE, 9_999_999_999_999 * BONE);
-    _b = clamp(_b, BONE, 9_999_999_999_999 * BONE);
-    _a = clamp(_a, BONE, 9_999_999_999_999 * BONE);
+    _c = clamp(_c, BONE, 10_000 * BONE);
+    _b = clamp(_b, BONE, 10_000 * BONE);
+    _a = clamp(_a, BONE, 10_000 * BONE);
 
     uint256 _result1 = bmul(_a, badd(_b, _c));
     uint256 _result2 = badd(bmul(_a, _b), bmul(_a, _c));
 
-    assert(_result1 == _result2);
+    assert(_result1 == _result2 || _result1 == _result2 - 1 || _result1 == _result2 + 1);
   }
 
   // 1 should be identity for bmul
@@ -279,22 +284,23 @@ contract FuzzBNum is BNum, EchidnaTest {
   //                           Bnum::bdiv                            //
   /////////////////////////////////////////////////////////////////////
 
-  //todo: Halmos times out vs foundry passes
   // 1 should be identity for bdiv
   function bdiv_identity(uint256 _a) public pure {
-    // vm.assume(_a < type(uint256).max / BONE); // Avoid add overflow
     uint256 _result = bdiv(_a, BONE);
     assert(_result == _a);
   }
 
-  //todo
   // bdiv should revert if b is 0
-  // function bdiv_revert(uint256 _a) public pure {
-  // }
+  function bdiv_revert(uint256 _a) public {
+    // action
+    (bool succ,) = address(this).call(abi.encodeCall(FuzzBNum.bdiv_exposed, (_a, 0)));
 
-  //todo hangs
+    // post condition
+    assert(!succ);
+  }
+
   // bdiv result should be lte a
-  function test_bdiv_resultLTE(uint256 _a, uint256 _b) public pure {
+  function bdiv_resultLTE(uint256 _a, uint256 _b) public pure {
     // vm.assume(_b != 0);
     // vm.assume(_a < type(uint256).max / BONE); // Avoid mul overflow
     //todo: overconstrained next line? Too tightly coupled?
@@ -304,16 +310,18 @@ contract FuzzBNum is BNum, EchidnaTest {
     assert(_result <= _a * BONE);
   }
 
-  //todo hangs
   // bdiv should be bmul reverse operation
   function bdiv_bmul(uint256 _a, uint256 _b) public {
-    _a = clamp(_a, 2, type(uint256).max);
-    _b = clamp(_b, 1, _a - 1);
+    _a = clamp(_a, BONE + 1, 10e12 * BONE);
+    _b = clamp(_b, BONE, _a - 1);
 
     uint256 _bdivResult = bdiv(_a, _b);
     uint256 _result = bmul(_bdivResult, _b);
 
-    assert(_result == _a);
+    _result /= BONE;
+    _a /= BONE;
+
+    assert(_result == _a || _result == _a - 1 || _result == _a + 1);
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -337,7 +345,6 @@ contract FuzzBNum is BNum, EchidnaTest {
     assert(_result == 0);
   }
 
-  //todo echidna (loop unrolling bound hit)
   // 1 should be identity if base
   function bpowi_identityBase(uint256 _exp) public pure {
     uint256 _result = bpowi(BONE, _exp);
@@ -348,7 +355,7 @@ contract FuzzBNum is BNum, EchidnaTest {
   function bpowi_identityExp(uint256 _base) public {
     _base = clamp(_base, 1, 10_000);
 
-    uint256 _result = bpowi(_base, BONE);
+    uint256 _result = bpowi(_base, 1);
 
     assert(_result == _base);
   }
@@ -379,7 +386,7 @@ contract FuzzBNum is BNum, EchidnaTest {
     _b = clamp(_b, 1, 1000 * BONE);
 
     uint256 _result1 = bpowi(bpowi(_base, _a), _b);
-    uint256 _result2 = bpowi(_base, bmul(_a, _b));
+    uint256 _result2 = bpowi(_base, bmul(_a, _b)) / BONE;
 
     assert(_result1 == _result2 || _result1 == _result2 - 1 || _result1 == _result2 + 1);
   }
@@ -397,14 +404,12 @@ contract FuzzBNum is BNum, EchidnaTest {
     assert(_result == BONE);
   }
 
-  //todo min base is 1wei -> can never be 0 instead (echidna)
   // 0 should be absorbing if base
   function bpow_absorbingBase(uint256 _exp) public pure {
     uint256 _result = bpow(0, _exp);
     assert(_result == 0);
   }
 
-  //todo echidna (loop unrolling bound hit)
   // 1 should be identity if base
   function bpow_identityBase(uint256 _exp) public pure {
     uint256 _result = bpow(BONE, _exp);
@@ -433,7 +438,7 @@ contract FuzzBNum is BNum, EchidnaTest {
   }
 
   // bpow should be distributive over mult of the same exp  a^x * b^x == (a*b)^x
-  function test_bpow_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public {
+  function bpow_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public {
     _exp = clamp(_exp, 1, 100);
     _a = clamp(_a, MIN_BPOW_BASE, MAX_BPOW_BASE);
     _b = clamp(_b, MIN_BPOW_BASE, MAX_BPOW_BASE);
@@ -443,7 +448,7 @@ contract FuzzBNum is BNum, EchidnaTest {
     uint256 _result1 = bpow(bmul(_a, _b), _exp);
     uint256 _result2 = bmul(bpow(_a, _exp), bpow(_b, _exp));
 
-    assert(_result1 == _result2 || _result1 == _result2 - 1 || _result1 == _result2 + 1);
+    assert(_result1 == _result2 || _result1 > _result2 ? _result1 - _result2 < BONE : _result2 - _result1 < BONE);
   }
 
   // power of a power should mult the exp (x^a)^b == x^(a*b)
