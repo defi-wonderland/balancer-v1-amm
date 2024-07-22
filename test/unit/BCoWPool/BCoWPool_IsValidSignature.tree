@@ -1,5 +1,5 @@
 BCoWPool::IsValidSignature
-├── when orders appdata is different
+├── when orders appdata is different than one set at construction
 │   └── it should revert
 ├── when orderHash does not match hashed order
 │   └── it should revert

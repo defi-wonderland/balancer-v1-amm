@@ -22,7 +22,7 @@ contract BCoWPoolIsValidSignature is BCoWPoolBase {
     bCoWPool.mock_call_verify(validOrder);
   }
 
-  function test_RevertWhen_OrdersAppdataIsDifferent(bytes32 appData_) external {
+  function test_RevertWhen_OrdersAppdataIsDifferentThanOneSetAtConstruction(bytes32 appData_) external {
     vm.assume(appData != appData_);
     validOrder.appData = appData_;
     // it should revert
