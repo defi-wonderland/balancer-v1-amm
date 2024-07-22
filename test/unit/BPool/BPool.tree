@@ -5,6 +5,32 @@ BPool::constructor
     ├── it sets swap fee to MIN_FEE
     └── it does NOT finalize the pool
 
+BPool::setSwapFee
+├── when reentrancy lock is set
+│   └── it should revert
+├── when caller is not controller
+│   └── it should revert
+├── when pool is finalized
+│   └── it should revert
+├── when swap fee is below MIN_FEE
+│   └── it should revert
+├── when swap fee is above MAX_FEE
+│   └── it should revert
+└── when preconditions are met
+    ├── it emits LOG_CALL event
+    └── it sets swap fee
+
+BPool::setController
+├── when reentrancy lock is set
+│   └── it should revert
+├── when caller is not controller
+│   └── it should revert
+├── when new controller is zero address
+│   └── it should revert
+└── when preconditions are met
+    ├── it emits LOG_CALL event
+    └── it sets new controller
+
 BPool::isFinalized
 ├── when pool is finalized
 │   └── it returns true
