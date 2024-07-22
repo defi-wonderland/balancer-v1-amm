@@ -25,7 +25,7 @@ contract BPool is BPoolBase, BMath {
   // sP = 10 / 20 = 0.5e18
   // sPf = (10 / 20) * (1 / (1-0.1)) = 0.555...e18 (round-up)
   uint256 public spotPriceWithoutFee = 0.5e18;
-  uint256 public spotPrice = bmul(spotPriceWithoutFee, bdiv(BONE, bsub(BONE, swapFee)));
+  uint256 public spotPrice = 0.555555555555555556e18;
 
   function setUp() public virtual override {
     super.setUp();
@@ -336,8 +336,7 @@ contract BPool is BPoolBase, BMath {
     vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceTokenOut));
     vm.expectCall(tokens[1], abi.encodeWithSelector(IERC20.balanceOf.selector));
     // it returns spot price
-    uint256 _spotPrice = 0.555555555555555556e18;
-    assertEq(bPool.getSpotPrice(tokens[0], tokens[1]), _spotPrice);
+    assertEq(bPool.getSpotPrice(tokens[0], tokens[1]), spotPrice);
   }
 
   function test_GetSpotPriceSansFeeRevertWhen_ReentrancyLockIsSet() external {
@@ -367,8 +366,7 @@ contract BPool is BPoolBase, BMath {
     vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceTokenOut));
     vm.expectCall(tokens[1], abi.encodeWithSelector(IERC20.balanceOf.selector));
     // it returns spot price
-    uint256 _spotPrice = 0.5e18;
-    assertEq(bPool.getSpotPriceSansFee(tokens[0], tokens[1]), _spotPrice);
+    assertEq(bPool.getSpotPriceSansFee(tokens[0], tokens[1]), spotPriceWithoutFee);
   }
 
   function test_FinalizeRevertWhen_CallerIsNotController(address _caller) external {
