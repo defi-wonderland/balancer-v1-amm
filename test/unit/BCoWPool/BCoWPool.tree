@@ -1,4 +1,4 @@
-BCoWPool::Finalize
+BCoWPool::_afterFinalize
 ├── when called
 │   ├── it calls approve on every bound token
 │   └── it calls logBCoWPool on the factory

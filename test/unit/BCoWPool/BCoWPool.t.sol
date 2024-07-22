@@ -8,7 +8,7 @@ import {BCoWPoolBase} from './BCoWPoolBase.sol';
 import {IBCoWFactory} from 'interfaces/IBCoWFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
-contract BCoWPoolFinalize is BCoWPoolBase {
+contract BCoWPool_afterFinalize is BCoWPoolBase {
   uint256 public tokenWeight = 1e18;
 
   function setUp() public virtual override {
@@ -29,12 +29,12 @@ contract BCoWPoolFinalize is BCoWPoolBase {
     vm.expectCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     // it calls logBCoWPool on the factory
     vm.expectCall(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()));
-    bCoWPool.finalize();
+    bCoWPool.call__afterFinalize();
   }
 
   function test_WhenFactorysLogBCoWPoolDoesNotRevert() external {
     // it returns
-    bCoWPool.finalize();
+    bCoWPool.call__afterFinalize();
   }
 
   function test_WhenFactorysLogBCoWPoolReverts(bytes memory revertData) external {
@@ -42,6 +42,6 @@ contract BCoWPoolFinalize is BCoWPoolBase {
     // it emits a COWAMMPoolCreated event
     vm.expectEmit(address(bCoWPool));
     emit IBCoWFactory.COWAMMPoolCreated(address(bCoWPool));
-    bCoWPool.finalize();
+    bCoWPool.call__afterFinalize();
   }
 }
