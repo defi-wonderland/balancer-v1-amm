@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+import {IERC20} from '@openzeppelin/contracts/interfaces/IERC20.sol';
 import {IERC20Errors} from '@openzeppelin/contracts/interfaces/draft-IERC6093.sol';
 import {Test} from 'forge-std/Test.sol';
 import {MockBToken} from 'test/smock/MockBToken.sol';
@@ -44,6 +45,10 @@ contract BToken is Test {
   }
 
   function test_IncreaseApprovalWhenCalled() external {
+    // it emits Approval event
+    vm.expectEmit();
+    emit IERC20.Approval(caller, spender, 200e18);
+
     bToken.increaseApproval(spender, 100e18);
     // it increases spender approval
     assertEq(bToken.allowance(caller, spender), 200e18);
@@ -69,13 +74,27 @@ contract BToken is Test {
   }
 
   function test_DecreaseApprovalWhenCalled() external {
+    // it emits Approval event
+    vm.expectEmit();
+    emit IERC20.Approval(caller, spender, 50e18);
+
     bToken.decreaseApproval(spender, 50e18);
     // it decreases spender approval
     assertEq(bToken.allowance(caller, spender), 50e18);
   }
 
+  function test__pushRevertWhen_ContractDoesNotHaveEnoughBalance() external {
+    // it should revert
+    vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(bToken), 0, 50e18));
+    bToken.call__push(target, 50e18);
+  }
+
   function test__pushWhenCalled() external {
     deal(address(bToken), address(bToken), initialBalance);
+    // it emits Transfer event
+    vm.expectEmit();
+    emit IERC20.Transfer(address(bToken), target, 50e18);
+
     bToken.call__push(target, 50e18);
 
     // it transfers tokens to recipient
@@ -83,8 +102,18 @@ contract BToken is Test {
     assertEq(bToken.balanceOf(target), 50e18);
   }
 
+  function test__pullRevertWhen_TargetDoesNotHaveEnoughBalance() external {
+    // it should revert
+    vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, target, 0, 50e18));
+    bToken.call__pull(target, 50e18);
+  }
+
   function test__pullWhenCalled() external {
     deal(address(bToken), address(target), initialBalance);
+    // it emits Transfer event
+    vm.expectEmit();
+    emit IERC20.Transfer(target, address(bToken), 50e18);
+
     bToken.call__pull(target, 50e18);
 
     // it transfers tokens from sender
