@@ -27,7 +27,7 @@ contract BCoWPool is BCoWPoolBase {
     vm.mockCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), abi.encode(true));
   }
 
-  function test__afterFinalizeWhenPreconditionsAreMet() external {
+  function test__afterFinalizeWhenCalled() external {
     // it calls approve on every bound token
     vm.expectCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     vm.expectCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
