@@ -27,6 +27,7 @@ contract BCoWHelperTest is Test {
   uint256[] priceVector = new uint256[](2);
 
   uint256 constant VALID_WEIGHT = 1e18;
+  uint256 constant BASE = 1e18;
 
   function setUp() external {
     factory = new MockBCoWFactory(address(0), bytes32(0));
@@ -159,11 +160,14 @@ contract BCoWHelperTest is Test {
     assertEq(keccak256(validSig), keccak256(sig));
   }
 
-  function test_OrderGivenAPriceVector(uint256 priceSkewness, uint256 balanceToken0, uint256 balanceToken1) external {
+  function test_OrderGivenAPriceSkewenessToToken0(
+    uint256 priceSkewness,
+    uint256 balanceToken0,
+    uint256 balanceToken1
+  ) external {
     // skew the price by max 50% (more could result in reverts bc of max swap ratio)
-    uint256 base = 1e18;
-    priceSkewness = bound(priceSkewness, 0.5e18, 1.5e18);
-    vm.assume(priceSkewness != base); // avoids no-skewness revert
+    // avoids no-skewness revert
+    priceSkewness = bound(priceSkewness, BASE + 1, 1.5e18);
 
     balanceToken0 = bound(balanceToken0, 1e18, 1e36);
     balanceToken1 = bound(balanceToken1, 1e18, 1e36);
@@ -172,13 +176,44 @@ contract BCoWHelperTest is Test {
 
     uint256[] memory prices = new uint256[](2);
     prices[0] = balanceToken1;
-    prices[1] = balanceToken0 * priceSkewness / base;
+    prices[1] = balanceToken0 * priceSkewness / BASE;
 
     // it should return a valid pool order
     (GPv2Order.Data memory ammOrder,,,) = helper.order(address(pool), prices);
 
-    assertEq(address(ammOrder.buyToken), priceSkewness > 1e18 ? tokens[0] : tokens[1]);
+    // it should buy token0
+    assertEq(address(ammOrder.buyToken), tokens[0]);
 
+    // it should return a valid pool order
+    // this call should not revert
+    pool.verify(ammOrder);
+  }
+
+  function test_OrderGivenAPriceSkewenessToToken1(
+    uint256 priceSkewness,
+    uint256 balanceToken0,
+    uint256 balanceToken1
+  ) external {
+    // skew the price by max 50% (more could result in reverts bc of max swap ratio)
+    // avoids no-skewness revert
+    priceSkewness = bound(priceSkewness, 0.5e18, BASE - 1);
+
+    balanceToken0 = bound(balanceToken0, 1e18, 1e36);
+    balanceToken1 = bound(balanceToken1, 1e18, 1e36);
+    vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceToken0));
+    vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceToken1));
+
+    uint256[] memory prices = new uint256[](2);
+    prices[0] = balanceToken1;
+    prices[1] = balanceToken0 * priceSkewness / BASE;
+
+    // it should return a valid pool order
+    (GPv2Order.Data memory ammOrder,,,) = helper.order(address(pool), prices);
+
+    // it should buy token1
+    assertEq(address(ammOrder.buyToken), tokens[1]);
+
+    // it should return a valid pool order
     // this call should not revert
     pool.verify(ammOrder);
   }
