@@ -6,6 +6,8 @@ import {IBPool} from 'interfaces/IBPool.sol';
 import {MockBPool} from 'test/smock/MockBPool.sol';
 
 contract BPool is BPoolBase {
+  uint256 public tokenWeight = 1e18;
+
   function test_ConstructorWhenCalled(address _deployer) external {
     vm.prank(_deployer);
     MockBPool _newBPool = new MockBPool();
@@ -84,9 +86,14 @@ contract BPool is BPoolBase {
 
     // it calls _afterFinalize hook
     bPool.expectCall__afterFinalize();
-    // it mints initial pool supply to controller
+    // it mints initial pool shares
     bPool.expectCall__mintPoolShare(INIT_POOL_SUPPLY);
+    // it sends initial pool shares to controller
     bPool.expectCall__pushPoolShare(address(this), INIT_POOL_SUPPLY);
+    // it emits a LOG_CALL event
+    bytes memory data = abi.encodeCall(IBPool.finalize, ());
+    vm.expectEmit(address(bPool));
+    emit IBPool.LOG_CALL(IBPool.finalize.selector, address(this), data);
 
     bPool.finalize();
     // it finalizes the pool

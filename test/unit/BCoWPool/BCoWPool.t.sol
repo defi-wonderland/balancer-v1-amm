@@ -11,6 +11,20 @@ import {ISettlement} from 'interfaces/ISettlement.sol';
 import {MockBCoWPool} from 'test/manual-smock/MockBCoWPool.sol';
 
 contract BCoWPool is BCoWPoolBase {
+  uint256 public tokenWeight = 1e18;
+
+  function setUp() public virtual override {
+    super.setUp();
+    bCoWPool.set__tokens(tokens);
+    bCoWPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
+    bCoWPool.set__records(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
+
+    vm.mockCall(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()), abi.encode());
+
+    vm.mockCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), abi.encode(true));
+    vm.mockCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), abi.encode(true));
+  }
+
   function test_ConstructorWhenCalled(
     address _settler,
     bytes32 _separator,
@@ -31,21 +45,7 @@ contract BCoWPool is BCoWPoolBase {
     assertEq(pool.APP_DATA(), _appData);
   }
 
-  modifier whenPreconditionsAreMet() {
-    bCoWPool.set__tokens(tokens);
-    bCoWPool.set__records(tokens[0], IBPool.Record({bound: true, index: 0, denorm: tokenWeight}));
-    bCoWPool.set__records(tokens[1], IBPool.Record({bound: true, index: 1, denorm: tokenWeight}));
-    bCoWPool.mock_call__mintPoolShare(INIT_POOL_SUPPLY);
-    bCoWPool.mock_call__pushPoolShare(address(this), INIT_POOL_SUPPLY);
-
-    vm.mockCall(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()), abi.encode());
-
-    vm.mockCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), abi.encode(true));
-    vm.mockCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)), abi.encode(true));
-    _;
-  }
-
-  function test_FinalizeWhenPreconditionsAreMet() external whenPreconditionsAreMet {
+  function test__afterFinalize_WhenCalled() external {
     // it calls approve on every bound token
     vm.expectCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     vm.expectCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
@@ -54,16 +54,16 @@ contract BCoWPool is BCoWPoolBase {
     bCoWPool.finalize();
   }
 
-  function test_FinalizeWhenFactorysLogBCoWPoolDoesNotRevert() external whenPreconditionsAreMet {
+  function test__afterFinalize_WhenFactorysLogBCoWPoolDoesNotRevert() external {
     // it returns
-    bCoWPool.finalize();
+    bCoWPool.call__afterFinalize();
   }
 
-  function test_FinalizeWhenFactorysLogBCoWPoolReverts(bytes memory revertData) external whenPreconditionsAreMet {
+  function test__afterFinalize_WhenFactorysLogBCoWPoolReverts(bytes memory revertData) external {
     vm.mockCallRevert(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()), revertData);
     // it emits a COWAMMPoolCreated event
     vm.expectEmit(address(bCoWPool));
     emit IBCoWFactory.COWAMMPoolCreated(address(bCoWPool));
-    bCoWPool.finalize();
+    bCoWPool.call__afterFinalize();
   }
 }
