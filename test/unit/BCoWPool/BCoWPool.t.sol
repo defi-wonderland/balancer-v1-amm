@@ -34,6 +34,10 @@ contract BCoWPool is BCoWPoolBase {
     assumeNotForgeAddress(_settler);
     vm.mockCall(_settler, abi.encodePacked(ISettlement.domainSeparator.selector), abi.encode(_separator));
     vm.mockCall(_settler, abi.encodePacked(ISettlement.vaultRelayer.selector), abi.encode(_relayer));
+    // it should query the solution settler for the domain separator
+    vm.expectCall(_settler, abi.encodePacked(ISettlement.domainSeparator.selector));
+    // it should query the solution settler for the vault relayer
+    vm.expectCall(_settler, abi.encodePacked(ISettlement.vaultRelayer.selector));
     MockBCoWPool pool = new MockBCoWPool(_settler, _appData);
     // it should set the solution settler
     assertEq(address(pool.SOLUTION_SETTLER()), _settler);
