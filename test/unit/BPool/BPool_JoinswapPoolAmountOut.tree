@@ -3,7 +3,7 @@ BPool::JoinswapPoolAmountOut
 │   └── it should revert
 ├── when pool is not finalized
 │   └── it should revert
-├── when token is not bound
+├── when token in is not bound
 │   └── it should revert
 ├── when token amount in exceeds max ratio
 │   └── it should revert 
@@ -12,9 +12,9 @@ BPool::JoinswapPoolAmountOut
 └── when preconditions are met
     ├── it emits LOG_CALL event
     ├── it sets the reentrancy lock
-    ├── it queries the contracts token in balance
-    ├── it emits LOG_JOIN event for token
+    ├── it queries token in balance
+    ├── it emits LOG_JOIN event for token in
     ├── it mints the pool shares
     ├── it sends pool shares to caller
-    ├── it calls _pullUnderlying for token
+    ├── it calls _pullUnderlying for token in
     └── it clears the reentrancy lock

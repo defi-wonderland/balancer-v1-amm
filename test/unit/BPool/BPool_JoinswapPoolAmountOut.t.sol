@@ -46,7 +46,7 @@ contract BPoolJoinswapPoolAmountOut is BPoolBase, BNum {
     bPool.joinswapPoolAmountOut(tokenIn, poolAmountOut, maxTokenIn);
   }
 
-  function test_RevertWhen_TokenIsNotBound() external {
+  function test_RevertWhen_TokenInIsNotBound() external {
     // it should revert
     vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
     bPool.joinswapPoolAmountOut(makeAddr('unknown token'), poolAmountOut, maxTokenIn);
@@ -70,9 +70,9 @@ contract BPoolJoinswapPoolAmountOut is BPoolBase, BNum {
   function test_WhenPreconditionsAreMet() external {
     // it sets reentrancy lock
     bPool.expectCall__setLock(_MUTEX_TAKEN);
-    // it queries the contracts token in balance
+    // it queries token in balance
     vm.expectCall(tokenIn, abi.encodeCall(IERC20.balanceOf, (address(bPool))));
-    // it calls _pullUnderlying for token
+    // it calls _pullUnderlying for token in
     bPool.mock_call__pullUnderlying(tokenIn, address(this), maxTokenIn);
     bPool.expectCall__pullUnderlying(tokenIn, address(this), maxTokenIn);
     // it mints the pool shares
@@ -84,7 +84,7 @@ contract BPoolJoinswapPoolAmountOut is BPoolBase, BNum {
       abi.encodeWithSelector(IBPool.joinswapPoolAmountOut.selector, tokenIn, poolAmountOut, maxTokenIn);
     vm.expectEmit();
     emit IBPool.LOG_CALL(IBPool.joinswapPoolAmountOut.selector, address(this), _data);
-    // it emits LOG_JOIN event for token
+    // it emits LOG_JOIN event for token in
     vm.expectEmit();
     emit IBPool.LOG_JOIN(address(this), tokenIn, maxTokenIn);
     bPool.joinswapPoolAmountOut(tokenIn, poolAmountOut, maxTokenIn);
