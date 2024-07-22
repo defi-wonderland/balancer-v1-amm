@@ -50,6 +50,12 @@ contract BPoolExitSwapPoolAmountIn is BPoolBase, BMath {
     bPool.exitswapPoolAmountIn(tokenOut, poolAmountIn, expectedAmountOut);
   }
 
+  function test_RevertWhen_TokenIsNotBound() external {
+    // it should revert
+    vm.expectRevert(IBPool.BPool_TokenNotBound.selector);
+    bPool.exitswapPoolAmountIn(makeAddr('unknown token'), poolAmountIn, expectedAmountOut);
+  }
+
   function test_RevertWhen_TotalSupplyIsZero() external {
     bPool.call__burnPoolShare(INIT_POOL_SUPPLY);
     // it should revert
@@ -91,7 +97,7 @@ contract BPoolExitSwapPoolAmountIn is BPoolBase, BMath {
     bytes memory _data = abi.encodeCall(IBPool.exitswapPoolAmountIn, (tokenOut, poolAmountIn, expectedAmountOut));
     vm.expectEmit();
     emit IBPool.LOG_CALL(IBPool.exitswapPoolAmountIn.selector, address(this), _data);
-    // it emits LOG_EXIT event for every token
+    // it emits LOG_EXIT event for token out
     emit IBPool.LOG_EXIT(address(this), tokenOut, expectedAmountOut);
     // it returns token out amount
     uint256 out = bPool.exitswapPoolAmountIn(tokenOut, poolAmountIn, expectedAmountOut);
