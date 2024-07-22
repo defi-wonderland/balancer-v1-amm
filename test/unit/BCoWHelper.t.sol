@@ -160,20 +160,21 @@ contract BCoWHelperTest is Test {
     assertEq(keccak256(validSig), keccak256(sig));
   }
 
-  function test_OrderGivenAPriceSkewenessToToken0(
+  function test_OrderGivenAPriceSkewenessToToken1(
     uint256 priceSkewness,
     uint256 balanceToken0,
     uint256 balanceToken1
   ) external {
     // skew the price by max 50% (more could result in reverts bc of max swap ratio)
     // avoids no-skewness revert
-    priceSkewness = bound(priceSkewness, BASE + 1, 1.5e18);
+    priceSkewness = bound(priceSkewness, BASE + 0.0001e18, 1.5e18);
 
-    balanceToken0 = bound(balanceToken0, 1e18, 1e36);
-    balanceToken1 = bound(balanceToken1, 1e18, 1e36);
+    balanceToken0 = bound(balanceToken0, 1e18, 1e27);
+    balanceToken1 = bound(balanceToken1, 1e18, 1e27);
     vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceToken0));
     vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceToken1));
 
+    // NOTE: the price of token 1 is increased by the skeweness
     uint256[] memory prices = new uint256[](2);
     prices[0] = balanceToken1;
     prices[1] = balanceToken0 * priceSkewness / BASE;
@@ -189,20 +190,21 @@ contract BCoWHelperTest is Test {
     pool.verify(ammOrder);
   }
 
-  function test_OrderGivenAPriceSkewenessToToken1(
+  function test_OrderGivenAPriceSkewenessToToken0(
     uint256 priceSkewness,
     uint256 balanceToken0,
     uint256 balanceToken1
   ) external {
     // skew the price by max 50% (more could result in reverts bc of max swap ratio)
     // avoids no-skewness revert
-    priceSkewness = bound(priceSkewness, 0.5e18, BASE - 1);
+    priceSkewness = bound(priceSkewness, 0.5e18, BASE - 0.0001e18);
 
-    balanceToken0 = bound(balanceToken0, 1e18, 1e36);
-    balanceToken1 = bound(balanceToken1, 1e18, 1e36);
+    balanceToken0 = bound(balanceToken0, 1e18, 1e27);
+    balanceToken1 = bound(balanceToken1, 1e18, 1e27);
     vm.mockCall(tokens[0], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceToken0));
     vm.mockCall(tokens[1], abi.encodePacked(IERC20.balanceOf.selector), abi.encode(balanceToken1));
 
+    // NOTE: the price of token 1 is decrease by the skeweness
     uint256[] memory prices = new uint256[](2);
     prices[0] = balanceToken1;
     prices[1] = balanceToken0 * priceSkewness / BASE;

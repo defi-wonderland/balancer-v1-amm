@@ -25,9 +25,9 @@ BCoWHelperTest::order
 │   ├── it should return a commit pre-interaction
 │   ├── it should return an empty post-interaction
 │   └── it should return a valid signature
-├── given a price skeweness to token0
+├── given a price skeweness to token1
 │   ├── it should buy token0
 │   └── it should return a valid pool order
-└── given a price skeweness to token1
+└── given a price skeweness to token0
     ├── it should buy token1
     └── it should return a valid pool order
