@@ -21,7 +21,6 @@ contract BPoolExitSwapExternAmountOut is BPoolBase, BNum {
 
   function setUp() public virtual override {
     super.setUp();
-    super.setUp();
     tokenOut = tokens[1];
     bPool.set__records(tokenOut, IBPool.Record({bound: true, index: 0, denorm: tokenOutWeight}));
     bPool.set__tokens(tokens);
