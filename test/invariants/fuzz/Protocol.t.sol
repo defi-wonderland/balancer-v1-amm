@@ -26,6 +26,7 @@ contract FuzzProtocol is EchidnaTest {
 
   uint256 ghost_bptMinted;
   uint256 ghost_bptBurned;
+  mapping(FuzzERC20 => uint256) ghost_amountDirectlyTransfered;
 
   constructor() {
     solutionSettler = address(new MockSettler());
@@ -231,7 +232,7 @@ contract FuzzProtocol is EchidnaTest {
   /// @custom:property-id 5
   /// @custom:property the amount spent can never be greater than max amount in
   /// @custom:property-id 14
-  /// @custom:property an exact amount out is earned only if the amount in calculated in bmath is transfere
+  /// @custom:property an exact amount out is earned only if the amount in calculated in bmath is transfered
   /// @custom:property-id 15
   /// @custom:property there can't be any amount out for a 0 amount in
   /// @custom:property-id 19
@@ -277,6 +278,12 @@ contract FuzzProtocol is EchidnaTest {
       uint256 _balanceInAfter = tokens[_tokenIn].balanceOf(currentCaller);
       uint256 _balanceOutAfter = tokens[_tokenOut].balanceOf(currentCaller);
 
+      // Take into account previous direct transfers (only way to get free token)
+      uint256 _tokenOutInExcess = ghost_amountDirectlyTransfered[tokens[_tokenOut]] > _amountOut
+        ? _amountOut
+        : ghost_amountDirectlyTransfered[tokens[_tokenOut]];
+      ghost_amountDirectlyTransfered[tokens[_tokenOut]] -= _tokenOutInExcess;
+
       // 5
       assert(_balanceInBefore - _balanceInAfter <= _maxAmountIn);
 
@@ -285,14 +292,25 @@ contract FuzzProtocol is EchidnaTest {
       else assert(_balanceOutAfter == _balanceOutBefore - _inComputed + _amountOut);
 
       // 15
-      if (_balanceInBefore == _balanceInAfter) assert(_balanceOutBefore == _balanceOutAfter);
+      if (_balanceInBefore == _balanceInAfter) assert(_balanceOutBefore + _tokenOutInExcess == _balanceOutAfter);
 
       // 19
       assert(pool.isFinalized());
     } catch {
+      uint256 _spotBefore = bmath.calcSpotPrice(
+        tokens[_tokenIn].balanceOf(address(pool)),
+        pool.getDenormalizedWeight(address(tokens[_tokenIn])),
+        tokens[_tokenOut].balanceOf(address(pool)),
+        pool.getDenormalizedWeight(address(tokens[_tokenOut])),
+        bconst.MIN_FEE()
+      );
+
+      uint256 _outRatio = bnum.bmul_exposed(tokens[_tokenOut].balanceOf(address(pool)), bconst.MAX_OUT_RATIO());
+
       assert(
-        _inComputed > _maxAmountIn
-          || _amountOut > bnum.bmul_exposed(tokens[_tokenOut].balanceOf(address(pool)), bconst.MAX_OUT_RATIO())
+        _inComputed > _maxAmountIn // 5
+          || _amountOut > _outRatio // 14
+          || _spotBefore > bnum.bdiv_exposed(_inComputed, _amountOut)
       );
     }
   }
@@ -419,6 +437,8 @@ contract FuzzProtocol is EchidnaTest {
     );
 
     assert(_redeemedAmountAfter >= _redeemedAmountBeforeTransfer);
+
+    ghost_amountDirectlyTransfered[_token] += _amountToTransfer;
   }
 
   /// @custom:property-id 18
