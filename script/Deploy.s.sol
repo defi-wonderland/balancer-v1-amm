@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 import {BCoWFactory} from 'contracts/BCoWFactory.sol';
+import {BCoWHelper} from 'contracts/BCoWHelper.sol';
 import {BFactory} from 'contracts/BFactory.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 
@@ -36,5 +37,7 @@ contract DeployBCoWFactory is DeployBaseFactory {
       solutionSettler: _bCoWFactoryDeploymentParams.settlement,
       appData: _bCoWFactoryDeploymentParams.appData
     });
+
+    new BCoWHelper(address(bFactory));
   }
 }
