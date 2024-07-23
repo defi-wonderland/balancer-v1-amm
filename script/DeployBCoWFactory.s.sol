@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {BCoWFactory} from 'contracts/BCoWFactory.sol';
 import {Script} from 'forge-std/Script.sol';

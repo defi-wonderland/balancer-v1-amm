@@ -25,13 +25,13 @@
 | when a hash has been commited, only this order can be settled                               | High level          | 23  | [ ]    | [ ]     |
 | BToken should not break the ToB ERC20 properties**                                          | High level          | 24  |        | [x]     |
 
-(*) Bundled with 24
+> (*) Bundled with 24
 
-(**) [Trail of Bits ERC20 properties](https://github.com/crytic/properties?tab=readme-ov-file#erc20-tests)
+> (**) [Trail of Bits ERC20 properties](https://github.com/crytic/properties?tab=readme-ov-file#erc20-tests)
 
 [ ] planed to implement and still to do
 <br>[x] implemented and tested 
-<br>:( implemented but judged as incorrect (tool limitation, etc) 
+<br>:( implemented but test not passing due to an external factor (tool limitation - eg halmos max unrolling loop, etc) 
 <br>empty not implemented and will not be (design, etc)
 
 # Unit-test properties for the math libs (BNum and BMath):
@@ -85,6 +85,7 @@ bpow should be distributive over mult of the same base x^a * x^b == x^(a+b)
 bpow should be distributive over mult of the same exp  a^x * b^x == (a*b)^x
 power of a power should mult the exp (x^a)^b == x^(a*b)
 
+## Untested (precision issues in test settingsq)
 calcOutGivenIn should be inv with calcInGivenOut
 calcPoolOutGivenSingleIn should be inv with calcSingleInGivenPoolOut
 calcSingleOutGivenPoolIn should be inv with calcPoolInGivenSingleOut

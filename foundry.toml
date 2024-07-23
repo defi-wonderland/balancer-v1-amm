@@ -9,10 +9,10 @@ multiline_func_header = 'params_first'
 sort_imports = true
 
 [profile.default]
-solc_version = '0.8.23'
+solc_version = '0.8.25'
 libs = ["node_modules", "lib"]
 optimizer_runs = 500
-evm_version = 'cancun'
+evm_version = 'shanghai'
 fs_permissions = [{ access = "read-write", path = ".forge-snapshots/"}]
 # 2018: function can be view, so far only caused by mocks
 # 2394: solc insists on reporting on every transient storage use

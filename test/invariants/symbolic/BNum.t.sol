@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {HalmosTest} from '../helpers/AdvancedTestsUtils.sol';
 import {BNum} from 'contracts/BNum.sol';

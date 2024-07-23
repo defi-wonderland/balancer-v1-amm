@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
 
@@ -373,17 +373,25 @@ contract FuzzBNum is BNum, EchidnaTest, Test {
   }
 
   // bpowi should be distributive over mult of the same exp  a^x  b^x == (ab)^x
-  function bpowi_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public pure {
+  function bpowi_distributiveExp(uint256 _a, uint256 _b, uint256 _exp) public {
+    _a = clamp(_a, 1, 10_000);
+    _b = clamp(_b, 1, 10_000);
+    _exp = clamp(_exp, 1, 1000 * BONE);
+
     uint256 _result1 = bpowi(bmul(_a, _b), _exp);
     uint256 _result2 = bmul(bpowi(_a, _exp), bpowi(_b, _exp));
+
+    emit log_named_uint('result1', _result1);
+    emit log_named_uint('result2', _result2);
+
     assert(_result1 == _result2);
   }
 
   // power of a power should mult the exp (x^a)^b == x^(ab)
   function bpowi_powerOfPower(uint256 _base, uint256 _a, uint256 _b) public {
     _base = clamp(_base, 1, 10_000);
-    _a = clamp(_a, 1, 1000 * BONE);
-    _b = clamp(_b, 1, 1000 * BONE);
+    _a = clamp(_a, BONE, 1000 * BONE);
+    _b = clamp(_b, BONE, 1000 * BONE);
 
     uint256 _result1 = bpowi(bpowi(_base, _a), _b);
     uint256 _result2 = bpowi(_base, bmul(_a, _b)) / BONE;

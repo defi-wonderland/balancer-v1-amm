@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {EchidnaTest, FuzzERC20} from '../helpers/AdvancedTestsUtils.sol';
 
@@ -290,7 +290,10 @@ contract FuzzProtocol is EchidnaTest {
       // 19
       assert(pool.isFinalized());
     } catch {
-      assert(_inComputed > _maxAmountIn);
+      assert(
+        _inComputed > _maxAmountIn
+          || _amountOut > bnum.bmul_exposed(tokens[_tokenOut].balanceOf(address(pool)), bconst.MAX_OUT_RATIO())
+      );
     }
   }
 

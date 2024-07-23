@@ -1,4 +1,4 @@
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
 import {CryticERC20ExternalBasicProperties} from
