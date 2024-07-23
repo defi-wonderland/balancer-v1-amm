@@ -376,7 +376,7 @@ contract BPool is BPoolBase, BMath {
   }
 
   function test_FinalizeRevertWhen_CallerIsNotController(address _caller) external {
-    vm.assume(_caller != address(this));
+    vm.assume(_caller != controller);
     vm.startPrank(_caller);
     // it should revert
     vm.expectRevert(IBPool.BPool_CallerIsNotController.selector);
