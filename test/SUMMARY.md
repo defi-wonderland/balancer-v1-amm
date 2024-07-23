@@ -1,22 +1,15 @@
 # Tests Summary
 
-## Interdependencies
-BCoWFactory deploys a bcowpool
-BCoWPool is a bpool which adds signature validation
-Factory deploys a pool and can "collect" from the pool
-Pool inherit btoken (which represents a LP) and bmath
-Bmath uses bnum
+## Unit tests
+Our unit tests are covering every branches, using the branched-tree technique with [Bulloak](https://github.com/alexfertel/bulloak).
 
-# Unit tests
-Our unit tests are covering every branches, using the branched-tree technique with Bulloak.
-
-# Integration tests
+## Integration tests
 Integration tests are covering various happy paths and not-so-happy paths, on a mainnet fork.
 
-# Property tests
+## Property tests
 We identified 24 properties. We challenged these either in a long-running fuzzing campaign or via symbolic execution (for 8 chosen properties).
 
-## Fuzzing campaign
+### Fuzzing campaign
 
 We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath). BMath properties are currently not triggered in CI, due to various rounding errors, and should be further validated.
 
@@ -24,12 +17,12 @@ Limitations/future improvements
 Currently, the swap logic are tested against the swap in/out functions (and, in a similar way, liquidity management via the join/exit function). The combined equivalent (joinswapExternAmountIn, joinswapPoolAmountOut, etc) should be tested too.
 BMath properties are currently not tested and should be refactored to quantify the rounding errors.
 
-## Formal verification: Symbolic Execution
-We managed to test 10 properties out of the 23. Properties not tested are either not easily challenged with symbolic execution (statefullness needed) or limited by Halmos itself (hitting loops in the implementation for instance).
+### Formal verification: Symbolic Execution
+We managed to test 10 properties out of the 23. Properties not tested are either not easily challenged with symbolic execution (statefullness needed) or limited by Halmos itself (hitting loop unrolling boundaries in the implementation for instance).
 
-Additional properties from BNum were tested independently too (with severe limitations due to loop unrolling boundaries).
+Additional properties from BNum were tested independently too (with severe limitations due to previously mentionned loop unrolling boundaries).
 
-## Notes
+# Notes
 The bmath corresponding equations are:
 
 `Spot price:`
