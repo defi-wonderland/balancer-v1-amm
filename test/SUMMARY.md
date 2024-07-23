@@ -1,20 +1,5 @@
 # Tests Summary
 
-There are 9 solidity files, totalling 939 sloc.
-
-| filename                      | language | code | comment | blank | total |
-| :---------------------------- | :------- | :--- | :------ | :---- | :---- |
-| src/contracts/BCoWConst.sol   | solidity | 4    | 10      | 2     | 16    |
-| src/contracts/BCoWFactory.sol | solidity | 20   | 13      | 7     | 40    |
-| src/contracts/BCoWPool.sol    | solidity | 90   | 41      | 24    | 155   |
-| src/contracts/BConst.sol      | solidity | 23   | 29      | 9     | 61    |
-| src/contracts/BFactory.sol    | solidity | 44   | 17      | 11    | 72    |
-| src/contracts/BMath.sol       | solidity | 128  | 156     | 18    | 302   |
-| src/contracts/BNum.sol        | solidity | 133  | 40      | 28    | 201   |
-| src/contracts/BPool.sol       | solidity | 473  | 104     | 107   | 684   |
-| src/contracts/BToken.sol      | solidity | 24   | 27      | 7     | 58    |
-
-
 ## Interdependencies
 BCoWFactory deploys a bcowpool
 BCoWPool is a bpool which adds signature validation
@@ -23,27 +8,26 @@ Pool inherit btoken (which represents a LP) and bmath
 Bmath uses bnum
 
 # Unit tests
-Current coverage is XXX % for the 9 contracts, accross XXX tests. All tests are passing. Unit tests are writtent using the branched-tree technique and Bulloak as templating tool.
-
-< TABLE >
+Our unit tests are covering every branches, using the branched-tree technique with Bulloak.
 
 # Integration tests
+Integration tests are covering various happy paths and not-so-happy paths, on a mainnet fork.
 
 # Property tests
-We identified 24 properties. We challenged these either in a long-running fuzzing campaign (targeting 23 of these in XXX runs) or via symbolic execution (for 8 properties).
+We identified 24 properties. We challenged these either in a long-running fuzzing campaign or via symbolic execution (for 8 chosen properties).
 
 ## Fuzzing campaign
 
-We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath), insuring the operation properties were holding. 
+We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath). BMath properties are currently not triggered in CI, due to various rounding errors, and should be further validated.
 
 Limitations/future improvements
 Currently, the swap logic are tested against the swap in/out functions (and, in a similar way, liquidity management via the join/exit function). The combined equivalent (joinswapExternAmountIn, joinswapPoolAmountOut, etc) should be tested too.
+BMath properties are currently not tested and should be refactored to quantify the rounding errors.
 
 ## Formal verification: Symbolic Execution
 We managed to test 10 properties out of the 23. Properties not tested are either not easily challenged with symbolic execution (statefullness needed) or limited by Halmos itself (hitting loops in the implementation for instance).
 
 Additional properties from BNum were tested independently too (with severe limitations due to loop unrolling boundaries).
-
 
 ## Notes
 The bmath corresponding equations are:
