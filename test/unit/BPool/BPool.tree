@@ -147,7 +147,9 @@ BPool::_pushUnderlying
 │   └── it should revert
 ├── when underlying token doesnt return a value
 │   └── it assumes transfer success
-├── when underlying token reverts
+├── when underlying token reverts without data
+│   └── it should revert // with FailedInnerCall
+├── when underlying token reverts with data
 │   └── it should revert // with same error data
 └── when underlying token returns true
     └── it calls underlying transfer
@@ -157,7 +159,9 @@ BPool::_pullUnderlying
 │   └── it should revert
 ├── when underlying token doesnt return a value
 │   └── it assumes transferFrom success
-├── when underlying token reverts
+├── when underlying token reverts without data
+│   └── it should revert // with FailedInnerCall
+├── when underlying token reverts with data
 │   └── it should revert // with same error data
 └── when underlying token returns true
     └── it calls underlying transferFrom

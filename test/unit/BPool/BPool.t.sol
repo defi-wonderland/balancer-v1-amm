@@ -5,6 +5,7 @@ import {BPoolBase} from './BPoolBase.sol';
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 
 import {BMath} from 'contracts/BMath.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
@@ -446,13 +447,25 @@ contract BPool is BPoolBase, BMath {
     bPool.call__pushUnderlying(transferredToken, transferRecipient, transferredAmount);
   }
 
-  function test__pushUnderlyingRevertWhen_UnderlyingTokenReverts(bytes memory errorData) external {
-    // it should revert
+  function test__pushUnderlyingRevertWhen_UnderlyingTokenRevertsWithoutData() external {
+    // it should revert with FailedInnerCall
+    vm.mockCallRevert(
+      transferredToken,
+      abi.encodeWithSelector(IERC20.transfer.selector, transferRecipient, transferredAmount),
+      abi.encode()
+    );
+    vm.expectRevert(Address.FailedInnerCall.selector);
+    bPool.call__pushUnderlying(transferredToken, transferRecipient, transferredAmount);
+  }
+
+  function test__pushUnderlyingRevertWhen_UnderlyingTokenRevertsWithData(bytes memory errorData) external {
+    vm.assume(keccak256(errorData) != keccak256(bytes('')));
     vm.mockCallRevert(
       transferredToken,
       abi.encodeWithSelector(IERC20.transfer.selector, transferRecipient, transferredAmount),
       errorData
     );
+    // it should revert with same error data
     vm.expectRevert(errorData);
     bPool.call__pushUnderlying(transferredToken, transferRecipient, transferredAmount);
   }
@@ -492,13 +505,25 @@ contract BPool is BPoolBase, BMath {
     bPool.call__pullUnderlying(transferredToken, transferFromSpender, transferredAmount);
   }
 
-  function test__pullUnderlyingRevertWhen_UnderlyingTokenReverts(bytes memory errorData) external {
+  function test__pullUnderlyingRevertWhen_UnderlyingTokenRevertsWithoutData() external {
+    vm.mockCallRevert(
+      transferredToken,
+      abi.encodeWithSelector(IERC20.transferFrom.selector, transferFromSpender, address(bPool), transferredAmount),
+      abi.encode()
+    );
+    // it should revert with FailedInnerCall
+    vm.expectRevert(Address.FailedInnerCall.selector);
+    bPool.call__pullUnderlying(transferredToken, transferFromSpender, transferredAmount);
+  }
+
+  function test__pullUnderlyingRevertWhen_UnderlyingTokenRevertsWithData(bytes memory errorData) external {
+    vm.assume(keccak256(errorData) != keccak256(bytes('')));
     vm.mockCallRevert(
       transferredToken,
       abi.encodeWithSelector(IERC20.transferFrom.selector, transferFromSpender, address(bPool), transferredAmount),
       errorData
     );
-    // it should revert
+    // it should revert with same error data
     vm.expectRevert(errorData);
     bPool.call__pullUnderlying(transferredToken, transferFromSpender, transferredAmount);
   }
