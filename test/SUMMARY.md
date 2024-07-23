@@ -1,4 +1,8 @@
-# Tests Summary
+# Tests Summary 
+
+## Warning
+The repo is using solc 0.8.25, which compiles to the Cancun EVM version by default. Unfortunately, the hevm has no implementation of this EVM version ([or not yet](https://github.com/ethereum/hevm/issues/469#issuecomment-2220677206)).
+Solc using a mcopy opcode somewhere, the property tests are run on Shanghai for now (at least until the hevm catches up), preventing this branch to be merged with the main one.
 
 ## Unit tests
 Our unit tests are covering every branches, using the branched-tree technique with [Bulloak](https://github.com/alexfertel/bulloak).
