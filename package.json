@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "Balancer CoW AMM",
-  "homepage": "https://github.com/balancer-labs/cow-amm#readme",
+  "homepage": "https://github.com/balancer/cow-amm#readme",
   "bugs": {
-    "url": "https://github.com/balancer-labs/cow-amm/issues"
+    "url": "https://github.com/balancer/cow-amm/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/balancer-labs/cow-amm.git"
+    "url": "git+https://github.com/balancer/cow-amm.git"
   },
   "license": "GPL-3.0-or-later",
   "scripts": {
