@@ -1,30 +1,32 @@
 {
-  "name": "balancer-core",
-  "version": "0.0.7",
+  "name": "balancer-cow-amm",
+  "version": "1.0.0",
   "private": true,
-  "description": "Balancer Core Contracts and ABI",
-  "homepage": "https://github.com/balancer-labs/balancer-core#readme",
+  "description": "Balancer CoW AMM",
+  "homepage": "https://github.com/balancer/cow-amm#readme",
   "bugs": {
-    "url": "https://github.com/balancer-labs/balancer-core/issues"
+    "url": "https://github.com/balancer/cow-amm/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/balancer-labs/balancer-core.git"
+    "url": "git+https://github.com/balancer/cow-amm.git"
   },
-  "license": "GPL-3.0-only",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "forge build",
     "build:optimized": "FOUNDRY_PROFILE=optimized forge build",
     "coverage": "forge coverage --match-path 'test/unit/**'",
-    "deploy:bcowfactory:mainnet": "bash -c 'source .env && forge script DeployBCoWFactory -vvvvv --rpc-url $MAINNET_RPC --broadcast --chain mainnet --private-key $MAINNET_DEPLOYER_PK --verify --etherscan-api-key $ETHERSCAN_API_KEY'",
-    "deploy:bcowfactory:testnet": "bash -c 'source .env && forge script DeployBCoWFactory -vvvvv --rpc-url $SEPOLIA_RPC --broadcast --chain sepolia --private-key $SEPOLIA_DEPLOYER_PK --verify --etherscan-api-key $ETHERSCAN_API_KEY'",
-    "deploy:bfactory:mainnet": "bash -c 'source .env && forge script DeployBFactory -vvvvv --rpc-url $MAINNET_RPC --broadcast --chain mainnet --private-key $MAINNET_DEPLOYER_PK --verify --etherscan-api-key $ETHERSCAN_API_KEY'",
-    "deploy:bfactory:testnet": "bash -c 'source .env && forge script DeployBFactory -vvvvv --rpc-url $SEPOLIA_RPC --broadcast --chain sepolia --private-key $SEPOLIA_DEPLOYER_PK --verify --etherscan-api-key $ETHERSCAN_API_KEY'",
+    "deploy:bcowfactory:mainnet": "forge script DeployBCoWFactory -vvvvv --rpc-url $MAINNET_RPC --broadcast --chain mainnet --private-key $MAINNET_DEPLOYER_PK --verify",
+    "deploy:bcowfactory:testnet": "forge script DeployBCoWFactory -vvvvv --rpc-url $SEPOLIA_RPC --broadcast --chain sepolia --private-key $SEPOLIA_DEPLOYER_PK --verify",
+    "deploy:bfactory:mainnet": "forge script DeployBFactory -vvvvv --rpc-url $MAINNET_RPC --broadcast --chain mainnet --private-key $MAINNET_DEPLOYER_PK --verify",
+    "deploy:bfactory:testnet": "forge script DeployBFactory -vvvvv --rpc-url $SEPOLIA_RPC --broadcast --chain sepolia --private-key $SEPOLIA_DEPLOYER_PK --verify",
     "lint:bulloak": "find test/unit -name '*.tree' | xargs bulloak check",
     "lint:check": "solhint 'src/**/*.sol' 'test/**/*.sol' 'script/**/*.sol' && forge fmt --check",
     "lint:fix": "solhint --fix 'src/**/*.sol' 'test/**/*.sol' 'script/**/*.sol' && sort-package-json && forge fmt",
     "lint:natspec": "npx @defi-wonderland/natspec-smells --config natspec-smells.config.js",
     "prepare": "husky install",
+    "script:mainnet": "forge script MainnetScript -vvvvv --rpc-url $MAINNET_RPC --broadcast --chain mainnet --private-key $MAINNET_DEPLOYER_PK --verify",
+    "script:testnet": "forge script TestnetScript -vvvvv --rpc-url $SEPOLIA_RPC --broadcast --chain sepolia --private-key $SEPOLIA_DEPLOYER_PK --verify",
     "smock": "smock-foundry --contracts src/contracts",
     "test": "yarn test:integration && yarn test:unit",
     "test:integration": "forge test --ffi --match-path 'test/integration/**' -vvv --isolate",
