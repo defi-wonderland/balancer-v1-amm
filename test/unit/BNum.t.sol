@@ -165,8 +165,8 @@ contract BNumTest is Test, BConst {
   }
 
   function test_BmulRevertWhen_PassingAAndBTooBig(uint256 _a, uint256 _b) external {
-    _a = bound(_a, 1, type(uint256).max);
-    _b = bound(_b, _a == 1 ? type(uint256).max : type(uint256).max / _a + 1, type(uint256).max);
+    _a = bound(_a, type(uint256).max / 2, type(uint256).max);
+    _b = bound(_b, type(uint256).max / 2, type(uint256).max);
 
     // it should revert
     //     a * b > uint256 max
@@ -175,14 +175,14 @@ contract BNumTest is Test, BConst {
     bNum.call_bmul(_a, _b);
   }
 
-  function test_BmulRevertWhen_PassingAMulBTooBig(uint256 _a, uint256 _b) external {
-    _a = bound(_a, 1, type(uint256).max);
-    _b = bound(_b, (type(uint256).max - (BONE / 2)) / _a + 1, type(uint256).max);
+  function test_BmulRevertWhen_PassingAMulBTooBig() external {
+    // type(uint256).max - BONE/2  < (2^248 - 1)*2^8 < type(uint256).max
+    uint256 _a = 2 ** 248 - 1;
+    uint256 _b = 2 ** 8;
 
     // it should revert
     //     a * b + BONE / 2 > uint256 max
     vm.expectRevert(BNum.BNum_MulOverflow.selector);
-
     bNum.call_bmul(_a, _b);
   }
 
