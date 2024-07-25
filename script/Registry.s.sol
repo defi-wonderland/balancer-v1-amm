@@ -14,7 +14,6 @@ abstract contract Registry is Params {
   BCoWHelper public bCoWHelper;
 
   constructor(uint256 chainId) Params(chainId) {
-    // TODO: redeploy
     if (chainId == 1) {
       // Ethereum Mainnet
       bCoWFactory = BCoWFactory(0x5AC134DAC7070eFeE8b1C5e3fD0B353922ceD843);
@@ -28,7 +27,6 @@ abstract contract Registry is Params {
       bCoWFactory = BCoWFactory(0xf3916A8567DdC51a60208B35AC542F5226f46773);
       bCoWHelper = BCoWHelper(0x55DDf396886C85e443E0B5A8E42CAA3939E4Cf50);
     } else {
-      // TODO: add Gnosis chain
       revert('Registry: unknown chain ID');
     }
   }

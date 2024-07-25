@@ -19,7 +19,7 @@
     "deploy:bcowfactory:gnosis": "forge script DeployBCoWFactory -vvvvv --rpc-url $GNOSIS --broadcast --chain gnosis --private-key $GNOSIS_DEPLOYER_PK --verify",
     "deploy:bcowfactory:mainnet": "forge script DeployBCoWFactory -vvvvv --rpc-url $MAINNET_RPC --broadcast --chain mainnet --private-key $MAINNET_DEPLOYER_PK --verify",
     "deploy:bcowfactory:testnet": "forge script DeployBCoWFactory -vvvvv --rpc-url $SEPOLIA_RPC --broadcast --chain sepolia --private-key $SEPOLIA_DEPLOYER_PK --verify",
-    "deploy:bfactory:gnosis": "forge script DeployBFactory -vvvvv --rpc-url $GNOSIS --broadcast --chain gnosis --private-key $GNOSIS_DEPLOYER_PK --verify",
+    "deploy:bfactory:gnosis": "forge script DeployBFactory -vvvvv --rpc-url $GNOSIS_RPC --broadcast --chain gnosis --private-key $GNOSIS_DEPLOYER_PK --verify",
     "deploy:bfactory:mainnet": "forge script DeployBFactory -vvvvv --rpc-url $MAINNET_RPC --broadcast --chain mainnet --private-key $MAINNET_DEPLOYER_PK --verify",
     "deploy:bfactory:testnet": "forge script DeployBFactory -vvvvv --rpc-url $SEPOLIA_RPC --broadcast --chain sepolia --private-key $SEPOLIA_DEPLOYER_PK --verify",
     "lint:bulloak": "find test/unit -name '*.tree' | xargs bulloak check",
