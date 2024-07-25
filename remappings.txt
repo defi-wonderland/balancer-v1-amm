@@ -7,6 +7,9 @@ cowprotocol/=node_modules/@cowprotocol/contracts/src/
 @composable-cow/=node_modules/composable-cow/
 halmos-cheatcodes=node_modules/halmos-cheatcodes
 @crytic/=node_modules/@crytic/
+@cow-amm/=node_modules/cow-amm/src
+lib/openzeppelin/=node_modules/@openzeppelin
 
 contracts/=src/contracts
 interfaces/=src/interfaces
+libraries/=src/libraries

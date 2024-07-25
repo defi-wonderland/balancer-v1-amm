@@ -284,8 +284,6 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-    return (tokenAmountOut, spotPriceAfter);
   }
 
   /// @inheritdoc IBPool
@@ -343,8 +341,6 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-    return (tokenAmountIn, spotPriceAfter);
   }
 
   /// @inheritdoc IBPool
@@ -374,8 +370,6 @@ contract BPool is BToken, BMath, IBPool {
     _mintPoolShare(poolAmountOut);
     _pushPoolShare(msg.sender, poolAmountOut);
     _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-
-    return poolAmountOut;
   }
 
   /// @inheritdoc IBPool
@@ -409,8 +403,6 @@ contract BPool is BToken, BMath, IBPool {
     _mintPoolShare(poolAmountOut);
     _pushPoolShare(msg.sender, poolAmountOut);
     _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-
-    return tokenAmountIn;
   }
 
   /// @inheritdoc IBPool
@@ -444,8 +436,6 @@ contract BPool is BToken, BMath, IBPool {
     _burnPoolShare(bsub(poolAmountIn, exitFee));
     _pushPoolShare(FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-    return tokenAmountOut;
   }
 
   /// @inheritdoc IBPool
@@ -481,12 +471,10 @@ contract BPool is BToken, BMath, IBPool {
     _burnPoolShare(bsub(poolAmountIn, exitFee));
     _pushPoolShare(FACTORY, exitFee);
     _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-    return poolAmountIn;
   }
 
   /// @inheritdoc IBPool
-  function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
+  function getSpotPrice(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256) {
     if (!_records[tokenIn].bound) {
       revert BPool_TokenNotBound();
     }
@@ -496,19 +484,17 @@ contract BPool is BToken, BMath, IBPool {
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
 
-    spotPrice = calcSpotPrice(
+    return calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
       IERC20(tokenOut).balanceOf(address(this)),
       outRecord.denorm,
       _swapFee
     );
-
-    return spotPrice;
   }
 
   /// @inheritdoc IBPool
-  function getSpotPriceSansFee(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256 spotPrice) {
+  function getSpotPriceSansFee(address tokenIn, address tokenOut) external view _viewlock_ returns (uint256) {
     if (!_records[tokenIn].bound) {
       revert BPool_TokenNotBound();
     }
@@ -518,15 +504,13 @@ contract BPool is BToken, BMath, IBPool {
     Record storage inRecord = _records[tokenIn];
     Record storage outRecord = _records[tokenOut];
 
-    spotPrice = calcSpotPrice(
+    return calcSpotPrice(
       IERC20(tokenIn).balanceOf(address(this)),
       inRecord.denorm,
       IERC20(tokenOut).balanceOf(address(this)),
       outRecord.denorm,
       0
     );
-
-    return spotPrice;
   }
 
   /// @inheritdoc IBPool
@@ -535,8 +519,8 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function isBound(address t) external view returns (bool) {
-    return _records[t].bound;
+  function isBound(address token) external view returns (bool) {
+    return _records[token].bound;
   }
 
   /// @inheritdoc IBPool
@@ -545,12 +529,12 @@ contract BPool is BToken, BMath, IBPool {
   }
 
   /// @inheritdoc IBPool
-  function getCurrentTokens() external view _viewlock_ returns (address[] memory tokens) {
+  function getCurrentTokens() external view _viewlock_ returns (address[] memory) {
     return _tokens;
   }
 
   /// @inheritdoc IBPool
-  function getFinalTokens() external view _viewlock_ _finalized_ returns (address[] memory tokens) {
+  function getFinalTokens() external view _viewlock_ _finalized_ returns (address[] memory) {
     return _tokens;
   }
 
