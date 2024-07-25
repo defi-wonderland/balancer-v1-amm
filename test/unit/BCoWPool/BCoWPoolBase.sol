@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {BPoolBase} from '../BPool/BPoolBase.sol';
+import {BPoolBase} from '../BPool/BPoolBase.t.sol';
 import {BCoWConst} from 'contracts/BCoWConst.sol';
 import {BNum} from 'contracts/BNum.sol';
 
