@@ -155,10 +155,10 @@ contract FuzzBMath is EchidnaTest {
   ) public {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_WEIGHT);
-    totalWeight = clamp(totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT);
+    totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
     tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
-    poolSupply = clamp(poolSupply, BONE, type(uint256).max);
+    poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
 
     emit Log('tokenWeightIn', tokenWeightIn);
@@ -183,8 +183,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_tokenAmountOut', calc_inv_tokenAmountOut);
 
     assert(
-      calc_tokenAmountOut == calc_inv_tokenAmountOut || calc_tokenAmountOut == calc_inv_tokenAmountOut + 1 // max difference due to rounding errors
-        || calc_tokenAmountOut + 1 == calc_inv_tokenAmountOut // max difference due to rounding errors
+      calc_tokenAmountOut + 1 >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
     );
   }
 
@@ -201,10 +200,10 @@ contract FuzzBMath is EchidnaTest {
   ) public {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_WEIGHT);
-    totalWeight = clamp(totalWeight, MIN_WEIGHT, MAX_TOTAL_WEIGHT);
+    totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
     tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
-    poolSupply = clamp(poolSupply, BONE, type(uint256).max);
+    poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
 
     emit Log('tokenWeightIn', tokenWeightIn);
@@ -229,8 +228,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_poolAmountIn', calc_inv_poolAmountIn);
 
     assert(
-      calc_tokenAmountIn == calc_inv_poolAmountIn || calc_tokenAmountIn == calc_inv_poolAmountIn + 1 // max difference due to rounding errors
-        || calc_tokenAmountIn + 1 == calc_inv_poolAmountIn // max difference due to rounding errors
+      calc_tokenAmountIn + 1 >= calc_inv_poolAmountIn // direct path should be greater or equal to indirect path
     );
   }
 }

@@ -10,6 +10,7 @@ import {IBPool} from 'interfaces/IBPool.sol';
 
 abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   IBPool public pool;
+  IBPool public whitnessPool;
   IBFactory public factory;
 
   IERC20 public dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
@@ -44,6 +45,11 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   uint256 public constant WETH_LP_AMOUNT = ONE_UNIT;
   uint256 public constant WBTC_LP_AMOUNT = ONE_UNIT_8_DECIMALS;
 
+  // weights
+  uint256 public constant DAI_WEIGHT = 5e18; // 80% weight
+  uint256 public constant WETH_WEIGHT = 5e18; // 20% weight
+  uint256 public constant WBTC_WEIGHT = 10e18; // +100% weight (unused in swaps)
+
   // swap amounts IN
   uint256 public constant DAI_AMOUNT = HUNDRED_UNITS;
   uint256 public constant WETH_AMOUNT_INVERSE = ONE_TENTH_UNIT;
@@ -60,27 +66,71 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
 
     vm.startPrank(lp);
     pool = factory.newBPool();
+    whitnessPool = factory.newBPool();
 
-    deal(address(dai), lp, DAI_LP_AMOUNT);
-    deal(address(weth), lp, WETH_LP_AMOUNT);
-    deal(address(wbtc), lp, WBTC_LP_AMOUNT);
+    deal(address(dai), lp, 2 * DAI_LP_AMOUNT);
+    deal(address(weth), lp, 2 * WETH_LP_AMOUNT);
+    deal(address(wbtc), lp, 2 * WBTC_LP_AMOUNT);
 
-    deal(address(dai), swapper.addr, DAI_AMOUNT);
-    deal(address(weth), swapperInverse.addr, WETH_AMOUNT_INVERSE);
+    deal(address(dai), swapper.addr, 2 * DAI_AMOUNT);
+    deal(address(weth), swapperInverse.addr, 2 * WETH_AMOUNT_INVERSE);
 
-    deal(address(dai), joiner.addr, DAI_LP_AMOUNT);
-    deal(address(weth), joiner.addr, WETH_LP_AMOUNT);
-    deal(address(wbtc), joiner.addr, WBTC_LP_AMOUNT);
+    deal(address(dai), joiner.addr, 2 * DAI_LP_AMOUNT);
+    deal(address(weth), joiner.addr, 2 * WETH_LP_AMOUNT);
+    deal(address(wbtc), joiner.addr, 2 * WBTC_LP_AMOUNT);
     deal(address(pool), exiter.addr, ONE_UNIT, false);
+    deal(address(whitnessPool), exiter.addr, ONE_UNIT, false);
 
     dai.approve(address(pool), type(uint256).max);
     weth.approve(address(pool), type(uint256).max);
     wbtc.approve(address(pool), type(uint256).max);
-    pool.bind(address(dai), DAI_LP_AMOUNT, 8e18); // 80% weight
-    pool.bind(address(weth), WETH_LP_AMOUNT, 2e18); // 20% weight
-    pool.bind(address(wbtc), WBTC_LP_AMOUNT, 10e18); // +100% weight (unused in swaps)
+    pool.bind(address(dai), DAI_LP_AMOUNT, DAI_WEIGHT);
+    pool.bind(address(weth), WETH_LP_AMOUNT, WETH_WEIGHT);
+    pool.bind(address(wbtc), WBTC_LP_AMOUNT, WBTC_WEIGHT);
+
+    dai.approve(address(whitnessPool), type(uint256).max);
+    weth.approve(address(whitnessPool), type(uint256).max);
+    wbtc.approve(address(whitnessPool), type(uint256).max);
+    whitnessPool.bind(address(dai), DAI_LP_AMOUNT, DAI_WEIGHT);
+    whitnessPool.bind(address(weth), WETH_LP_AMOUNT, WETH_WEIGHT);
+    whitnessPool.bind(address(wbtc), WBTC_LP_AMOUNT, WBTC_WEIGHT);
+
     // finalize
     pool.finalize();
+    whitnessPool.finalize();
+  }
+
+  function testIndirectSwap_ExactIn() public {
+    // checks that pool.swapExactAmountIn >= whitnesPool.joinswapExternAmountIn + whitnesPool.exitswapPoolAmountIn
+
+    vm.startPrank(swapper.addr);
+    dai.approve(address(pool), type(uint256).max);
+
+    (uint256 amountOut,) = pool.swapExactAmountIn(address(dai), DAI_AMOUNT, address(weth), 0, type(uint256).max);
+
+    dai.approve(address(whitnessPool), type(uint256).max);
+
+    uint256 whitnessBPTOut = whitnessPool.joinswapExternAmountIn(address(dai), DAI_AMOUNT, 0);
+    uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(weth), whitnessBPTOut, 0);
+
+    assert(amountOut > whitnessAmountOut);
+  }
+
+  function testIndirectSwap_ExactIn_Inverse() public {
+    // checks that pool.swapExactAmountIn >= whitnesPool.joinswapExternAmountIn + whitnesPool.exitswapPoolAmountIn
+
+    vm.startPrank(swapperInverse.addr);
+    weth.approve(address(pool), type(uint256).max);
+
+    (uint256 amountOut,) =
+      pool.swapExactAmountIn(address(weth), WETH_AMOUNT_INVERSE, address(dai), 0, type(uint256).max);
+
+    weth.approve(address(whitnessPool), type(uint256).max);
+
+    uint256 whitnessBPTOut = whitnessPool.joinswapExternAmountIn(address(weth), WETH_AMOUNT_INVERSE, 0);
+    uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(dai), whitnessBPTOut, 0);
+
+    assert(amountOut > whitnessAmountOut);
   }
 
   function testSimpleSwap() public {
