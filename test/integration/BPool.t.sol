@@ -7,6 +7,7 @@ import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
+import {BMath} from 'contracts/BMath.sol';
 
 abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   IBPool public pool;
@@ -131,6 +132,57 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(dai), whitnessBPTOut, 0);
 
     assert(amountOut > whitnessAmountOut);
+  }
+
+  function testIndirectSwap_ExactOut() public {
+    // checks that pool.swapExactAmountOut >= whitnesPool.joinswapPoolAmountOut + whitnesPool.exitswapPoolAmountIn
+
+    vm.startPrank(swapper.addr);
+    dai.approve(address(pool), type(uint256).max);
+
+    (uint256 amountOut,) = pool.swapExactAmountOut(address(dai), type(uint256).max, address(weth), WETH_OUT_AMOUNT, type(uint256).max);
+
+    dai.approve(address(whitnessPool), type(uint256).max);
+
+    uint256 whitnessBPT = BMath(address(whitnessPool)).calcPoolInGivenSingleOut(
+      whitnessPool.getBalance(address(weth)),
+      whitnessPool.getDenormalizedWeight(address(weth)),
+      whitnessPool.totalSupply(),
+      whitnessPool.getTotalDenormalizedWeight(),
+      WETH_OUT_AMOUNT,
+      whitnessPool.getSwapFee()
+    );
+
+    whitnessPool.joinswapPoolAmountOut(address(dai), whitnessBPT, type(uint256).max);
+    uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(dai), whitnessBPT, 0);
+
+    assert(amountOut > whitnessAmountOut);
+  }
+
+  function testIndirectSwap_ExactOut_Inverse() public {
+    // checks that pool.swapExactAmountOut >= whitnesPool.joinswapPoolAmountOut + whitnesPool.exitswapPoolAmountIn
+
+    vm.startPrank(swapperInverse.addr);
+    weth.approve(address(pool), type(uint256).max);
+
+    (uint256 amountIn,) =
+      pool.swapExactAmountOut(address(weth), type(uint256).max, address(dai), DAI_OUT_AMOUNT_INVERSE, type(uint256).max);
+
+    weth.approve(address(whitnessPool), type(uint256).max);
+
+    uint256 whitnessBPT = BMath(address(whitnessPool)).calcPoolInGivenSingleOut(
+      whitnessPool.getBalance(address(dai)),
+      whitnessPool.getDenormalizedWeight(address(dai)),
+      whitnessPool.totalSupply(),
+      whitnessPool.getTotalDenormalizedWeight(),
+      DAI_OUT_AMOUNT_INVERSE,
+      whitnessPool.getSwapFee()
+    );
+
+    whitnessPool.joinswapPoolAmountOut(address(weth), whitnessBPT, type(uint256).max);
+    uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(dai), whitnessBPT, 0);
+
+    assert(amountIn > whitnessAmountOut);
   }
 
   function testSimpleSwap() public {
