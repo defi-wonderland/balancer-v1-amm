@@ -36,15 +36,9 @@ contract FuzzProtocol is EchidnaTest {
     bmath = new BMath();
     bnum = new BNumExposed();
 
-    // max bound token is 8
-    for (uint256 i; i < 4; i++) {
-      FuzzERC20 _token = new FuzzERC20();
-      _token.initialize('', '', 18);
-      tokens.push(_token);
-    }
-
     pool = BCoWPool(address(factory.newBPool()));
 
+    // first 4 tokens bound to the finalized pool
     for (uint256 i; i < 4; i++) {
       FuzzERC20 _token = new FuzzERC20();
       _token.initialize('', '', 18);
@@ -59,6 +53,13 @@ contract FuzzProtocol is EchidnaTest {
       catch {
         assert(false);
       }
+    }
+
+    // 4 other tokens to bind to pools in poolsToFinalize, since max bound token is 8
+    for (uint256 i; i < 4; i++) {
+      FuzzERC20 _token = new FuzzERC20();
+      _token.initialize('', '', 18);
+      tokens.push(_token);
     }
 
     pool.finalize();
