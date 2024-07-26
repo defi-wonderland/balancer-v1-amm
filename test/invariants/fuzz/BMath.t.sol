@@ -142,9 +142,6 @@ contract FuzzBMath is EchidnaTest {
   //   assert(tokenAmountIn <= calc_tokenAmountIn);
   // }
 
-  uint256 constant SWAP_FEE_DELTA = 1e18;
-  uint256 constant TOLERANCE = 100e18;
-
   // calcPoolOutGivenSingleIn * calcSingleOutGivenPoolIn should be equal to calcOutGivenIn
   function fuzz_testIndirectSwaps_CalcOutGivenIn(
     uint256 tokenBalanceIn,
@@ -174,13 +171,9 @@ contract FuzzBMath is EchidnaTest {
     emit Log('poolSupply', poolSupply);
     emit Log('swapFee', swapFee);
 
-    swapFee = swapFee * SWAP_FEE_DELTA / BONE;
-
     uint256 calc_tokenAmountOut =
-      bmath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee);
+      bmath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, 0);
     emit Log('calc_tokenAmountOut', calc_tokenAmountOut);
-
-    swapFee = swapFee * BONE / SWAP_FEE_DELTA;
 
     uint256 calc_inv_poolAmountOut =
       bmath.calcPoolOutGivenSingleIn(tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, tokenAmountIn, swapFee);
@@ -192,7 +185,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_tokenAmountOut', calc_inv_tokenAmountOut);
 
     assert(
-      calc_tokenAmountOut * TOLERANCE / BONE >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
+      calc_tokenAmountOut >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
     );
   }
 
@@ -225,13 +218,9 @@ contract FuzzBMath is EchidnaTest {
     emit Log('poolSupply', poolSupply);
     emit Log('swapFee', swapFee);
 
-    swapFee = swapFee * SWAP_FEE_DELTA / BONE;
-
     uint256 calc_tokenAmountIn =
-      bmath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);
+      bmath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, 0);
     emit Log('calc_tokenAmountIn', calc_tokenAmountIn);
-
-    swapFee = swapFee * BONE / SWAP_FEE_DELTA;
 
     uint256 calc_inv_tokenAmountIn =
       bmath.calcPoolInGivenSingleOut(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, tokenAmountOut, swapFee);
@@ -243,7 +232,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_poolAmountIn', calc_inv_poolAmountIn);
 
     assert(
-      calc_tokenAmountIn <= calc_inv_poolAmountIn * TOLERANCE / BONE // direct path should be lesser or equal to indirect path
+      calc_tokenAmountIn <= calc_inv_poolAmountIn // direct path should be lesser or equal to indirect path
     );
   }
 }
