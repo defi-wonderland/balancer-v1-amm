@@ -161,7 +161,6 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     (uint256 amountIn,) =
       pool.swapExactAmountOut(address(dai), type(uint256).max, address(weth), _DAI_AMOUNT_OUT, type(uint256).max);
 
-    // NOTE: fails with BPool_TokenAmountInAboveMaxRatio()
     uint256 whitnessBPT = whitnessPool.joinswapExternAmountIn(address(dai), amountIn, 0);
     uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(weth), whitnessBPT, 0);
 
