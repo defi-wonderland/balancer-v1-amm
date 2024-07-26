@@ -14,7 +14,7 @@ contract FuzzProtocol is EchidnaTest {
   BCoWFactory factory;
   BConst bconst;
   BMath bmath;
-  BNum_exposed bnum;
+  BNumExposed bnum;
 
   address solutionSettler;
   bytes32 appData;
@@ -34,7 +34,7 @@ contract FuzzProtocol is EchidnaTest {
     factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
     bmath = new BMath();
-    bnum = new BNum_exposed();
+    bnum = new BNumExposed();
 
     // max bound token is 8
     for (uint256 i; i < 4; i++) {
@@ -69,7 +69,7 @@ contract FuzzProtocol is EchidnaTest {
   // Insure caller has enough token
   // Main objective is to have an arbitrary number of tokens in the pool, peripheral objective is another
   // test of min/max token bound (properties 20 and 21)
-  function setup_joinExitPool(bool _join, uint256 _amountBpt) public AgentOrDeployer {
+  function setup_joinExitPool(bool _join, uint256 _amountBpt) public agentOrDeployer {
     if (_join) {
       uint256[] memory _maxAmountsIn;
 
@@ -109,7 +109,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 1
   /// @custom:property BFactory should always be able to deploy new pools
-  function fuzz_BFactoryAlwaysDeploy() public AgentOrDeployer {
+  function fuzz_BFactoryAlwaysDeploy() public agentOrDeployer {
     // Precondition
     hevm.prank(currentCaller);
 
@@ -127,7 +127,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 2
   /// @custom:property BFactory's blab should always be modifiable by the current blabs
-  function fuzz_blabAlwaysModByBLab() public AgentOrDeployer {
+  function fuzz_blabAlwaysModByBLab() public agentOrDeployer {
     // Precondition
     address _currentBLab = factory.getBLabs();
 
@@ -144,7 +144,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 3
   /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
-  function fuzz_alwaysCollect() public AgentOrDeployer {
+  function fuzz_alwaysCollect() public agentOrDeployer {
     // Precondition
     address _currentBLab = factory.getBLabs();
 
@@ -176,7 +176,7 @@ contract FuzzProtocol is EchidnaTest {
     uint256 _amountIn,
     uint256 _tokenIn,
     uint256 _tokenOut
-  ) public AgentOrDeployer {
+  ) public agentOrDeployer {
     // Preconditions
     require(pool.isFinalized());
 
@@ -242,7 +242,7 @@ contract FuzzProtocol is EchidnaTest {
     uint256 _amountOut,
     uint256 _tokenIn,
     uint256 _tokenOut
-  ) public AgentOrDeployer {
+  ) public agentOrDeployer {
     // Precondition
     require(pool.isFinalized());
 
@@ -373,7 +373,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 12
   /// @custom:property a non-finalized pool can only be finalized when the controller calls finalize()
-  function fuzz_poolFinalizedByController() public AgentOrDeployer {
+  function fuzz_poolFinalizedByController() public agentOrDeployer {
     // Precondition
     if (poolsToFinalize.length == 0) {
       return;
@@ -409,7 +409,7 @@ contract FuzzProtocol is EchidnaTest {
     uint256 _amountPoolToken,
     uint256 _amountToTransfer,
     uint256 _tokenIdx
-  ) public AgentOrDeployer {
+  ) public agentOrDeployer {
     _tokenIdx = clamp(_tokenIdx, 0, tokens.length - 1);
     FuzzERC20 _token = tokens[_tokenIdx];
 
@@ -443,7 +443,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 18
   /// @custom:property the amount of underlying token when exiting should always be the amount calculated in bmath
-  function fuzz_correctBPTBurnAmount(uint256 _amountPoolToken) public AgentOrDeployer {
+  function fuzz_correctBPTBurnAmount(uint256 _amountPoolToken) public agentOrDeployer {
     _amountPoolToken = clamp(_amountPoolToken, 0, pool.balanceOf(currentCaller));
 
     uint256[] memory _amountsToReceive = new uint256[](4);
@@ -480,7 +480,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 20
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
-  function fuzz_boundOnlyNotFinalized() public AgentOrDeployer {
+  function fuzz_boundOnlyNotFinalized() public agentOrDeployer {
     // Precondition
     if (poolsToFinalize.length == 0) {
       return;
@@ -538,7 +538,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 22
   /// @custom:property only the settler can commit a hash
-  function fuzz_settlerCommit() public AgentOrDeployer {
+  function fuzz_settlerCommit() public agentOrDeployer {
     // Precondition
     hevm.prank(currentCaller);
 
@@ -554,10 +554,10 @@ contract FuzzProtocol is EchidnaTest {
   /// @custom:property-id 23
   /// @custom:property when a hash has been commited, only this order can be settled
   /// @custom:property-not-implemented
-  function fuzz_settlerSettle() public {}
+  // function fuzz_settlerSettle() public {}
 }
 
-contract BNum_exposed is BNum {
+contract BNumExposed is BNum {
   function bdiv_exposed(uint256 a, uint256 b) public pure returns (uint256) {
     return bdiv(a, b);
   }

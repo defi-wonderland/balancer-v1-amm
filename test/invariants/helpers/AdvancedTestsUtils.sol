@@ -25,7 +25,7 @@ contract AgentsHandler {
 
   address internal currentCaller;
 
-  modifier AgentOrDeployer() {
+  modifier agentOrDeployer() {
     uint256 _currentAgentIndex = agentsIndex;
     currentCaller = _currentAgentIndex == 0 ? address(this) : agents[agentsIndex];
     _;
