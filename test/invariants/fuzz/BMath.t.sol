@@ -142,7 +142,7 @@ contract FuzzBMath is EchidnaTest {
   //   assert(tokenAmountIn <= calc_tokenAmountIn);
   // }
 
-  uint256 FEE_DISCOUNT = 0.5e18;
+  uint256 FEE_DISCOUNT = 0; // compare against no fee
 
   // calcPoolOutGivenSingleIn * calcSingleOutGivenPoolIn should be equal to calcOutGivenIn
   function fuzz_testIndirectSwaps_CalcOutGivenIn(
