@@ -17,9 +17,9 @@ We identified 24 properties. We challenged these either in a long-running fuzzin
 
 We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath). BMath properties are currently not triggered in CI, due to various rounding errors, and should be further validated.
 
-Limitations/future improvements
+#### Limitations/future improvements
 Currently, the swap logic are tested against the swap in/out functions (and, in a similar way, liquidity management via the join/exit function). The combined equivalent (joinswapExternAmountIn, joinswapPoolAmountOut, etc) should be tested too.
-BMath properties are currently not tested and should be refactored to quantify the rounding errors.
+BMath properties are currently not tested and current tests should be refactored to quantify the precision errors.
 
 ### Formal verification: Symbolic Execution
 We managed to test 10 properties out of the 23. Properties not tested are either not easily challenged with symbolic execution (statefullness needed) or limited by Halmos itself (hitting loop unrolling boundaries in the implementation for instance).
