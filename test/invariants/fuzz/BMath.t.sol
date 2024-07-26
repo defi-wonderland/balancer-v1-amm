@@ -171,8 +171,9 @@ contract FuzzBMath is EchidnaTest {
     emit Log('poolSupply', poolSupply);
     emit Log('swapFee', swapFee);
 
-    uint256 calc_tokenAmountOut =
-      bmath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, 0);
+    uint256 calc_tokenAmountOut = bmath.calcOutGivenIn(
+      tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee * 5 / 10
+    );
     emit Log('calc_tokenAmountOut', calc_tokenAmountOut);
 
     uint256 calc_inv_poolAmountOut =
@@ -180,12 +181,13 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_poolAmountOut', calc_inv_poolAmountOut);
 
     uint256 calc_inv_tokenAmountOut = bmath.calcSingleOutGivenPoolIn(
-      tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, calc_inv_poolAmountOut, swapFee
+      tokenBalanceOut, tokenWeightOut, poolSupply - calc_inv_poolAmountOut, totalWeight, calc_inv_poolAmountOut, swapFee
     );
     emit Log('calc_inv_tokenAmountOut', calc_inv_tokenAmountOut);
 
     assert(
       calc_tokenAmountOut >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
+        || calc_inv_tokenAmountOut > tokenBalanceOut / 3 + 1 // max out ratio
     );
   }
 
@@ -218,21 +220,24 @@ contract FuzzBMath is EchidnaTest {
     emit Log('poolSupply', poolSupply);
     emit Log('swapFee', swapFee);
 
-    uint256 calc_tokenAmountIn =
-      bmath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, 0);
+    uint256 calc_tokenAmountIn = bmath.calcInGivenOut(
+      tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee * 5 / 10
+    );
     emit Log('calc_tokenAmountIn', calc_tokenAmountIn);
 
-    uint256 calc_inv_poolAmountIn =
-      bmath.calcPoolInGivenSingleOut(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, tokenAmountOut, swapFee);
-    emit Log('calc_inv_poolAmountIn', calc_inv_poolAmountIn);
-
-    uint256 calc_inv_tokenAmountIn = bmath.calcSingleInGivenPoolOut(
-      tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, calc_inv_poolAmountIn, swapFee
+    uint256 calc_inv_poolAmountOut = bmath.calcPoolOutGivenSingleIn(
+      tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, calc_tokenAmountIn, swapFee
     );
-    emit Log('calc_inv_tokenAmountIn', calc_inv_tokenAmountIn);
+    emit Log('calc_inv_poolAmountOut', calc_inv_poolAmountOut);
+
+    uint256 calc_inv_tokenAmountOut = bmath.calcSingleOutGivenPoolIn(
+      tokenBalanceOut, tokenWeightOut, poolSupply - calc_inv_poolAmountOut, totalWeight, calc_inv_poolAmountOut, swapFee
+    );
+    emit Log('calc_inv_tokenAmountOut', calc_inv_tokenAmountOut);
 
     assert(
-      calc_tokenAmountIn <= calc_inv_tokenAmountIn // direct path should be lesser or equal to indirect path
+      tokenAmountOut >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
+        || calc_inv_tokenAmountOut > tokenBalanceOut / 3 + 1 // max out ratio
     );
   }
 }

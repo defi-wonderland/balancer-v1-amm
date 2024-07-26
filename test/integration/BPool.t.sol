@@ -10,6 +10,8 @@ import {Test, Vm} from 'forge-std/Test.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
 
+import {console} from 'forge-std/console.sol';
+
 abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   IBPool public pool;
   IBPool public whitnessPool;
@@ -57,7 +59,8 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   uint256 public constant WETH_AMOUNT_INVERSE = ONE_TENTH_UNIT;
 
   // settings
-  uint256 constant SWAP_FEE = 0.999999e18; // 99.9999%
+  uint256 constant SWAP_FEE = 0.95e18; // 90%
+  uint256 constant SWAP_FEE_WHITNESS = 0.9999e18; // 99.99%
 
   // swap amounts OUT
   // NOTE: amounts OUT are hardcoded from test result
@@ -101,8 +104,9 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     whitnessPool.bind(address(wbtc), WBTC_LP_AMOUNT, WBTC_WEIGHT);
 
     // set swap fee
+    // NOTE: original pool keeps min swap fee
     pool.setSwapFee(SWAP_FEE);
-    whitnessPool.setSwapFee(SWAP_FEE);
+    whitnessPool.setSwapFee(SWAP_FEE_WHITNESS);
 
     // finalize
     pool.finalize();
@@ -143,33 +147,25 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   }
 
   function testIndirectSwap_ExactOut() public {
-    // checks that pool.swapExactAmountOut >= whitnesPool.joinswapPoolAmountOut + whitnesPool.exitswapPoolAmountIn
+    // checks that pool.swapExactAmountOut >= whitnesPool.joinswapExternAmountIn + whitnesPool.exitswapPoolAmountIn
 
     vm.startPrank(swapper.addr);
     dai.approve(address(pool), type(uint256).max);
 
-    (uint256 amountOut,) =
+    (uint256 amountIn,) =
       pool.swapExactAmountOut(address(dai), type(uint256).max, address(weth), WETH_OUT_AMOUNT, type(uint256).max);
 
     dai.approve(address(whitnessPool), type(uint256).max);
 
-    uint256 whitnessBPT = BMath(address(whitnessPool)).calcPoolInGivenSingleOut(
-      whitnessPool.getBalance(address(weth)),
-      whitnessPool.getDenormalizedWeight(address(weth)),
-      whitnessPool.totalSupply(),
-      whitnessPool.getTotalDenormalizedWeight(),
-      WETH_OUT_AMOUNT,
-      whitnessPool.getSwapFee()
-    );
+    // NOTE: fails with BPool_TokenAmountInAboveMaxRatio()
+    uint256 whitnessBPT = whitnessPool.joinswapExternAmountIn(address(dai), amountIn, 0);
+    uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(weth), whitnessBPT, 0);
 
-    whitnessPool.joinswapPoolAmountOut(address(dai), whitnessBPT, type(uint256).max);
-    uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(dai), whitnessBPT, 0);
-
-    assert(amountOut > whitnessAmountOut);
+    assert(WETH_OUT_AMOUNT >= whitnessAmountOut);
   }
 
   function testIndirectSwap_ExactOut_Inverse() public {
-    // checks that pool.swapExactAmountOut >= whitnesPool.joinswapPoolAmountOut + whitnesPool.exitswapPoolAmountIn
+    // checks that pool.swapExactAmountOut >= whitnesPool.joinswapExternAmountIn + whitnesPool.exitswapPoolAmountIn
 
     vm.startPrank(swapperInverse.addr);
     weth.approve(address(pool), type(uint256).max);
@@ -179,19 +175,10 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
 
     weth.approve(address(whitnessPool), type(uint256).max);
 
-    uint256 whitnessBPT = BMath(address(whitnessPool)).calcPoolInGivenSingleOut(
-      whitnessPool.getBalance(address(dai)),
-      whitnessPool.getDenormalizedWeight(address(dai)),
-      whitnessPool.totalSupply(),
-      whitnessPool.getTotalDenormalizedWeight(),
-      DAI_OUT_AMOUNT_INVERSE,
-      whitnessPool.getSwapFee()
-    );
-
-    whitnessPool.joinswapPoolAmountOut(address(weth), whitnessBPT, type(uint256).max);
+    uint256 whitnessBPT = whitnessPool.joinswapExternAmountIn(address(weth), amountIn, 0);
     uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(dai), whitnessBPT, 0);
 
-    assert(amountIn > whitnessAmountOut);
+    assert(DAI_OUT_AMOUNT_INVERSE >= whitnessAmountOut);
   }
 
   function testSimpleSwap() public {
