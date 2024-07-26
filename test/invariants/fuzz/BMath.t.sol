@@ -23,7 +23,7 @@ contract FuzzBMath is EchidnaTest {
     MIN_WEIGHT = bmath.MIN_WEIGHT();
     MAX_WEIGHT = bmath.MAX_WEIGHT();
     MAX_TOTAL_WEIGHT = bmath.MAX_TOTAL_WEIGHT();
-    MIN_FEE = 0.25e18; //bmath.MIN_FEE();
+    MIN_FEE = bmath.MAX_FEE(); //bmath.MIN_FEE();
     MAX_FEE = bmath.MAX_FEE();
   }
 
