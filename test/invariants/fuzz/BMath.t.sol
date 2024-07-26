@@ -159,9 +159,9 @@ contract FuzzBMath is EchidnaTest {
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
     totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
     totalWeight = tokenWeightIn + tokenWeightOut;
-    tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
-    tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
-    tokenAmountIn = clamp(tokenAmountIn, BONE, type(uint256).max);
+    tokenBalanceIn = clamp(tokenBalanceIn, 1e6, type(uint256).max);
+    tokenBalanceOut = clamp(tokenBalanceOut, 1e6, type(uint256).max);
+    tokenAmountIn = clamp(tokenAmountIn, 1, type(uint256).max);
     poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
 
@@ -210,10 +210,10 @@ contract FuzzBMath is EchidnaTest {
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
     totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
     totalWeight = tokenWeightIn + tokenWeightOut;
-    tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
-    tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
+    tokenBalanceIn = clamp(tokenBalanceIn, 1e6, type(uint256).max);
+    tokenBalanceOut = clamp(tokenBalanceOut, 1e6, type(uint256).max);
     poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
-    tokenAmountOut = clamp(tokenAmountOut, BONE, type(uint256).max);
+    tokenAmountOut = clamp(tokenAmountOut, 1, type(uint256).max);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
 
     emit Log('tokenWeightIn', tokenWeightIn);

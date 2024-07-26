@@ -113,6 +113,61 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     whitnessPool.finalize();
   }
 
+  function test_extremeCase() public virtual {
+    uint256 _DAI_WEIGHT = 21095347289582322017;
+    uint256 _WETH_WEIGHT = 14053292305279328903;
+    uint256 _DAI_BALANCE = 1000000000000000000;
+    uint256 _WETH_BALANCE = 839390325460697805479509969833437577;
+    uint256 _DAI_AMOUNT_OUT = 1000000000000000000;
+    uint256 _FEE = 1e18 / 10 ** 6;
+    uint256 _WHITNESS_FEE = 0.999999e18;
+
+    vm.startPrank(lp);
+    pool = factory.newBPool();
+    whitnessPool = factory.newBPool();
+
+    deal(address(dai), lp, type(uint248).max);
+    deal(address(weth), lp, type(uint248).max);
+
+    deal(address(dai), swapper.addr, type(uint248).max);
+    deal(address(weth), swapperInverse.addr, type(uint248).max);
+
+    dai.approve(address(pool), type(uint256).max);
+    weth.approve(address(pool), type(uint256).max);
+
+    pool.bind(address(dai), _DAI_BALANCE, _DAI_WEIGHT);
+    pool.bind(address(weth), _WETH_BALANCE, _WETH_WEIGHT);
+
+    dai.approve(address(whitnessPool), type(uint256).max);
+    weth.approve(address(whitnessPool), type(uint256).max);
+
+    whitnessPool.bind(address(dai), _DAI_BALANCE, _DAI_WEIGHT);
+    whitnessPool.bind(address(weth), _WETH_BALANCE, _WETH_WEIGHT);
+
+    // set swap fee
+    // NOTE: original pool keeps min swap fee
+    pool.setSwapFee(_FEE);
+    whitnessPool.setSwapFee(_WHITNESS_FEE);
+
+    // finalize
+    pool.finalize();
+    whitnessPool.finalize();
+
+
+    vm.startPrank(swapper.addr);
+    dai.approve(address(pool), type(uint256).max);
+    dai.approve(address(whitnessPool), type(uint256).max);
+
+    (uint256 amountIn,) =
+      pool.swapExactAmountOut(address(dai), type(uint256).max, address(weth), _DAI_AMOUNT_OUT, type(uint256).max);
+
+    // NOTE: fails with BPool_TokenAmountInAboveMaxRatio()
+    uint256 whitnessBPT = whitnessPool.joinswapExternAmountIn(address(dai), amountIn, 0);
+    uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(weth), whitnessBPT, 0);
+
+    assertGt(_DAI_AMOUNT_OUT, whitnessAmountOut);
+  }
+
   function testIndirectSwap_ExactIn() public {
     // checks that pool.swapExactAmountIn >= whitnesPool.joinswapExternAmountIn + whitnesPool.exitswapPoolAmountIn
 
