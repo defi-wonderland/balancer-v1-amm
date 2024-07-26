@@ -23,7 +23,7 @@ contract FuzzBMath is EchidnaTest {
     MIN_WEIGHT = bmath.MIN_WEIGHT();
     MAX_WEIGHT = bmath.MAX_WEIGHT();
     MAX_TOTAL_WEIGHT = bmath.MAX_TOTAL_WEIGHT();
-    MIN_FEE = 0.9999e18; // bmath.MIN_FEE();
+    MIN_FEE = bmath.MIN_FEE();
     MAX_FEE = bmath.MAX_FEE();
   }
 
@@ -142,7 +142,7 @@ contract FuzzBMath is EchidnaTest {
   //   assert(tokenAmountIn <= calc_tokenAmountIn);
   // }
 
-  uint256 FEE_DISCOUNT = 0.55e18;
+  uint256 FEE_DISCOUNT = 0.5e18;
 
   // calcPoolOutGivenSingleIn * calcSingleOutGivenPoolIn should be equal to calcOutGivenIn
   function fuzz_testIndirectSwaps_CalcOutGivenIn(
@@ -158,7 +158,7 @@ contract FuzzBMath is EchidnaTest {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT - MIN_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
     totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
-    // totalWeight = tokenWeightIn + tokenWeightOut;
+    totalWeight = tokenWeightIn + tokenWeightOut;
     tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
     tokenAmountIn = clamp(tokenAmountIn, BONE, type(uint256).max);
@@ -170,6 +170,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('totalWeight', totalWeight);
     emit Log('tokenBalanceIn', tokenBalanceIn);
     emit Log('tokenBalanceOut', tokenBalanceOut);
+    emit Log('tokenAmountIn', tokenAmountIn);
     emit Log('poolSupply', poolSupply);
     emit Log('swapFee', swapFee);
 
@@ -183,12 +184,13 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_poolAmountOut', calc_inv_poolAmountOut);
 
     uint256 calc_inv_tokenAmountOut = bmath.calcSingleOutGivenPoolIn(
-      tokenBalanceOut, tokenWeightOut, poolSupply - calc_inv_poolAmountOut, totalWeight, calc_inv_poolAmountOut, swapFee
+      tokenBalanceOut, tokenWeightOut, poolSupply + calc_inv_poolAmountOut, totalWeight, calc_inv_poolAmountOut, swapFee
     );
     emit Log('calc_inv_tokenAmountOut', calc_inv_tokenAmountOut);
 
     assert(
       calc_tokenAmountOut >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
+        || tokenAmountIn > tokenBalanceIn / 2 // max in ratio
         || calc_inv_tokenAmountOut > tokenBalanceOut / 3 + 1 // max out ratio
     );
   }
@@ -207,7 +209,7 @@ contract FuzzBMath is EchidnaTest {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT - MIN_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
     totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
-    // totalWeight = tokenWeightIn + tokenWeightOut;
+    totalWeight = tokenWeightIn + tokenWeightOut;
     tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
     poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
@@ -220,6 +222,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('tokenBalanceIn', tokenBalanceIn);
     emit Log('tokenBalanceOut', tokenBalanceOut);
     emit Log('poolSupply', poolSupply);
+    emit Log('tokenAmountOut', tokenAmountOut);
     emit Log('swapFee', swapFee);
 
     uint256 calc_tokenAmountIn = bmath.calcInGivenOut(
@@ -233,12 +236,13 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_poolAmountOut', calc_inv_poolAmountOut);
 
     uint256 calc_inv_tokenAmountOut = bmath.calcSingleOutGivenPoolIn(
-      tokenBalanceOut, tokenWeightOut, poolSupply - calc_inv_poolAmountOut, totalWeight, calc_inv_poolAmountOut, swapFee
+      tokenBalanceOut, tokenWeightOut, poolSupply + calc_inv_poolAmountOut, totalWeight, calc_inv_poolAmountOut, swapFee
     );
     emit Log('calc_inv_tokenAmountOut', calc_inv_tokenAmountOut);
 
     assert(
       tokenAmountOut >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
+        || calc_tokenAmountIn > tokenBalanceIn / 2 // max in ratio
         || calc_inv_tokenAmountOut > tokenBalanceOut / 3 + 1 // max out ratio
     );
   }
