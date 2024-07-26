@@ -142,6 +142,8 @@ contract FuzzBMath is EchidnaTest {
   //   assert(tokenAmountIn <= calc_tokenAmountIn);
   // }
 
+  uint256 constant SWAP_FEE_DELTA = 0.1e18;
+
   // calcPoolOutGivenSingleIn * calcSingleOutGivenPoolIn should be equal to calcOutGivenIn
   function fuzz_testIndirectSwaps_CalcOutGivenIn(
     uint256 tokenBalanceIn,
@@ -170,9 +172,13 @@ contract FuzzBMath is EchidnaTest {
     emit Log('poolSupply', poolSupply);
     emit Log('swapFee', swapFee);
 
+    swapFee = swapFee * SWAP_FEE_DELTA / BONE;
+
     uint256 calc_tokenAmountOut =
       bmath.calcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee);
     emit Log('calc_tokenAmountOut', calc_tokenAmountOut);
+
+    swapFee = swapFee * BONE / SWAP_FEE_DELTA;
 
     uint256 calc_inv_poolAmountOut =
       bmath.calcPoolOutGivenSingleIn(tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, tokenAmountIn, swapFee);
@@ -216,9 +222,13 @@ contract FuzzBMath is EchidnaTest {
     emit Log('poolSupply', poolSupply);
     emit Log('swapFee', swapFee);
 
+    swapFee = swapFee * SWAP_FEE_DELTA / BONE;
+
     uint256 calc_tokenAmountIn =
       bmath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);
     emit Log('calc_tokenAmountIn', calc_tokenAmountIn);
+
+    swapFee = swapFee * BONE / SWAP_FEE_DELTA;
 
     uint256 calc_inv_tokenAmountIn =
       bmath.calcPoolInGivenSingleOut(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, tokenAmountOut, swapFee);
