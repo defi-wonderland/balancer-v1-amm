@@ -29,32 +29,32 @@ Additional properties from BNum were tested independently too (with severe limit
 # Notes
 The bmath corresponding equations are:
 
-`Spot price:`
-$\text{spotPrice} = \frac{\text{tokenBalanceIn}/\text{tokenWeightIn}}{\text{tokenBalanceOut}/\text{tokenWeightOut}} \cdot \frac{1}{1 - \text{swapFee}}$
+**Spot price:**
+$$\text{spotPrice} = \frac{\text{tokenBalanceIn}/\text{tokenWeightIn}}{\text{tokenBalanceOut}/\text{tokenWeightOut}} \cdot \frac{1}{1 - \text{swapFee}}$$
 
 
-`Out given in:`
-$\text{tokenAmountOut} = \text{tokenBalanceOut} \cdot \left( 1 - \left( \frac{\text{tokenBalanceIn}}{\text{tokenBalanceIn} + \left( \text{tokenAmountIn} \cdot \left(1 - \text{swapFee}\right)\right)} \right)^{\frac{\text{tokenWeightIn}}{\text{tokenWeightOut}}} \right)$
+**Out given in:**
+$$\text{tokenAmountOut} = \text{tokenBalanceOut} \cdot \left( 1 - \left( \frac{\text{tokenBalanceIn}}{\text{tokenBalanceIn} + \left( \text{tokenAmountIn} \cdot \left(1 - \text{swapFee}\right)\right)} \right)^{\frac{\text{tokenWeightIn}}{\text{tokenWeightOut}}} \right)$$
 
 
-`In given out:`
-$\text{tokenAmountIn} = \frac{\text{tokenBalanceIn} \cdot \left( \frac{\text{tokenBalanceOut}}{\text{tokenBalanceOut} - \text{tokenAmountOut}} \right)^{\frac{\text{tokenWeightOut}}{\text{tokenWeightIn}}} - 1}{1 - \text{swapFee}}$
+**In given out:**
+$$\text{tokenAmountIn} = \frac{\text{tokenBalanceIn} \cdot \left( \frac{\text{tokenBalanceOut}}{\text{tokenBalanceOut} - \text{tokenAmountOut}} \right)^{\frac{\text{tokenWeightOut}}{\text{tokenWeightIn}}} - 1}{1 - \text{swapFee}}$$
 
 
-`Pool out given single in`
-$\text{poolAmountOut} = \left(\frac{\text{tokenAmountIn} \cdot \left(1 - \left(1 - \frac{\text{tokenWeightIn}}{\text{totalWeight}}\right) \cdot \text{swapFee}\right) + \text{tokenBalanceIn}}{\text{tokenBalanceIn}}\right)^{\frac{\text{tokenWeightIn}}{\text{totalWeight}}} \cdot \text{poolSupply} - \text{poolSupply}$
+**Pool out given single in**
+$$\text{poolAmountOut} = \left(\frac{\text{tokenAmountIn} \cdot \left(1 - \left(1 - \frac{\text{tokenWeightIn}}{\text{totalWeight}}\right) \cdot \text{swapFee}\right) + \text{tokenBalanceIn}}{\text{tokenBalanceIn}}\right)^{\frac{\text{tokenWeightIn}}{\text{totalWeight}}} \cdot \text{poolSupply} - \text{poolSupply}$$
 
 
-`Single in given pool out`
-$\text{tokenAmountIn} = \frac{\left(\frac{\text{poolSupply} + \text{poolAmountOut}}{\text{poolSupply}}\right)^{\frac{1}{\frac{\text{weightIn}}{\text{totalWeight}}}} \cdot \text{balanceIn} - \text{balanceIn}}{\left(1 - \frac{\text{weightIn}}{\text{totalWeight}}\right) \cdot \text{swapFee}}$
+**Single in given pool out**
+$$\text{tokenAmountIn} = \frac{\left(\frac{\text{poolSupply} + \text{poolAmountOut}}{\text{poolSupply}}\right)^{\frac{1}{\frac{\text{weightIn}}{\text{totalWeight}}}} \cdot \text{balanceIn} - \text{balanceIn}}{\left(1 - \frac{\text{weightIn}}{\text{totalWeight}}\right) \cdot \text{swapFee}}$$
 
 
-`Single out given pool in`
-$\text{tokenAmountOut} = \left( \text{tokenBalanceOut} - \left( \frac{\text{poolSupply} - \left(\text{poolAmountIn} \cdot \left(1 - \text{exitFee}\right)\right)}{\text{poolSupply}} \right)^{\frac{1}{\frac{\text{tokenWeightOut}}{\text{totalWeight}}}} \cdot \text{tokenBalanceOut} \right) \cdot \left(1 - \left(1 - \frac{\text{tokenWeightOut}}{\text{totalWeight}}\right) \cdot \text{swapFee}\right)$
+**Single out given pool in**
+$$\text{tokenAmountOut} = \left( \text{tokenBalanceOut} - \left( \frac{\text{poolSupply} - \left(\text{poolAmountIn} \cdot \left(1 - \text{exitFee}\right)\right)}{\text{poolSupply}} \right)^{\frac{1}{\frac{\text{tokenWeightOut}}{\text{totalWeight}}}} \cdot \text{tokenBalanceOut} \right) \cdot \left(1 - \left(1 - \frac{\text{tokenWeightOut}}{\text{totalWeight}}\right) \cdot \text{swapFee}\right)$$
 
 
-`Pool in given single out`
-$\text{poolAmountIn} = \frac{\text{poolSupply} - \left( \frac{\text{tokenBalanceOut} - \frac{\text{tokenAmountOut}}{1 - \left(1 - \frac{\text{tokenWeightOut}}{\text{totalWeight}}\right) \cdot \text{swapFee}}}{\text{tokenBalanceOut}} \right)^{\frac{\text{tokenWeightOut}}{\text{totalWeight}}} \cdot \text{poolSupply}}{1 - \text{exitFee}}$
+**Pool in given single out**
+$$\text{poolAmountIn} = \frac{\text{poolSupply} - \left( \frac{\text{tokenBalanceOut} - \frac{\text{tokenAmountOut}}{1 - \left(1 - \frac{\text{tokenWeightOut}}{\text{totalWeight}}\right) \cdot \text{swapFee}}}{\text{tokenBalanceOut}} \right)^{\frac{\text{tokenWeightOut}}{\text{totalWeight}}} \cdot \text{poolSupply}}{1 - \text{exitFee}}$$
 
 
 BNum bpow is based on exponentiation by squaring and hold true because (see dapphub dsmath): https://github.com/dapphub/ds-math/blob/e70a364787804c1ded9801ed6c27b440a86ebd32/src/math.sol#L62
