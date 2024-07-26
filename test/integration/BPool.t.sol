@@ -3,11 +3,12 @@ pragma solidity 0.8.25;
 
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
 import {BFactory} from 'contracts/BFactory.sol';
+
+import {BMath} from 'contracts/BMath.sol';
 import {GasSnapshot} from 'forge-gas-snapshot/GasSnapshot.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IBFactory} from 'interfaces/IBFactory.sol';
 import {IBPool} from 'interfaces/IBPool.sol';
-import {BMath} from 'contracts/BMath.sol';
 
 abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   IBPool public pool;
@@ -100,7 +101,7 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     whitnessPool.bind(address(wbtc), WBTC_LP_AMOUNT, WBTC_WEIGHT);
 
     // set swap fee
-    pool.setSwapFee(SWAP_FEE); 
+    pool.setSwapFee(SWAP_FEE);
     whitnessPool.setSwapFee(SWAP_FEE);
 
     // finalize
@@ -147,7 +148,8 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     vm.startPrank(swapper.addr);
     dai.approve(address(pool), type(uint256).max);
 
-    (uint256 amountOut,) = pool.swapExactAmountOut(address(dai), type(uint256).max, address(weth), WETH_OUT_AMOUNT, type(uint256).max);
+    (uint256 amountOut,) =
+      pool.swapExactAmountOut(address(dai), type(uint256).max, address(weth), WETH_OUT_AMOUNT, type(uint256).max);
 
     dai.approve(address(whitnessPool), type(uint256).max);
 
