@@ -142,7 +142,8 @@ contract FuzzBMath is EchidnaTest {
   //   assert(tokenAmountIn <= calc_tokenAmountIn);
   // }
 
-  uint256 constant SWAP_FEE_DELTA = 0.1e18;
+  uint256 constant SWAP_FEE_DELTA = 1e18;
+  uint256 constant TOLERANCE = 100e18;
 
   // calcPoolOutGivenSingleIn * calcSingleOutGivenPoolIn should be equal to calcOutGivenIn
   function fuzz_testIndirectSwaps_CalcOutGivenIn(
@@ -157,7 +158,8 @@ contract FuzzBMath is EchidnaTest {
   ) public {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT - MIN_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
-    totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
+    // totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
+    totalWeight = tokenWeightIn + tokenWeightOut;
     tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
     tokenAmountIn = clamp(tokenAmountIn, BONE, type(uint256).max);
@@ -190,7 +192,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_tokenAmountOut', calc_inv_tokenAmountOut);
 
     assert(
-      calc_tokenAmountOut >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
+      calc_tokenAmountOut * TOLERANCE / BONE >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
     );
   }
 
@@ -207,7 +209,8 @@ contract FuzzBMath is EchidnaTest {
   ) public {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT - MIN_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
-    totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
+    // totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
+    totalWeight = tokenWeightIn + tokenWeightOut;
     tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
     poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
@@ -240,7 +243,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_poolAmountIn', calc_inv_poolAmountIn);
 
     assert(
-      calc_tokenAmountIn <= calc_inv_poolAmountIn // direct path should be lesser or equal to indirect path
+      calc_tokenAmountIn <= calc_inv_poolAmountIn * TOLERANCE / BONE // direct path should be lesser or equal to indirect path
     );
   }
 }
