@@ -31,6 +31,7 @@ contract BPool is BToken, BMath, IBPool {
   uint256 internal _totalWeight;
 
   /// TEST TEST TEST TEST TEST TEST TEST TEST
+  /// @dev workaround for hevm not supporting tload/tstore
   bytes32 internal _reenteringMutex;
   /// TEST TEST TEST TEST TEST TEST TEST TEST
 
