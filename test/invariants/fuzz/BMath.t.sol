@@ -222,17 +222,17 @@ contract FuzzBMath is EchidnaTest {
       bmath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, 0);
     emit Log('calc_tokenAmountIn', calc_tokenAmountIn);
 
-    uint256 calc_inv_tokenAmountIn =
+    uint256 calc_inv_poolAmountIn =
       bmath.calcPoolInGivenSingleOut(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, tokenAmountOut, swapFee);
-    emit Log('calc_inv_tokenAmountIn', calc_inv_tokenAmountIn);
-
-    uint256 calc_inv_poolAmountIn = bmath.calcSingleInGivenPoolOut(
-      tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, calc_inv_tokenAmountIn, swapFee
-    );
     emit Log('calc_inv_poolAmountIn', calc_inv_poolAmountIn);
 
+    uint256 calc_inv_tokenAmountIn = bmath.calcSingleInGivenPoolOut(
+      tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, calc_inv_poolAmountIn, swapFee
+    );
+    emit Log('calc_inv_tokenAmountIn', calc_inv_tokenAmountIn);
+
     assert(
-      calc_tokenAmountIn <= calc_inv_poolAmountIn // direct path should be lesser or equal to indirect path
+      calc_tokenAmountIn <= calc_inv_tokenAmountIn // direct path should be lesser or equal to indirect path
     );
   }
 }
