@@ -114,11 +114,11 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   }
 
   function test_extremeCase() public virtual {
-    uint256 _DAI_WEIGHT = 21095347289582322017;
-    uint256 _WETH_WEIGHT = 14053292305279328903;
-    uint256 _DAI_BALANCE = 1000000000000000000;
-    uint256 _WETH_BALANCE = 839390325460697805479509969833437577;
-    uint256 _DAI_AMOUNT_OUT = 1000000000000000000;
+    uint256 _DAI_WEIGHT = 21_095_347_289_582_322_017;
+    uint256 _WETH_WEIGHT = 14_053_292_305_279_328_903;
+    uint256 _DAI_BALANCE = 1_000_000_000_000_000_000;
+    uint256 _WETH_BALANCE = 839_390_325_460_697_805_479_509_969_833_437_577;
+    uint256 _DAI_AMOUNT_OUT = 1_000_000_000_000_000_000;
     uint256 _FEE = 1e18 / 10 ** 6;
     uint256 _WHITNESS_FEE = 0.999999e18;
 
@@ -152,7 +152,6 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     // finalize
     pool.finalize();
     whitnessPool.finalize();
-
 
     vm.startPrank(swapper.addr);
     dai.approve(address(pool), type(uint256).max);

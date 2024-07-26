@@ -23,7 +23,7 @@ contract FuzzBMath is EchidnaTest {
     MIN_WEIGHT = bmath.MIN_WEIGHT();
     MAX_WEIGHT = bmath.MAX_WEIGHT();
     MAX_TOTAL_WEIGHT = bmath.MAX_TOTAL_WEIGHT();
-    MIN_FEE = bmath.MAX_FEE(); //bmath.MIN_FEE();
+    MIN_FEE = 0.1e18; // 10% fee
     MAX_FEE = bmath.MAX_FEE();
   }
 
@@ -151,18 +151,15 @@ contract FuzzBMath is EchidnaTest {
     uint256 tokenBalanceOut,
     uint256 tokenWeightOut,
     uint256 tokenAmountIn,
-    uint256 poolSupply,
-    uint256 totalWeight,
     uint256 swapFee
   ) public {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT - MIN_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
-    totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
-    totalWeight = tokenWeightIn + tokenWeightOut;
+    uint256 totalWeight = tokenWeightIn + tokenWeightOut;
     tokenBalanceIn = clamp(tokenBalanceIn, 1e6, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, 1e6, type(uint256).max);
     tokenAmountIn = clamp(tokenAmountIn, 1e6, type(uint256).max);
-    poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
+    uint256 poolSupply = 100 * BONE;
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
 
     emit Log('tokenWeightIn', tokenWeightIn);
@@ -202,17 +199,14 @@ contract FuzzBMath is EchidnaTest {
     uint256 tokenBalanceOut,
     uint256 tokenWeightOut,
     uint256 tokenAmountOut,
-    uint256 poolSupply,
-    uint256 totalWeight,
     uint256 swapFee
   ) public {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT - MIN_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
-    totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
-    totalWeight = tokenWeightIn + tokenWeightOut;
+    uint256 totalWeight = tokenWeightIn + tokenWeightOut;
     tokenBalanceIn = clamp(tokenBalanceIn, 1e6, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, 1e6, type(uint256).max);
-    poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
+    uint256 poolSupply = 100 * BONE;
     tokenAmountOut = clamp(tokenAmountOut, 1e6, type(uint256).max);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
 
