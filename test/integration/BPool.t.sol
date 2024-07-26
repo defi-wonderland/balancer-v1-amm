@@ -114,13 +114,13 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   }
 
   function test_extremeCase() public virtual {
-    uint256 _DAI_WEIGHT = 21_095_347_289_582_322_017;
-    uint256 _WETH_WEIGHT = 14_053_292_305_279_328_903;
-    uint256 _DAI_BALANCE = 1_000_000_000_000_000_000;
-    uint256 _WETH_BALANCE = 839_390_325_460_697_805_479_509_969_833_437_577;
-    uint256 _DAI_AMOUNT_OUT = 1_000_000_000_000_000_000;
+    uint256 _TOKEN_IN_WEIGHT = 1_000_000_000_000_000_000;
+    uint256 _TOKEN_OUT_WEIGHT = 1_000_000_000_000_000_000;
+    uint256 _TOKEN_IN_BALANCE = 1_000_000;
+    uint256 _TOKEN_OUT_BALANCE = 116_962_303_042;
+    uint256 _TOKEN_IN_AMOUNT_OUT = 1_000_000;
     uint256 _FEE = 1e18 / 10 ** 6;
-    uint256 _WHITNESS_FEE = 0.999999e18;
+    uint256 _WHITNESS_FEE = 0.1e18;
 
     vm.startPrank(lp);
     pool = factory.newBPool();
@@ -135,14 +135,14 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     dai.approve(address(pool), type(uint256).max);
     weth.approve(address(pool), type(uint256).max);
 
-    pool.bind(address(dai), _DAI_BALANCE, _DAI_WEIGHT);
-    pool.bind(address(weth), _WETH_BALANCE, _WETH_WEIGHT);
+    pool.bind(address(dai), _TOKEN_IN_BALANCE, _TOKEN_IN_WEIGHT);
+    pool.bind(address(weth), _TOKEN_OUT_BALANCE, _TOKEN_OUT_WEIGHT);
 
     dai.approve(address(whitnessPool), type(uint256).max);
     weth.approve(address(whitnessPool), type(uint256).max);
 
-    whitnessPool.bind(address(dai), _DAI_BALANCE, _DAI_WEIGHT);
-    whitnessPool.bind(address(weth), _WETH_BALANCE, _WETH_WEIGHT);
+    whitnessPool.bind(address(dai), _TOKEN_IN_BALANCE, _TOKEN_IN_WEIGHT);
+    whitnessPool.bind(address(weth), _TOKEN_OUT_BALANCE, _TOKEN_OUT_WEIGHT);
 
     // set swap fee
     // NOTE: original pool keeps min swap fee
@@ -158,12 +158,12 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     dai.approve(address(whitnessPool), type(uint256).max);
 
     (uint256 amountIn,) =
-      pool.swapExactAmountOut(address(dai), type(uint256).max, address(weth), _DAI_AMOUNT_OUT, type(uint256).max);
+      pool.swapExactAmountOut(address(dai), type(uint256).max, address(weth), _TOKEN_IN_AMOUNT_OUT, type(uint256).max);
 
     uint256 whitnessBPT = whitnessPool.joinswapExternAmountIn(address(dai), amountIn, 0);
     uint256 whitnessAmountOut = whitnessPool.exitswapPoolAmountIn(address(weth), whitnessBPT, 0);
 
-    assertGt(_DAI_AMOUNT_OUT, whitnessAmountOut);
+    assertGt(_TOKEN_IN_AMOUNT_OUT, whitnessAmountOut);
   }
 
   function testIndirectSwap_ExactIn() public {
