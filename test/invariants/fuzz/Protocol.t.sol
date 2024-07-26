@@ -126,15 +126,15 @@ contract FuzzProtocol is EchidnaTest {
   }
 
   /// @custom:property-id 2
-  /// @custom:property BFactory's blab should always be modifiable by the current blabs
+  /// @custom:property BFactory's blab should always be modifiable by the current BDao
   function fuzz_blabAlwaysModByBLab() public AgentOrDeployer {
     // Precondition
-    address _currentBLab = factory.getBLabs();
+    address _currentBLab = factory.getBDao();
 
     hevm.prank(currentCaller);
 
     // Action
-    try factory.setBLabs(address(123)) {
+    try factory.setBDao(address(123)) {
       // Postcondition
       assert(_currentBLab == currentCaller);
     } catch {
@@ -146,7 +146,7 @@ contract FuzzProtocol is EchidnaTest {
   /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
   function fuzz_alwaysCollect() public AgentOrDeployer {
     // Precondition
-    address _currentBLab = factory.getBLabs();
+    address _currentBLab = factory.getBDao();
 
     if (address(pool) == address(0)) {
       return;

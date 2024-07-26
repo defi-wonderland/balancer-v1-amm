@@ -17,7 +17,7 @@ contract FuzzBMath is EchidnaTest {
   uint256 MIN_FEE;
   uint256 MAX_FEE;
 
-  function setUp() public {
+  constructor() {
     bmath = new BMath();
 
     MIN_WEIGHT = bmath.MIN_WEIGHT();
@@ -112,7 +112,7 @@ contract FuzzBMath is EchidnaTest {
   //   );
   //   emit Log('calc_poolAmountOut', calc_poolAmountOut);
 
-  //   assert(tokenAmountOut == calc_poolAmountOut);
+  //   assert(tokenAmountOut >= calc_poolAmountOut);
   // }
 
   // // calcPoolOutGivenSingleIn should be inverse of calcSingleInGivenPoolOut
@@ -139,11 +139,11 @@ contract FuzzBMath is EchidnaTest {
   //   );
   //   emit Log('calc_tokenAmountIn', calc_tokenAmountIn);
 
-  //   assert(tokenAmountIn == calc_tokenAmountIn);
+  //   assert(tokenAmountIn <= calc_tokenAmountIn);
   // }
 
   // calcPoolOutGivenSingleIn * calcSingleOutGivenPoolIn should be equal to calcOutGivenIn
-  function testIndirectSwaps_CalcOutGivenIn(
+  function fuzz_testIndirectSwaps_CalcOutGivenIn(
     uint256 tokenBalanceIn,
     uint256 tokenWeightIn,
     uint256 tokenBalanceOut,
@@ -153,11 +153,12 @@ contract FuzzBMath is EchidnaTest {
     uint256 totalWeight,
     uint256 swapFee
   ) public {
-    tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT);
-    tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_WEIGHT);
+    tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT - MIN_WEIGHT);
+    tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
     totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
     tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
+    tokenAmountIn = clamp(tokenAmountIn, BONE, type(uint256).max);
     poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
 
@@ -183,12 +184,12 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_tokenAmountOut', calc_inv_tokenAmountOut);
 
     assert(
-      calc_tokenAmountOut * 1_000_001 / 1_000_000 >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
+      calc_tokenAmountOut >= calc_inv_tokenAmountOut // direct path should be greater or equal to indirect path
     );
   }
 
   // calcPoolInGivenSingleOut * calcSingleInGivenPoolOut should be equal to calcInGivenOut
-  function testIndirectSwaps_CalcInGivenOut(
+  function fuzz_testIndirectSwaps_CalcInGivenOut(
     uint256 tokenBalanceIn,
     uint256 tokenWeightIn,
     uint256 tokenBalanceOut,
@@ -198,12 +199,13 @@ contract FuzzBMath is EchidnaTest {
     uint256 totalWeight,
     uint256 swapFee
   ) public {
-    tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT);
-    tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_WEIGHT);
+    tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT - MIN_WEIGHT);
+    tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_TOTAL_WEIGHT - tokenWeightIn);
     totalWeight = clamp(totalWeight, tokenWeightIn + tokenWeightOut, MAX_TOTAL_WEIGHT);
     tokenBalanceIn = clamp(tokenBalanceIn, BONE, type(uint256).max);
     tokenBalanceOut = clamp(tokenBalanceOut, BONE, type(uint256).max);
     poolSupply = clamp(poolSupply, 100 * BONE, type(uint256).max);
+    tokenAmountOut = clamp(tokenAmountOut, BONE, type(uint256).max);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
 
     emit Log('tokenWeightIn', tokenWeightIn);
@@ -228,7 +230,7 @@ contract FuzzBMath is EchidnaTest {
     emit Log('calc_inv_poolAmountIn', calc_inv_poolAmountIn);
 
     assert(
-      calc_tokenAmountIn <= calc_inv_poolAmountIn * 1_000_001 / 1_000_000 // direct path should be lesser or equal to indirect path
+      calc_tokenAmountIn <= calc_inv_poolAmountIn // direct path should be lesser or equal to indirect path
     );
   }
 }

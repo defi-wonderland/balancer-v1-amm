@@ -75,15 +75,15 @@ contract HalmosBalancer is HalmosTest {
   }
 
   /// @custom:property-id 2
-  /// @custom:property BFactory's blab should always be modifiable by the current blabs
+  /// @custom:property BFactory's blab should always be modifiable by the current BDao
   function check_blabAlwaysModByBLab() public {
     // Precondition
-    address _currentBLab = factory.getBLabs();
+    address _currentBLab = factory.getBDao();
 
     vm.prank(currentCaller);
 
     // Action
-    try factory.setBLabs(address(123)) {
+    try factory.setBDao(address(123)) {
       // Postcondition
       assert(_currentBLab == currentCaller);
     } catch {
@@ -95,7 +95,7 @@ contract HalmosBalancer is HalmosTest {
   /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
   function check_alwaysCollect() public {
     // Precondition
-    address _currentBLab = factory.getBLabs();
+    address _currentBLab = factory.getBDao();
 
     vm.prank(currentCaller);
 

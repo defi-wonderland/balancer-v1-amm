@@ -55,6 +55,9 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
   uint256 public constant DAI_AMOUNT = HUNDRED_UNITS;
   uint256 public constant WETH_AMOUNT_INVERSE = ONE_TENTH_UNIT;
 
+  // settings
+  uint256 constant SWAP_FEE = 0.999999e18; // 99.9999%
+
   // swap amounts OUT
   // NOTE: amounts OUT are hardcoded from test result
   uint256 public constant WETH_OUT_AMOUNT = 94_049_266_814_811_022; // 0.094 ETH
@@ -73,8 +76,8 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     deal(address(weth), lp, 2 * WETH_LP_AMOUNT);
     deal(address(wbtc), lp, 2 * WBTC_LP_AMOUNT);
 
-    deal(address(dai), swapper.addr, 2 * DAI_AMOUNT);
-    deal(address(weth), swapperInverse.addr, 2 * WETH_AMOUNT_INVERSE);
+    deal(address(dai), swapper.addr, type(uint192).max);
+    deal(address(weth), swapperInverse.addr, type(uint192).max);
 
     deal(address(dai), joiner.addr, 2 * DAI_LP_AMOUNT);
     deal(address(weth), joiner.addr, 2 * WETH_LP_AMOUNT);
@@ -95,6 +98,10 @@ abstract contract BPoolIntegrationTest is Test, GasSnapshot {
     whitnessPool.bind(address(dai), DAI_LP_AMOUNT, DAI_WEIGHT);
     whitnessPool.bind(address(weth), WETH_LP_AMOUNT, WETH_WEIGHT);
     whitnessPool.bind(address(wbtc), WBTC_LP_AMOUNT, WBTC_WEIGHT);
+
+    // set swap fee
+    pool.setSwapFee(SWAP_FEE); 
+    whitnessPool.setSwapFee(SWAP_FEE);
 
     // finalize
     pool.finalize();
