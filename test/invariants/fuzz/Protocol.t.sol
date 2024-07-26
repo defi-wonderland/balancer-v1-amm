@@ -219,7 +219,10 @@ contract FuzzProtocol is EchidnaTest {
 
       // 19
       assert(pool.isFinalized());
-    } catch {
+    } catch (bytes memory errorData) {
+      if (keccak256(errorData) == IBPool.BPool_SpotPriceAfterBelowSpotPriceBefore.selector) {
+        assert(false);
+      }
       assert(
         // above max ratio
         _amountIn > bnum.bmul_exposed(tokens[_tokenIn].balanceOf(address(pool)), bconst.MAX_IN_RATIO())
@@ -296,7 +299,10 @@ contract FuzzProtocol is EchidnaTest {
 
       // 19
       assert(pool.isFinalized());
-    } catch {
+    } catch (bytes memory errorData) {
+      if (keccak256(errorData) == IBPool.BPool_SpotPriceAfterBelowSpotPriceBefore.selector) {
+        assert(false);
+      }
       uint256 _spotBefore = bmath.calcSpotPrice(
         tokens[_tokenIn].balanceOf(address(pool)),
         pool.getDenormalizedWeight(address(tokens[_tokenIn])),
