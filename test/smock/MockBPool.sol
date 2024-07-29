@@ -53,14 +53,6 @@ contract MockBPool is BPool, Test {
     return _totalWeight;
   }
 
-  function set__reenteringMutex(bytes32 __reenteringMutex) public {
-    _reenteringMutex = __reenteringMutex;
-  }
-
-  function call__reenteringMutex() public view returns (bytes32) {
-    return _reenteringMutex;
-  }
-
   constructor() BPool() {}
 
   function mock_call_setSwapFee(uint256 swapFee) public {
