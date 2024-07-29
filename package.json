@@ -1,6 +1,6 @@
 {
   "name": "balancer-cow-amm",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "private": true,
   "description": "Balancer CoW AMM",
   "homepage": "https://github.com/balancer/cow-amm#readme",
