@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
@@ -5,7 +6,7 @@ import {CryticERC20ExternalBasicProperties} from
   '@crytic/properties/contracts/ERC20/external/properties/ERC20ExternalBasicProperties.sol';
 import {ITokenMock} from '@crytic/properties/contracts/ERC20/external/util/ITokenMock.sol';
 import {PropertiesConstants} from '@crytic/properties/contracts/util/PropertiesConstants.sol';
-import 'contracts/BToken.sol';
+import {BToken} from 'contracts/BToken.sol';
 
 contract FuzzBToken is CryticERC20ExternalBasicProperties, EchidnaTest {
   constructor() {

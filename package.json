@@ -29,6 +29,7 @@
     "script:testnet": "forge script TestnetScript -vvvvv --rpc-url $SEPOLIA_RPC --broadcast --chain sepolia --private-key $SEPOLIA_DEPLOYER_PK --verify",
     "smock": "smock-foundry --contracts src/contracts",
     "test": "yarn test:integration && yarn test:unit",
+    "test:echidna": "find test/invariants/fuzz -regex '.*\\.t\\.sol$' |cut -d '/' -f 4 | cut -d . -f 1 |xargs -I{} echidna test/invariants/fuzz/{}.t.sol --contract Fuzz{} --config test/invariants/fuzz/{}.yaml",
     "test:integration": "forge test --ffi --match-path 'test/integration/**' -vvv --isolate",
     "test:local": "FOUNDRY_FUZZ_RUNS=100 forge test -vvv",
     "test:scaffold": "bulloak check --fix test/unit/*.tree && forge fmt",

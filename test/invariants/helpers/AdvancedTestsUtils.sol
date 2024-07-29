@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 import {Test} from 'forge-std/Test.sol';
@@ -25,7 +25,7 @@ contract AgentsHandler {
 
   address internal currentCaller;
 
-  modifier AgentOrDeployer() {
+  modifier agentOrDeployer() {
     uint256 _currentAgentIndex = agentsIndex;
     currentCaller = _currentAgentIndex == 0 ? address(this) : agents[agentsIndex];
     _;

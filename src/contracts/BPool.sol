@@ -30,10 +30,6 @@ contract BPool is BToken, BMath, IBPool {
   /// @dev Sum of all token weights
   uint256 internal _totalWeight;
 
-  /// TEST TEST TEST TEST TEST TEST TEST TEST
-  bytes32 internal _reenteringMutex;
-  /// TEST TEST TEST TEST TEST TEST TEST TEST
-
   /// @dev Logs the call data
   modifier _logs_() {
     emit LOG_CALL(msg.sig, msg.sender, msg.data);
@@ -152,8 +148,8 @@ contract BPool is BToken, BMath, IBPool {
 
     _pullUnderlying(token, msg.sender, balance);
   }
-  /// @inheritdoc IBPool
 
+  /// @inheritdoc IBPool
   function unbind(address token) external _logs_ _lock_ _controller_ _notFinalized_ {
     if (!_records[token].bound) {
       revert BPool_TokenNotBound();
@@ -455,10 +451,9 @@ contract BPool is BToken, BMath, IBPool {
    * be interpreted as locked
    */
   function _setLock(bytes32 value) internal virtual {
-    // assembly ("memory-safe") {
-    //   tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, value)
-    // }
-    _reenteringMutex = value;
+    assembly ("memory-safe") {
+      tstore(_MUTEX_TRANSIENT_STORAGE_SLOT, value)
+    }
   }
 
   /**
@@ -529,9 +524,8 @@ contract BPool is BToken, BMath, IBPool {
    * allowing calls
    */
   function _getLock() internal view virtual returns (bytes32 value) {
-    // assembly ("memory-safe") {
-    //   value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
-    // }
-    value = _reenteringMutex;
+    assembly ("memory-safe") {
+      value := tload(_MUTEX_TRANSIENT_STORAGE_SLOT)
+    }
   }
 }

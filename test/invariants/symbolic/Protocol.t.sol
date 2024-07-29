@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 import {FuzzERC20, HalmosTest} from '../helpers/AdvancedTestsUtils.sol';
@@ -75,36 +75,36 @@ contract HalmosBalancer is HalmosTest {
   }
 
   /// @custom:property-id 2
-  /// @custom:property BFactory's blab should always be modifiable by the current BDao
-  function check_blabAlwaysModByBLab() public {
+  /// @custom:property BFactory's BDao should always be modifiable by the current BDao
+  function check_BDaoAlwaysModByBDao() public {
     // Precondition
-    address _currentBLab = factory.getBDao();
+    address _currentBDao = factory.getBDao();
 
     vm.prank(currentCaller);
 
     // Action
     try factory.setBDao(address(123)) {
       // Postcondition
-      assert(_currentBLab == currentCaller);
+      assert(_currentBDao == currentCaller);
     } catch {
-      assert(_currentBLab != currentCaller);
+      assert(_currentBDao != currentCaller);
     }
   }
 
   /// @custom:property-id 3
-  /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
+  /// @custom:property BFactory should always be able to transfer the BToken to the BDao, if called by it
   function check_alwaysCollect() public {
     // Precondition
-    address _currentBLab = factory.getBDao();
+    address _currentBDao = factory.getBDao();
 
     vm.prank(currentCaller);
 
     // Action
     try factory.collect(pool) {
       // Postcondition
-      assert(_currentBLab == currentCaller);
+      assert(_currentBDao == currentCaller);
     } catch {
-      assert(_currentBLab != currentCaller);
+      assert(_currentBDao != currentCaller);
     }
   }
   /// @custom:property-id 7

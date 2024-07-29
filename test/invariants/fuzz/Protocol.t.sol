@@ -1,26 +1,30 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 import {EchidnaTest, FuzzERC20} from '../helpers/AdvancedTestsUtils.sol';
 
+import {MockBNum as BNum} from '../../manual-smock/MockBNum.sol';
+import {BCoWFactoryForTest as BCoWFactory} from '../helpers/BCoWFactoryForTest.sol';
 import {MockSettler} from '../helpers/MockSettler.sol';
-import {BCoWFactory, BCoWPool, IBPool} from 'contracts/BCoWFactory.sol';
+
 import {BConst} from 'contracts/BConst.sol';
 import {BMath} from 'contracts/BMath.sol';
-import {BNum} from 'contracts/BNum.sol';
+
+import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
 
 contract FuzzProtocol is EchidnaTest {
   // System under test
   BCoWFactory factory;
   BConst bconst;
   BMath bmath;
-  BNum_exposed bnum;
+  BNum bnum;
 
   address solutionSettler;
   bytes32 appData;
 
   FuzzERC20[] tokens;
-  BCoWPool pool;
+  IBCoWPool pool;
 
   IBPool[] poolsToFinalize;
 
@@ -34,17 +38,11 @@ contract FuzzProtocol is EchidnaTest {
     factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
     bmath = new BMath();
-    bnum = new BNum_exposed();
+    bnum = new BNum();
 
-    // max bound token is 8
-    for (uint256 i; i < 4; i++) {
-      FuzzERC20 _token = new FuzzERC20();
-      _token.initialize('', '', 18);
-      tokens.push(_token);
-    }
+    pool = IBCoWPool(address(factory.newBPool()));
 
-    pool = BCoWPool(address(factory.newBPool()));
-
+    // first 4 tokens bound to the finalized pool
     for (uint256 i; i < 4; i++) {
       FuzzERC20 _token = new FuzzERC20();
       _token.initialize('', '', 18);
@@ -61,15 +59,22 @@ contract FuzzProtocol is EchidnaTest {
       }
     }
 
+    // 4 other tokens to bind to pools in poolsToFinalize, since max bound token is 8
+    for (uint256 i; i < 4; i++) {
+      FuzzERC20 _token = new FuzzERC20();
+      _token.initialize('', '', 18);
+      tokens.push(_token);
+    }
+
     pool.finalize();
-    ghost_bptMinted = pool.INIT_POOL_SUPPLY();
+    ghost_bptMinted = bconst.INIT_POOL_SUPPLY();
   }
 
   // Randomly add or remove tokens to a pool
   // Insure caller has enough token
   // Main objective is to have an arbitrary number of tokens in the pool, peripheral objective is another
   // test of min/max token bound (properties 20 and 21)
-  function setup_joinExitPool(bool _join, uint256 _amountBpt) public AgentOrDeployer {
+  function setup_joinExitPool(bool _join, uint256 _amountBpt) public agentOrDeployer {
     if (_join) {
       uint256[] memory _maxAmountsIn;
 
@@ -77,7 +82,7 @@ contract FuzzProtocol is EchidnaTest {
 
       for (uint256 i; i < _maxAmountsIn.length; i++) {
         uint256 _maxIn =
-          bnum.bmul_exposed(bnum.bdiv_exposed(_amountBpt, pool.totalSupply()), pool.getBalance(address(tokens[i])));
+          bnum.call_bmul(bnum.call_bdiv(_amountBpt, pool.totalSupply()), pool.getBalance(address(tokens[i])));
         _maxAmountsIn[i] = _maxIn;
 
         tokens[i].mint(currentCaller, _maxIn);
@@ -109,7 +114,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 1
   /// @custom:property BFactory should always be able to deploy new pools
-  function fuzz_BFactoryAlwaysDeploy() public AgentOrDeployer {
+  function fuzz_BFactoryAlwaysDeploy() public agentOrDeployer {
     // Precondition
     hevm.prank(currentCaller);
 
@@ -126,27 +131,28 @@ contract FuzzProtocol is EchidnaTest {
   }
 
   /// @custom:property-id 2
-  /// @custom:property BFactory's blab should always be modifiable by the current BDao
-  function fuzz_blabAlwaysModByBLab() public AgentOrDeployer {
+  /// @custom:property BFactory's BDao should always be modifiable by the current BDaos
+  function fuzz_BDaoAlwaysModByBDao() public agentOrDeployer {
     // Precondition
-    address _currentBLab = factory.getBDao();
+    address _currentBDao = factory.getBDao();
 
     hevm.prank(currentCaller);
 
     // Action
     try factory.setBDao(address(123)) {
       // Postcondition
-      assert(_currentBLab == currentCaller);
+      assert(_currentBDao == currentCaller);
     } catch {
-      assert(_currentBLab != currentCaller);
+      assert(_currentBDao != currentCaller);
     }
   }
 
+  /* TODO: re-enable this test after fixing the hevm issue with SafeTransfer library
   /// @custom:property-id 3
-  /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
-  function fuzz_alwaysCollect() public AgentOrDeployer {
+  /// @custom:property BFactory should always be able to transfer the BToken to the BDao, if called by it
+  function fuzz_alwaysCollect() public agentOrDeployer {
     // Precondition
-    address _currentBLab = factory.getBDao();
+    address _currentBDao = factory.getBDao();
 
     if (address(pool) == address(0)) {
       return;
@@ -157,11 +163,12 @@ contract FuzzProtocol is EchidnaTest {
     // Action
     try factory.collect(pool) {
       // Postcondition
-      assert(_currentBLab == currentCaller);
+      assert(_currentBDao == currentCaller);
     } catch {
-      assert(_currentBLab != currentCaller);
+      assert(_currentBDao != currentCaller);
     }
   }
+  */
 
   /// @custom:property-id 4
   /// @custom:property the amount received can never be less than min amount out
@@ -171,12 +178,14 @@ contract FuzzProtocol is EchidnaTest {
   /// @custom:property there can't be any amount out for a 0 amount in
   /// @custom:property-id 19
   /// @custom:property a swap can only happen when the pool is finalized
+  /// @custom:property-id 25
+  /// @custom:property spot price after swap is always greater than before swap
   function fuzz_swapExactIn(
     uint256 _minAmountOut,
     uint256 _amountIn,
     uint256 _tokenIn,
     uint256 _tokenOut
-  ) public AgentOrDeployer {
+  ) public agentOrDeployer {
     // Preconditions
     require(pool.isFinalized());
 
@@ -219,10 +228,14 @@ contract FuzzProtocol is EchidnaTest {
 
       // 19
       assert(pool.isFinalized());
-    } catch {
+    } catch (bytes memory errorData) {
+      // 25
+      if (keccak256(errorData) == IBPool.BPool_SpotPriceAfterBelowSpotPriceBefore.selector) {
+        assert(false);
+      }
       assert(
         // above max ratio
-        _amountIn > bnum.bmul_exposed(tokens[_tokenIn].balanceOf(address(pool)), bconst.MAX_IN_RATIO())
+        _amountIn > bnum.call_bmul(tokens[_tokenIn].balanceOf(address(pool)), bconst.MAX_IN_RATIO())
         // below min amount out
         || _outComputed < _minAmountOut
       );
@@ -242,7 +255,7 @@ contract FuzzProtocol is EchidnaTest {
     uint256 _amountOut,
     uint256 _tokenIn,
     uint256 _tokenOut
-  ) public AgentOrDeployer {
+  ) public agentOrDeployer {
     // Precondition
     require(pool.isFinalized());
 
@@ -296,7 +309,10 @@ contract FuzzProtocol is EchidnaTest {
 
       // 19
       assert(pool.isFinalized());
-    } catch {
+    } catch (bytes memory errorData) {
+      if (keccak256(errorData) == IBPool.BPool_SpotPriceAfterBelowSpotPriceBefore.selector) {
+        assert(false);
+      }
       uint256 _spotBefore = bmath.calcSpotPrice(
         tokens[_tokenIn].balanceOf(address(pool)),
         pool.getDenormalizedWeight(address(tokens[_tokenIn])),
@@ -305,12 +321,12 @@ contract FuzzProtocol is EchidnaTest {
         bconst.MIN_FEE()
       );
 
-      uint256 _outRatio = bnum.bmul_exposed(tokens[_tokenOut].balanceOf(address(pool)), bconst.MAX_OUT_RATIO());
+      uint256 _outRatio = bnum.call_bmul(tokens[_tokenOut].balanceOf(address(pool)), bconst.MAX_OUT_RATIO());
 
       assert(
         _inComputed > _maxAmountIn // 5
           || _amountOut > _outRatio // 14
-          || _spotBefore > bnum.bdiv_exposed(_inComputed, _amountOut)
+          || _spotBefore > bnum.call_bdiv(_inComputed, _amountOut)
       );
     }
   }
@@ -325,7 +341,7 @@ contract FuzzProtocol is EchidnaTest {
   /// @custom:property total weight can be up to 50e18
   function fuzz_totalWeightMax(uint256 _numberTokens, uint256[8] calldata _weights) public {
     // Precondition
-    BCoWPool _pool = BCoWPool(address(factory.newBPool()));
+    IBPool _pool = IBPool(address(factory.newBPool()));
 
     _numberTokens = clamp(_numberTokens, bconst.MIN_BOUND_TOKENS(), bconst.MAX_BOUND_TOKENS());
 
@@ -373,7 +389,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 12
   /// @custom:property a non-finalized pool can only be finalized when the controller calls finalize()
-  function fuzz_poolFinalizedByController() public AgentOrDeployer {
+  function fuzz_poolFinalizedByController() public agentOrDeployer {
     // Precondition
     if (poolsToFinalize.length == 0) {
       return;
@@ -410,7 +426,7 @@ contract FuzzProtocol is EchidnaTest {
     uint256 _amountPoolToken,
     uint256 _amountToTransfer,
     uint256 _tokenIdx
-  ) public AgentOrDeployer {
+  ) public agentOrDeployer {
     _tokenIdx = clamp(_tokenIdx, 0, tokens.length - 1);
     FuzzERC20 _token = tokens[_tokenIdx];
 
@@ -444,7 +460,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 18
   /// @custom:property the amount of underlying token when exiting should always be the amount calculated in bmath
-  function fuzz_correctBPTBurnAmount(uint256 _amountPoolToken) public AgentOrDeployer {
+  function fuzz_correctBPTBurnAmount(uint256 _amountPoolToken) public agentOrDeployer {
     _amountPoolToken = clamp(_amountPoolToken, 0, pool.balanceOf(currentCaller));
 
     uint256[] memory _amountsToReceive = new uint256[](4);
@@ -482,7 +498,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 20
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
-  function fuzz_boundOnlyNotFinalized() public AgentOrDeployer {
+  function fuzz_boundOnlyNotFinalized() public agentOrDeployer {
     // Precondition
     if (poolsToFinalize.length == 0) {
       return;
@@ -540,7 +556,7 @@ contract FuzzProtocol is EchidnaTest {
 
   /// @custom:property-id 22
   /// @custom:property only the settler can commit a hash
-  function fuzz_settlerCommit() public AgentOrDeployer {
+  function fuzz_settlerCommit() public agentOrDeployer {
     // Precondition
     hevm.prank(currentCaller);
 
@@ -551,20 +567,5 @@ contract FuzzProtocol is EchidnaTest {
     } catch {
       assert(currentCaller != solutionSettler);
     }
-  }
-
-  /// @custom:property-id 23
-  /// @custom:property when a hash has been commited, only this order can be settled
-  /// @custom:property-not-implemented
-  function fuzz_settlerSettle() public {}
-}
-
-contract BNum_exposed is BNum {
-  function bdiv_exposed(uint256 a, uint256 b) public pure returns (uint256) {
-    return bdiv(a, b);
-  }
-
-  function bmul_exposed(uint256 a, uint256 b) public pure returns (uint256) {
-    return bmul(a, b);
   }
 }

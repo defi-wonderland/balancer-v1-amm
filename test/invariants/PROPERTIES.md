@@ -1,8 +1,8 @@
 | Properties                                                                                  | Type                | Id  | Halmos | Echidna |
 | ------------------------------------------------------------------------------------------- | ------------------- | --- | ------ | ------- |
 | BFactory should always be able to deploy new pools                                          | Unit                | 1   | [x]    | [x]     |
-| BFactory's blab should always be modifiable by the current BDao                            | Unit                | 2   | [x]    | [x]     |
-| BFactory should always be able to transfer the BToken to the blab, if called by it          | Unit                | 3   | [x]    | [x]     |
+| BFactory's BDao should always be modifiable by the current BDao                            | Unit                | 2   | [x]    | [x]     |
+| BFactory should always be able to transfer the BToken to the BDao, if called by it          | Unit                | 3   | [x]    | [x]     |
 | the amount received can never be less than min amount out                                   | Unit                | 4   | :(     | [x]     |
 | the amount spent can never be greater than max amount in                                    | Unit                | 5   | :(     | [x]     |
 | swap fee can only be 0 (cow pool)                                                           | Valid state         | 6   | [x]    | [x]     |
@@ -24,6 +24,7 @@
 | only the settler can commit a hash                                                          | High level          | 22  | [x]    | [x]     |
 | when a hash has been commited, only this order can be settled                               | High level          | 23  | [ ]    | [ ]     |
 | BToken should not break the ToB ERC20 properties**                                          | High level          | 24  |        | [x]     |
+| Spot price after swap is always greater than before swap                                    | High level          | 25  |        | [x]     |
 
 > (*) Bundled with 24
 
