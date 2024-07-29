@@ -135,73 +135,19 @@ contract MockBPool is BPool, Test {
     );
   }
 
-  function mock_call_joinswapExternAmountIn(
-    address tokenIn,
-    uint256 tokenAmountIn,
-    uint256 minPoolAmountOut,
-    uint256 poolAmountOut
-  ) public {
+  function mock_call_getSpotPrice(address tokenIn, address tokenOut, uint256 _returnParam0) public {
     vm.mockCall(
       address(this),
-      abi.encodeWithSignature(
-        'joinswapExternAmountIn(address,uint256,uint256)', tokenIn, tokenAmountIn, minPoolAmountOut
-      ),
-      abi.encode(poolAmountOut)
+      abi.encodeWithSignature('getSpotPrice(address,address)', tokenIn, tokenOut),
+      abi.encode(_returnParam0)
     );
   }
 
-  function mock_call_joinswapPoolAmountOut(
-    address tokenIn,
-    uint256 poolAmountOut,
-    uint256 maxAmountIn,
-    uint256 tokenAmountIn
-  ) public {
-    vm.mockCall(
-      address(this),
-      abi.encodeWithSignature('joinswapPoolAmountOut(address,uint256,uint256)', tokenIn, poolAmountOut, maxAmountIn),
-      abi.encode(tokenAmountIn)
-    );
-  }
-
-  function mock_call_exitswapPoolAmountIn(
-    address tokenOut,
-    uint256 poolAmountIn,
-    uint256 minAmountOut,
-    uint256 tokenAmountOut
-  ) public {
-    vm.mockCall(
-      address(this),
-      abi.encodeWithSignature('exitswapPoolAmountIn(address,uint256,uint256)', tokenOut, poolAmountIn, minAmountOut),
-      abi.encode(tokenAmountOut)
-    );
-  }
-
-  function mock_call_exitswapExternAmountOut(
-    address tokenOut,
-    uint256 tokenAmountOut,
-    uint256 maxPoolAmountIn,
-    uint256 poolAmountIn
-  ) public {
-    vm.mockCall(
-      address(this),
-      abi.encodeWithSignature(
-        'exitswapExternAmountOut(address,uint256,uint256)', tokenOut, tokenAmountOut, maxPoolAmountIn
-      ),
-      abi.encode(poolAmountIn)
-    );
-  }
-
-  function mock_call_getSpotPrice(address tokenIn, address tokenOut, uint256 spotPrice) public {
-    vm.mockCall(
-      address(this), abi.encodeWithSignature('getSpotPrice(address,address)', tokenIn, tokenOut), abi.encode(spotPrice)
-    );
-  }
-
-  function mock_call_getSpotPriceSansFee(address tokenIn, address tokenOut, uint256 spotPrice) public {
+  function mock_call_getSpotPriceSansFee(address tokenIn, address tokenOut, uint256 _returnParam0) public {
     vm.mockCall(
       address(this),
       abi.encodeWithSignature('getSpotPriceSansFee(address,address)', tokenIn, tokenOut),
-      abi.encode(spotPrice)
+      abi.encode(_returnParam0)
     );
   }
 
@@ -209,20 +155,20 @@ contract MockBPool is BPool, Test {
     vm.mockCall(address(this), abi.encodeWithSignature('isFinalized()'), abi.encode(_returnParam0));
   }
 
-  function mock_call_isBound(address t, bool _returnParam0) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('isBound(address)', t), abi.encode(_returnParam0));
+  function mock_call_isBound(address token, bool _returnParam0) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('isBound(address)', token), abi.encode(_returnParam0));
   }
 
   function mock_call_getNumTokens(uint256 _returnParam0) public {
     vm.mockCall(address(this), abi.encodeWithSignature('getNumTokens()'), abi.encode(_returnParam0));
   }
 
-  function mock_call_getCurrentTokens(address[] memory tokens) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('getCurrentTokens()'), abi.encode(tokens));
+  function mock_call_getCurrentTokens(address[] memory _returnParam0) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('getCurrentTokens()'), abi.encode(_returnParam0));
   }
 
-  function mock_call_getFinalTokens(address[] memory tokens) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('getFinalTokens()'), abi.encode(tokens));
+  function mock_call_getFinalTokens(address[] memory _returnParam0) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('getFinalTokens()'), abi.encode(_returnParam0));
   }
 
   function mock_call_getDenormalizedWeight(address token, uint256 _returnParam0) public {
