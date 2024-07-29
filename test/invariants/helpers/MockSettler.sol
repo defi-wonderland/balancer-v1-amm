@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 import {GPv2Interaction, GPv2Trade, IERC20, ISettlement} from 'interfaces/ISettlement.sol';
