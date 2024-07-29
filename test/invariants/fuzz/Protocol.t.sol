@@ -566,9 +566,4 @@ contract FuzzProtocol is EchidnaTest {
       assert(currentCaller != solutionSettler);
     }
   }
-
-  /// @custom:property-id 23
-  /// @custom:property when a hash has been commited, only this order can be settled
-  /// @custom:property-not-implemented
-  // function fuzz_settlerSettle() public {}
 }
