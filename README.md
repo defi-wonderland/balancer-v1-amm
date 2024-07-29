@@ -32,6 +32,7 @@ yarn test    # run the tests
 - Deprecated `Migrations` contract (not needed)
 - Added an `_afterFinalize` hook (to be called at the end of the finalize routine)
 - Implemented reentrancy locks using transient storage.
+- Deprecated `joinswap` and `exitswap` methods (avoid single-token math precision issues)
 
 ## Features on BCoWPool (added via inheritance to BPool)
 - Immutably stores CoW Protocol's `SolutionSettler` and `VaultRelayer` addresses at deployment
