@@ -147,6 +147,7 @@ contract FuzzProtocol is EchidnaTest {
     }
   }
 
+  /* TODO: re-enable this test after fixing the hevm issue with SafeTransfer library
   /// @custom:property-id 3
   /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
   function fuzz_alwaysCollect() public agentOrDeployer {
@@ -167,6 +168,7 @@ contract FuzzProtocol is EchidnaTest {
       assert(_currentBLab != currentCaller);
     }
   }
+  */
 
   /// @custom:property-id 4
   /// @custom:property the amount received can never be less than min amount out
