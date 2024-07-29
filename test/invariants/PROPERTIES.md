@@ -24,6 +24,7 @@
 | only the settler can commit a hash                                                          | High level          | 22  | [x]    | [x]     |
 | when a hash has been commited, only this order can be settled                               | High level          | 23  | [ ]    | [ ]     |
 | BToken should not break the ToB ERC20 properties**                                          | High level          | 24  |        | [x]     |
+| Spot price after swap is always greater than before swap                                    | High level          | 25  |        | [x]     |
 
 > (*) Bundled with 24
 

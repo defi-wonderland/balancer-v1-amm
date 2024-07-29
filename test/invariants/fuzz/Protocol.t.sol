@@ -178,6 +178,8 @@ contract FuzzProtocol is EchidnaTest {
   /// @custom:property there can't be any amount out for a 0 amount in
   /// @custom:property-id 19
   /// @custom:property a swap can only happen when the pool is finalized
+  /// @custom:property-id 25
+  /// @custom:property spot price after swap is always greater than before swap
   function fuzz_swapExactIn(
     uint256 _minAmountOut,
     uint256 _amountIn,
@@ -227,6 +229,7 @@ contract FuzzProtocol is EchidnaTest {
       // 19
       assert(pool.isFinalized());
     } catch (bytes memory errorData) {
+      // 25
       if (keccak256(errorData) == IBPool.BPool_SpotPriceAfterBelowSpotPriceBefore.selector) {
         assert(false);
       }
