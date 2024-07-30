@@ -32,7 +32,7 @@ interface IBFactory {
    * @notice Creates a new BPool, assigning the caller as the pool controller
    * @return bPool The new BPool
    */
-  function newBPool() external returns (IBPool bPool);
+  function newBPool(string memory name, string memory symbol) external returns (IBPool bPool);
 
   /**
    * @notice Sets the BDao address in the factory
