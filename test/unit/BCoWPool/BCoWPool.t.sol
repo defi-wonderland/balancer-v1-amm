@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 import {IERC20} from '@cowprotocol/interfaces/IERC20.sol';
+import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
 import {BCoWPoolBase} from './BCoWPoolBase.t.sol';
 
@@ -54,12 +55,36 @@ contract BCoWPool is BCoWPoolBase {
   }
 
   function test__afterFinalizeWhenCalled() external {
+    vm.mockCall(tokens[0], abi.encodeWithSelector(IERC20Metadata.symbol.selector), abi.encode('TKN0'));
+    vm.mockCall(tokens[1], abi.encodeWithSelector(IERC20Metadata.symbol.selector), abi.encode('TKN1'));
+
+    // it should query ERC20 symbol for each token
+    vm.expectCall(tokens[0], abi.encodeWithSelector(IERC20Metadata.symbol.selector));
+    vm.expectCall(tokens[1], abi.encodeWithSelector(IERC20Metadata.symbol.selector));
+
     // it calls approve on every bound token
     vm.expectCall(tokens[0], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     vm.expectCall(tokens[1], abi.encodeCall(IERC20.approve, (vaultRelayer, type(uint256).max)));
     // it calls logBCoWPool on the factory
     vm.expectCall(address(this), abi.encodeCall(IBCoWFactory.logBCoWPool, ()));
+
+    string memory _preName = bCoWPool.name();
+    string memory _preSymbol = bCoWPool.symbol();
+
     bCoWPool.call__afterFinalize();
+
+    // it should overwrite the pool's name
+    string memory _newName = 'BCoWAMM Balancer Pool Token';
+    assertNotEq(_preName, _newName);
+    string memory _postName = bCoWPool.name();
+    assertEq(_postName, _newName);
+
+    // it should overwrite the pool's symbol
+    string memory _newSymbol = 'BCoWAMM BPT';
+    assertNotEq(_preSymbol, _newSymbol);
+    // it should add symbols to the pool's symbol
+    string memory _postSymbol = bCoWPool.symbol();
+    assertEq(_postSymbol, string(abi.encodePacked(_newSymbol, ' (TKN0-TKN1)')));
   }
 
   function test__afterFinalizeWhenFactorysLogBCoWPoolDoesNotRevert() external {

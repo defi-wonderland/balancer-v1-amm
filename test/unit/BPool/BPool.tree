@@ -142,6 +142,11 @@ BPool::finalize
     ├── it sends initial pool shares to controller
     └── it calls _afterFinalize hook
 
+BPool::_afterFinalize
+└── when called
+    ├── it query ERC20 symbol for each token
+    └── it should add symbols to the pool's symbol
+
 BPool::_pushUnderlying
 ├── when underlying token returns false
 │   └── it should revert

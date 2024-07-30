@@ -5,6 +5,7 @@ import {BPoolBase} from './BPoolBase.t.sol';
 
 import {IERC20Errors} from '@openzeppelin/contracts/interfaces/draft-IERC6093.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 
@@ -425,6 +426,22 @@ contract BPool is BPoolBase, BMath {
     bPool.finalize();
     // it finalizes the pool
     assertEq(bPool.call__finalized(), true);
+  }
+
+  function test__afterFinalizeWhenCalled() external {
+    vm.mockCall(tokens[0], abi.encodeWithSelector(IERC20Metadata.symbol.selector), abi.encode('TKN0'));
+    vm.mockCall(tokens[1], abi.encodeWithSelector(IERC20Metadata.symbol.selector), abi.encode('TKN1'));
+
+    // it query ERC20 symbol for each token
+    vm.expectCall(tokens[0], abi.encodeWithSelector(IERC20Metadata.symbol.selector));
+    vm.expectCall(tokens[1], abi.encodeWithSelector(IERC20Metadata.symbol.selector));
+
+    string memory _preSymbol = bPool.symbol();
+    bPool.call__afterFinalize();
+
+    // it should add symbols to the pool's symbol
+    string memory _postSymbol = bPool.symbol();
+    assertEq(_postSymbol, string(abi.encodePacked(_preSymbol, ' (TKN0-TKN1)')));
   }
 
   function test__pushUnderlyingRevertWhen_UnderlyingTokenReturnsFalse() external {

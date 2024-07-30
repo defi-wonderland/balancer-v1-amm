@@ -137,6 +137,10 @@ contract BCoWPool is IERC1271, IBCoWPool, BPool, BCoWConst {
    * pool after the finalization of the setup. Also emits COWAMMPoolCreated() event.
    */
   function _afterFinalize() internal override {
+    _name = 'BCoWAMM Balancer Pool Token';
+    _symbol = 'BCoWAMM BPT';
+    super._afterFinalize();
+
     uint256 tokensLength = _tokens.length;
     for (uint256 i; i < tokensLength; i++) {
       IERC20(_tokens[i]).approve(VAULT_RELAYER, type(uint256).max);

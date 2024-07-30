@@ -14,6 +14,9 @@ contract BToken is Test {
   address public spender = makeAddr('spender');
   address public target = makeAddr('target');
 
+  string public constant NAME = 'Balancer Pool Token';
+  string public constant SYMBOL = 'BPT';
+
   function setUp() external {
     bToken = new MockBToken();
 
@@ -25,9 +28,9 @@ contract BToken is Test {
   function test_ConstructorWhenCalled() external {
     MockBToken _bToken = new MockBToken();
     // it sets token name
-    assertEq(_bToken.name(), 'Balancer Pool Token');
+    assertEq(_bToken.name(), NAME);
     // it sets token symbol
-    assertEq(_bToken.symbol(), 'BPT');
+    assertEq(_bToken.symbol(), SYMBOL);
   }
 
   function test_IncreaseApprovalRevertWhen_SenderIsAddressZero() external {
@@ -81,6 +84,32 @@ contract BToken is Test {
     bToken.decreaseApproval(spender, 50e18);
     // it decreases spender approval
     assertEq(bToken.allowance(caller, spender), 50e18);
+  }
+
+  function test_NameWhen_nameIsEmpty() external view {
+    // it returns ERC20 token name
+    string memory _name = bToken.name();
+    assertEq(_name, NAME);
+  }
+
+  function test_NameWhen_nameIsSet(string memory _name) external {
+    vm.assume(bytes(_name).length > 0);
+    bToken.set__name(_name);
+    // it returns _name
+    assertEq(bToken.name(), _name);
+  }
+
+  function test_SymbolWhen_symbolIsEmpty() external view {
+    // it returns ERC20 token symbol
+    string memory _symbol = bToken.symbol();
+    assertEq(_symbol, SYMBOL);
+  }
+
+  function test_SymbolWhen_symbolIsSet(string memory _symbol) external {
+    vm.assume(bytes(_symbol).length > 0);
+    bToken.set__symbol(_symbol);
+    // it returns _symbol
+    assertEq(bToken.symbol(), _symbol);
   }
 
   function test__pushRevertWhen_ContractDoesNotHaveEnoughBalance() external {

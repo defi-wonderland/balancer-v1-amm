@@ -5,6 +5,22 @@ import {BToken, ERC20} from '../../src/contracts/BToken.sol';
 import {Test} from 'forge-std/Test.sol';
 
 contract MockBToken is BToken, Test {
+  function set__name(string memory __name) public {
+    _name = __name;
+  }
+
+  function call__name() public view returns (string memory) {
+    return _name;
+  }
+
+  function set__symbol(string memory __symbol) public {
+    _symbol = __symbol;
+  }
+
+  function call__symbol() public view returns (string memory) {
+    return _symbol;
+  }
+
   constructor() BToken() {}
 
   function mock_call_increaseApproval(address spender, uint256 amount, bool success) public {
@@ -17,6 +33,14 @@ contract MockBToken is BToken, Test {
     vm.mockCall(
       address(this), abi.encodeWithSignature('decreaseApproval(address,uint256)', spender, amount), abi.encode(success)
     );
+  }
+
+  function mock_call_name(string memory _returnParam0) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('name()'), abi.encode(_returnParam0));
+  }
+
+  function mock_call_symbol(string memory _returnParam0) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('symbol()'), abi.encode(_returnParam0));
   }
 
   function mock_call__push(address to, uint256 amount) public {

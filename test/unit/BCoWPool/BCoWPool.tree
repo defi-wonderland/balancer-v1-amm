@@ -9,6 +9,10 @@ BCoWPool::Constructor
 
 BCoWPool::_afterFinalize
 ├── when called
+│   ├── it should overwrite the pool's name
+│   ├── it should overwrite the pool's symbol
+│   ├── it should query ERC20 symbol for each token
+│   ├── it should add symbols to the pool's symbol
 │   ├── it calls approve on every bound token
 │   └── it calls logBCoWPool on the factory
 ├── when factorys logBCoWPool does not revert

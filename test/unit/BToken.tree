@@ -23,6 +23,18 @@ BToken::decreaseApproval
     ├── it emits Approval event
     └── it decreases spender approval
 
+BToken::name
+├── when _name is empty
+│   └── it returns ERC20 token name
+└── when _name is set
+    └── it returns _name
+
+BToken::symbol
+├── when _symbol is empty
+│   └── it returns ERC20 token symbol
+└── when _symbol is set
+    └── it returns _symbol
+
 BToken::_push
 ├── when contract does not have enough balance
 │   └── it should revert

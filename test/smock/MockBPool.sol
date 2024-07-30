@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {BMath, BPool, BToken, IBPool, IERC20, SafeERC20} from '../../src/contracts/BPool.sol';
+import {BMath, BPool, BToken, IBPool, IERC20, IERC20Metadata, SafeERC20} from '../../src/contracts/BPool.sol';
 import {Test} from 'forge-std/Test.sol';
 
 contract MockBPool is BPool, Test {
@@ -376,7 +376,7 @@ contract MockBPool is BPool, Test {
     else return super._getLock();
   }
 
-  function call__getLock() public returns (bytes32 value) {
+  function call__getLock() public view returns (bytes32 value) {
     return _getLock();
   }
 

@@ -8,6 +8,11 @@ import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
  * @notice Balancer Pool Token base contract, providing ERC20 functionality.
  */
 contract BToken is ERC20 {
+  /// @dev Storage slot with the name of the token.
+  string internal _name;
+  /// @dev Storage slot with the symbol of the token.
+  string internal _symbol;
+
   constructor() ERC20('Balancer Pool Token', 'BPT') {}
 
   /**
@@ -35,6 +40,22 @@ contract BToken is ERC20 {
       _approve(msg.sender, spender, oldValue - amount);
     }
     success = true;
+  }
+
+  /// @inheritdoc ERC20
+  function name() public view override returns (string memory) {
+    if (bytes(_name).length == 0) {
+      return super.name();
+    }
+    return _name;
+  }
+
+  /// @inheritdoc ERC20
+  function symbol() public view override returns (string memory) {
+    if (bytes(_symbol).length == 0) {
+      return super.symbol();
+    }
+    return _symbol;
   }
 
   /**
