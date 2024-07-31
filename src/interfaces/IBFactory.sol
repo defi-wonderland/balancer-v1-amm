@@ -30,6 +30,8 @@ interface IBFactory {
 
   /**
    * @notice Creates a new BPool, assigning the caller as the pool controller
+   * @param name The name of the Pool ERC20 token
+   * @param symbol The symbol of the Pool ERC20 token
    * @return bPool The new BPool
    */
   function newBPool(string memory name, string memory symbol) external returns (IBPool bPool);

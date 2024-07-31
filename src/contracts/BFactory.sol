@@ -62,6 +62,8 @@ contract BFactory is IBFactory {
 
   /**
    * @notice Deploys a new BPool.
+   * @param name The name of the Pool ERC20 token
+   * @param symbol The symbol of the Pool ERC20 token
    * @dev Internal function to allow overriding in derived contracts.
    * @return bPool The deployed BPool
    */
