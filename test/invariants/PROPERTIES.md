@@ -86,7 +86,5 @@ bpow should be distributive over mult of the same base x^a * x^b == x^(a+b)
 bpow should be distributive over mult of the same exp  a^x * b^x == (a*b)^x
 power of a power should mult the exp (x^a)^b == x^(a*b)
 
-## Untested (precision issues in test settingsq)
 calcOutGivenIn should be inv with calcInGivenOut
-calcPoolOutGivenSingleIn should be inv with calcSingleInGivenPoolOut
-calcSingleOutGivenPoolIn should be inv with calcPoolInGivenSingleOut
+calcInGivenOut should be inv with calcOutGivenIn

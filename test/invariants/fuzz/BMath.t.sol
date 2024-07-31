@@ -12,6 +12,10 @@ contract FuzzBMath is EchidnaTest {
   uint256 immutable MIN_FEE;
   uint256 immutable MAX_FEE;
 
+  /**
+   * NOTE: These values were chosen to pass the fuzzing tests
+   * @dev Reducing BPOW_PRECISION may allow broader range of values increasing the gas cost
+   */
   uint256 constant MAX_BALANCE = 1_000_000e18;
   uint256 constant MIN_BALANCE = 1e18;
   uint256 constant MAX_TOLERANCE = 1e12;
