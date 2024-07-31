@@ -23,7 +23,6 @@ contract HalmosBalancer is HalmosTest {
   BCoWPool pool;
 
   address currentCaller = svm.createAddress('currentCaller');
-  // address currentCaller = address(234);
 
   constructor() {
     solutionSettler = address(new MockSettler());
@@ -107,10 +106,10 @@ contract HalmosBalancer is HalmosTest {
       assert(_currentBDao != currentCaller);
     }
   }
+
   /// @custom:property-id 7
   /// @custom:property total weight can be up to 50e18
   /// @dev Only 2 tokens are used, to avoid hitting the limit in loop unrolling
-
   function check_totalWeightMax(uint256[2] calldata _weights) public {
     // Precondition
     BCoWPool _pool = BCoWPool(address(factory.newBPool()));
