@@ -131,28 +131,28 @@ contract FuzzProtocol is EchidnaTest {
   }
 
   /// @custom:property-id 2
-  /// @custom:property BFactory's blab should always be modifiable by the current blabs
-  function fuzz_blabAlwaysModByBLab() public agentOrDeployer {
+  /// @custom:property BFactory's BDao should always be modifiable by the current BDaos
+  function fuzz_BDaoAlwaysModByBDao() public agentOrDeployer {
     // Precondition
-    address _currentBLab = factory.getBLabs();
+    address _currentBDao = factory.getBDao();
 
     hevm.prank(currentCaller);
 
     // Action
-    try factory.setBLabs(address(123)) {
+    try factory.setBDao(address(123)) {
       // Postcondition
-      assert(_currentBLab == currentCaller);
+      assert(_currentBDao == currentCaller);
     } catch {
-      assert(_currentBLab != currentCaller);
+      assert(_currentBDao != currentCaller);
     }
   }
 
   /* TODO: re-enable this test after fixing the hevm issue with SafeTransfer library
   /// @custom:property-id 3
-  /// @custom:property BFactory should always be able to transfer the BToken to the blab, if called by it
+  /// @custom:property BFactory should always be able to transfer the BToken to the BDao, if called by it
   function fuzz_alwaysCollect() public agentOrDeployer {
     // Precondition
-    address _currentBLab = factory.getBLabs();
+    address _currentBDao = factory.getBDao();
 
     if (address(pool) == address(0)) {
       return;
@@ -163,9 +163,9 @@ contract FuzzProtocol is EchidnaTest {
     // Action
     try factory.collect(pool) {
       // Postcondition
-      assert(_currentBLab == currentCaller);
+      assert(_currentBDao == currentCaller);
     } catch {
-      assert(_currentBLab != currentCaller);
+      assert(_currentBDao != currentCaller);
     }
   }
   */
@@ -419,6 +419,7 @@ contract FuzzProtocol is EchidnaTest {
     assert(ghost_bptMinted - ghost_bptBurned == pool.totalSupply());
   }
 
+  /* NOTE: deprecated calcSingleOutGivenPoolIn
   /// @custom:property-id 17
   /// @custom:property a direct token transfer can never reduce the underlying amount of a given token per BPT
   function fuzz_directTransfer(
@@ -493,6 +494,7 @@ contract FuzzProtocol is EchidnaTest {
       assert(tokens[i].balanceOf(currentCaller) == _previousBalances[i] + _amountsToReceive[i]);
     }
   }
+  */
 
   /// @custom:property-id 20
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller

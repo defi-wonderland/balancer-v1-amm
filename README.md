@@ -32,6 +32,7 @@ yarn test    # run the tests
 - Deprecated `Migrations` contract (not needed)
 - Added an `_afterFinalize` hook (to be called at the end of the finalize routine)
 - Implemented reentrancy locks using transient storage.
+- Deprecated `joinswap` and `exitswap` methods (avoid single-token math precision issues)
 
 ## Features on BCoWPool (added via inheritance to BPool)
 - Immutably stores CoW Protocol's `SolutionSettler` and `VaultRelayer` addresses at deployment
@@ -57,3 +58,17 @@ yarn test    # run the tests
   - The weight represents the intended distribution of value between the tokens in the pool
 - Modify the pool's swap fee by calling `IBPool.setSwapFee(fee)`
 - Finalize the pool by calling `IBPool.finalize()`
+
+# Deployments
+Ethereum Mainnet:
+  - BCoWFactory: [0x23fcC2166F991B8946D195de53745E1b804C91B7](https://etherscan.io/address/0x23fcC2166F991B8946D195de53745E1b804C91B7)
+  - BCoWHelper: [0x5F6e7D3ef6e9aedD21C107BF8faA610f1215C730 ](https://etherscan.io/address/0x5F6e7D3ef6e9aedD21C107BF8faA610f1215C730 )
+
+Ethereum Sepolia:
+  - BCoWFactory: [0xF3F089AF5FaAF8784B445593B3bd8A514EaA3433 ](https://sepolia.etherscan.io/address/0xF3F089AF5FaAF8784B445593B3bd8A514EaA3433 )
+  - BCoWHelper: [0x07E7E9e3f4E715Ef1434b7f865fedBCE82Dd41Ba](https://sepolia.etherscan.io/address/0x07E7E9e3f4E715Ef1434b7f865fedBCE82Dd41Ba)
+  - BCoWPool: [0x4Cc911897fFCC5553627d454533D944F1D78CBdE](https://sepolia.etherscan.io/address/0x4Cc911897fFCC5553627d454533D944F1D78CBdE)
+
+  Gnosis Mainnet:
+  - BCoWFactory: [0x7573B99BC09c11Dc0427fb9c6662bc603E008304](https://gnosisscan.io/address/0x7573B99BC09c11Dc0427fb9c6662bc603E008304)
+  - BCoWHelper: [0x85315994492E88D6faCd3B0E3585c68A4720627e](https://gnosisscan.io/address/0x85315994492E88D6faCd3B0E3585c68A4720627e)

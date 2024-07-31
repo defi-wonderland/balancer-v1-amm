@@ -1,14 +1,14 @@
 | Properties                                                                                  | Type                | Id  | Halmos | Echidna |
 | ------------------------------------------------------------------------------------------- | ------------------- | --- | ------ | ------- |
 | BFactory should always be able to deploy new pools                                          | Unit                | 1   | [x]    | [x]     |
-| BFactory's blab should always be modifiable by the current blabs                            | Unit                | 2   | [x]    | [x]     |
-| BFactory should always be able to transfer the BToken to the blab, if called by it          | Unit                | 3   | [x]    | [x]     |
+| BFactory's BDao should always be modifiable by the current BDao                             | Unit                | 2   | [x]    | [x]     |
+| BFactory should always be able to transfer the BToken to the BDao, if called by it          | Unit                | 3   | [x]    | [x]     |
 | the amount received can never be less than min amount out                                   | Unit                | 4   | :(     | [x]     |
 | the amount spent can never be greater than max amount in                                    | Unit                | 5   | :(     | [x]     |
-| swap fee can only be 0 (cow pool)                                                           | Valid state         | 6   | [x]    | [x]     |
+| swap fee can only be 0 (cow pool)                                                           | Valid state         | 6   |        | [x]     |
 | total weight can be up to 50e18                                                             | Variable transition | 7   | [x]    | [x]     |
-| BToken increaseApproval should increase the approval of the address by the amount*          | Variable transition | 8   | [x]    | [x]     |
-| BToken decreaseApproval should decrease the approval to max(old-amount, 0)*                 | Variable transition | 9   | [x]    | [x]     |
+| BToken increaseApproval should increase the approval of the address by the amount*          | Variable transition | 8   |        | [x]     |
+| BToken decreaseApproval should decrease the approval to max(old-amount, 0)*                 | Variable transition | 9   |        | [x]     |
 | a pool can either be finalized or not finalized                                             | Valid state         | 10  |        | [x]     |
 | a finalized pool cannot switch back to non-finalized                                        | State transition    | 11  |        | [x]     |
 | a non-finalized pool can only be finalized when the controller calls finalize()             | State transition    | 12  | [x]    | [x]     |
@@ -16,8 +16,8 @@
 | an exact amount out is earned only if the amount in calculated in bmath is transfered       | High level          | 14  | :(     | [x]     |
 | there can't be any amount out for a 0 amount in                                             | High level          | 15  | :(     | [x]     |
 | the pool btoken can only be minted/burned in the join and exit operations                   | High level          | 16  |        | [x]     |
-| a direct token transfer can never reduce the underlying amount of a given token per BPT     | High level          | 17  | :(     | [x]     |
-| the amount of underlying token when exiting should always be the amount calculated in bmath | High level          | 18  | :(     | [x]     |
+| ~~a direct token transfer can never reduce the underlying amount of a given token per BPT~~ | High level          | 17  | :(     | #     |
+| ~~the amount of underlying token when exiting should always be the amount calculated in bmath~~ | High level          | 18  | :(     | #     |
 | a swap can only happen when the pool is finalized                                           | High level          | 19  |        | [x]     |
 | bounding and unbounding token can only be done on a non-finalized pool, by the controller   | High level          | 20  | [x]    | [x]     |
 | there always should be between MIN_BOUND_TOKENS and MAX_BOUND_TOKENS bound in a pool        | High level          | 21  |        | [x]     |
@@ -30,10 +30,11 @@
 
 > (**) [Trail of Bits ERC20 properties](https://github.com/crytic/properties?tab=readme-ov-file#erc20-tests)
 
-[ ] planed to implement and still to do
-<br>[x] implemented and tested 
-<br>:( implemented but test not passing due to an external factor (tool limitation - eg halmos max unrolling loop, etc) 
-<br>empty not implemented and will not be (design, etc)
+<br>`[ ]` planed to implement and still to do
+<br>`[x]` implemented and tested
+<br>`:(` implemented but test not passing due to an external factor (tool limitation - eg halmos max unrolling loop, etc)
+<br>`#` implemented but deprecated feature / property
+<br>`` empty not implemented and will not be (design, etc)
 
 # Unit-test properties for the math libs (BNum and BMath):
 
@@ -86,7 +87,7 @@ bpow should be distributive over mult of the same base x^a * x^b == x^(a+b)
 bpow should be distributive over mult of the same exp  a^x * b^x == (a*b)^x
 power of a power should mult the exp (x^a)^b == x^(a*b)
 
-## Untested (precision issues in test settingsq)
 calcOutGivenIn should be inv with calcInGivenOut
-calcPoolOutGivenSingleIn should be inv with calcSingleInGivenPoolOut
-calcSingleOutGivenPoolIn should be inv with calcPoolInGivenSingleOut
+calcInGivenOut should be inv with calcOutGivenIn
+~~calcPoolOutGivenSingleIn should be inv with calcSingleInGivenPoolOut~~
+~~calcSingleOutGivenPoolIn should be inv with calcPoolInGivenSingleOut~~
