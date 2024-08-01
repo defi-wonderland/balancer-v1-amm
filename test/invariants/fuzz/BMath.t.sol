@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 import {EchidnaTest} from '../helpers/AdvancedTestsUtils.sol';
@@ -18,6 +18,7 @@ contract FuzzBMath is EchidnaTest {
    */
   uint256 constant MAX_BALANCE = 1_000_000e18;
   uint256 constant MIN_BALANCE = 1e18;
+  uint256 constant MIN_AMOUNT = 1e6;
   uint256 constant MAX_TOLERANCE = 1e12;
 
   constructor() {
@@ -40,7 +41,7 @@ contract FuzzBMath is EchidnaTest {
   ) public view {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_WEIGHT);
-    tokenAmountIn = clamp(tokenAmountIn, MIN_BALANCE, MAX_BALANCE);
+    tokenAmountIn = clamp(tokenAmountIn, MIN_AMOUNT, MAX_BALANCE);
     tokenBalanceOut = clamp(tokenBalanceOut, MIN_BALANCE, MAX_BALANCE);
     tokenBalanceIn = clamp(tokenBalanceIn, MIN_BALANCE, MAX_BALANCE);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
@@ -52,7 +53,7 @@ contract FuzzBMath is EchidnaTest {
       bMath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, calc_tokenAmountOut, swapFee);
 
     assert(
-      calc_tokenAmountOut < MIN_BALANCE // return amount too small
+      calc_tokenAmountOut < MIN_AMOUNT // return amount too small
         || tokenAmountIn == calc_tokenAmountIn // exact match
         || tokenAmountIn > calc_tokenAmountIn // within tolerance
         ? (tokenAmountIn * 1e18 / calc_tokenAmountIn) - 1e18 <= MAX_TOLERANCE
@@ -71,7 +72,7 @@ contract FuzzBMath is EchidnaTest {
   ) public view {
     tokenWeightIn = clamp(tokenWeightIn, MIN_WEIGHT, MAX_WEIGHT);
     tokenWeightOut = clamp(tokenWeightOut, MIN_WEIGHT, MAX_WEIGHT);
-    tokenAmountOut = clamp(tokenAmountOut, MIN_BALANCE, MAX_BALANCE);
+    tokenAmountOut = clamp(tokenAmountOut, MIN_AMOUNT, MAX_BALANCE);
     tokenBalanceOut = clamp(tokenBalanceOut, MIN_BALANCE, MAX_BALANCE);
     tokenBalanceIn = clamp(tokenBalanceIn, MIN_BALANCE, MAX_BALANCE);
     swapFee = clamp(swapFee, MIN_FEE, MAX_FEE);
@@ -83,7 +84,7 @@ contract FuzzBMath is EchidnaTest {
       bMath.calcOutGivenIn(tokenBalanceOut, tokenWeightOut, tokenBalanceIn, tokenWeightIn, calc_tokenAmountIn, swapFee);
 
     assert(
-      calc_tokenAmountIn < MIN_BALANCE // return amount too small
+      calc_tokenAmountIn < MIN_AMOUNT // return amount too small
         || tokenAmountOut == calc_tokenAmountOut // exact match
         || tokenAmountOut > calc_tokenAmountOut // within tolerance
         ? (tokenAmountOut * 1e18 / calc_tokenAmountOut) - 1e18 <= MAX_TOLERANCE
