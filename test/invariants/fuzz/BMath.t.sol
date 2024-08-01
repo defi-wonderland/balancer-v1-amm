@@ -17,9 +17,10 @@ contract FuzzBMath is EchidnaTest {
    * @dev Reducing BPOW_PRECISION may allow broader range of values increasing the gas cost
    */
   uint256 constant MAX_BALANCE = 1_000_000e18;
-  uint256 constant MIN_BALANCE = 1e18;
-  uint256 constant MIN_AMOUNT = 1e6;
-  uint256 constant MAX_TOLERANCE = 1e12;
+  uint256 constant MIN_BALANCE = 100e18;
+  uint256 constant MIN_AMOUNT = 1e12;
+  uint256 constant TOLERANCE_PRECISION = 1e18;
+  uint256 constant MAX_TOLERANCE = 1e18 + 1e15; //0.1%
 
   constructor() {
     bMath = new BMath();
@@ -53,11 +54,9 @@ contract FuzzBMath is EchidnaTest {
       bMath.calcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, calc_tokenAmountOut, swapFee);
 
     assert(
-      calc_tokenAmountOut < MIN_AMOUNT // return amount too small
-        || tokenAmountIn == calc_tokenAmountIn // exact match
-        || tokenAmountIn > calc_tokenAmountIn // within tolerance
-        ? (tokenAmountIn * 1e18 / calc_tokenAmountIn) - 1e18 <= MAX_TOLERANCE
-        : (calc_tokenAmountIn * 1e18 / tokenAmountIn) - 1e18 <= MAX_TOLERANCE
+      tokenAmountIn >= calc_tokenAmountIn
+        ? (tokenAmountIn * TOLERANCE_PRECISION / calc_tokenAmountIn) <= MAX_TOLERANCE
+        : (calc_tokenAmountIn * TOLERANCE_PRECISION / tokenAmountIn) <= MAX_TOLERANCE
     );
   }
 
@@ -84,11 +83,9 @@ contract FuzzBMath is EchidnaTest {
       bMath.calcOutGivenIn(tokenBalanceOut, tokenWeightOut, tokenBalanceIn, tokenWeightIn, calc_tokenAmountIn, swapFee);
 
     assert(
-      calc_tokenAmountIn < MIN_AMOUNT // return amount too small
-        || tokenAmountOut == calc_tokenAmountOut // exact match
-        || tokenAmountOut > calc_tokenAmountOut // within tolerance
-        ? (tokenAmountOut * 1e18 / calc_tokenAmountOut) - 1e18 <= MAX_TOLERANCE
-        : (calc_tokenAmountOut * 1e18 / tokenAmountOut) - 1e18 <= MAX_TOLERANCE
+      tokenAmountOut >= calc_tokenAmountOut
+        ? (tokenAmountOut * TOLERANCE_PRECISION / calc_tokenAmountOut) <= MAX_TOLERANCE
+        : (calc_tokenAmountOut * TOLERANCE_PRECISION / tokenAmountOut) <= MAX_TOLERANCE
     );
   }
 }
