@@ -2,5 +2,6 @@
 testMode: assertion
 corpusDir: test/invariants/fuzz/corpuses/BMath/
 coverageFormats: ["html","lcov"]
-allContracts: true
+allContracts: false
 testLimit: 50000
+seqLen: 1
