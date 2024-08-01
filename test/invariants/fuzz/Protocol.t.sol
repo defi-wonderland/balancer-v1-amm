@@ -147,7 +147,6 @@ contract FuzzProtocol is EchidnaTest {
     }
   }
 
-  /* TODO: re-enable this test after fixing the hevm issue with SafeTransfer library
   /// @custom:property-id 3
   /// @custom:property BFactory should always be able to transfer the BToken to the BDao, if called by it
   function fuzz_alwaysCollect() public agentOrDeployer {
@@ -168,7 +167,6 @@ contract FuzzProtocol is EchidnaTest {
       assert(_currentBDao != currentCaller);
     }
   }
-  */
 
   /// @custom:property-id 4
   /// @custom:property the amount received can never be less than min amount out
@@ -418,83 +416,6 @@ contract FuzzProtocol is EchidnaTest {
   function fuzz_mintBurnBPT() public {
     assert(ghost_bptMinted - ghost_bptBurned == pool.totalSupply());
   }
-
-  /* NOTE: deprecated calcSingleOutGivenPoolIn
-  /// @custom:property-id 17
-  /// @custom:property a direct token transfer can never reduce the underlying amount of a given token per BPT
-  function fuzz_directTransfer(
-    uint256 _amountPoolToken,
-    uint256 _amountToTransfer,
-    uint256 _tokenIdx
-  ) public agentOrDeployer {
-    _tokenIdx = clamp(_tokenIdx, 0, tokens.length - 1);
-    FuzzERC20 _token = tokens[_tokenIdx];
-
-    uint256 _redeemedAmountBeforeTransfer = bmath.calcSingleOutGivenPoolIn(
-      _token.balanceOf(address(pool)),
-      pool.getDenormalizedWeight(address(_token)),
-      pool.totalSupply(),
-      pool.getTotalDenormalizedWeight(),
-      _amountPoolToken,
-      bconst.MIN_FEE()
-    );
-
-    _token.mint(address(this), _amountToTransfer);
-    // Action
-    _token.transfer(address(pool), _amountToTransfer);
-
-    // Postcondition
-    uint256 _redeemedAmountAfter = bmath.calcSingleOutGivenPoolIn(
-      _token.balanceOf(address(pool)),
-      pool.getDenormalizedWeight(address(_token)),
-      pool.totalSupply(),
-      pool.getTotalDenormalizedWeight(),
-      _amountPoolToken,
-      bconst.MIN_FEE()
-    );
-
-    assert(_redeemedAmountAfter >= _redeemedAmountBeforeTransfer);
-
-    ghost_amountDirectlyTransfered[_token] += _amountToTransfer;
-  }
-
-  /// @custom:property-id 18
-  /// @custom:property the amount of underlying token when exiting should always be the amount calculated in bmath
-  function fuzz_correctBPTBurnAmount(uint256 _amountPoolToken) public agentOrDeployer {
-    _amountPoolToken = clamp(_amountPoolToken, 0, pool.balanceOf(currentCaller));
-
-    uint256[] memory _amountsToReceive = new uint256[](4);
-    uint256[] memory _previousBalances = new uint256[](4);
-
-    for (uint256 i; i < tokens.length; i++) {
-      FuzzERC20 _token = tokens[i];
-
-      _amountsToReceive[i] = bmath.calcSingleOutGivenPoolIn(
-        _token.balanceOf(address(pool)),
-        pool.getDenormalizedWeight(address(_token)),
-        pool.totalSupply(),
-        pool.getTotalDenormalizedWeight(),
-        _amountPoolToken,
-        bconst.MIN_FEE()
-      );
-
-      _previousBalances[i] = _token.balanceOf(currentCaller);
-    }
-
-    hevm.prank(currentCaller);
-    pool.approve(address(pool), _amountPoolToken);
-
-    hevm.prank(currentCaller);
-
-    // Action
-    pool.exitPool(_amountPoolToken, new uint256[](4));
-
-    // PostCondition
-    for (uint256 i; i < tokens.length; i++) {
-      assert(tokens[i].balanceOf(currentCaller) == _previousBalances[i] + _amountsToReceive[i]);
-    }
-  }
-  */
 
   /// @custom:property-id 20
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
