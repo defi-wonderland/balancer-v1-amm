@@ -2,7 +2,7 @@
 
 ## Warning
 The repo is using solc 0.8.25, which compiles to the Cancun EVM version by default. Unfortunately, the hevm has no implementation of this EVM version ([or not yet](https://github.com/ethereum/hevm/issues/469#issuecomment-2220677206)).
-Solc using a mcopy opcode somewhere, the property tests are run on Shanghai for now (at least until the hevm catches up), preventing this branch to be merged with the main one.
+By using `ForTest` contracts in for property tests (which avoid using transient storage and `mcopy`) we managed to make the tests run under Cancun.
 
 ## Unit tests
 Our unit tests are covering every branches, using the branched-tree technique with [Bulloak](https://github.com/alexfertel/bulloak).
@@ -15,11 +15,10 @@ We identified 24 properties. We challenged these either in a long-running fuzzin
 
 ### Fuzzing campaign
 
-We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath). BMath properties are currently not triggered in CI, due to various rounding errors, and should be further validated.
+We used echidna to test these 23 properties. In addition to these, another fuzzing campaign as been led against the mathematical contracts (BNum and BMath).
 
 #### Limitations/future improvements
-Currently, the swap logic are tested against the swap in/out functions (and, in a similar way, liquidity management via the join/exit function). The combined equivalent (joinswapExternAmountIn, joinswapPoolAmountOut, etc) should be tested too.
-BMath properties are currently not tested and current tests should be refactored to quantify the precision errors.
+Currently, the swap logic are tested against the swap in/out functions (and, in a similar way, liquidity management via the join/exit function).
 
 ### Formal verification: Symbolic Execution
 We managed to test 10 properties out of the 23. Properties not tested are either not easily challenged with symbolic execution (statefullness needed) or limited by Halmos itself (hitting loop unrolling boundaries in the implementation for instance).
