@@ -8,7 +8,7 @@ import {IBPool} from 'interfaces/IBPool.sol';
 contract BCoWFactoryForTest is BCoWFactory {
   constructor(address cowSolutionSettler, bytes32 appData) BCoWFactory(cowSolutionSettler, appData) {}
 
-  function _newBPool() internal virtual override returns (IBPool bCoWPool) {
-    bCoWPool = new BCoWPoolForTest(SOLUTION_SETTLER, APP_DATA);
+  function _newBPool(string memory, string memory) internal virtual override returns (IBPool bCoWPool) {
+    bCoWPool = new BCoWPoolForTest(SOLUTION_SETTLER, APP_DATA, 'name', 'symbol');
   }
 }

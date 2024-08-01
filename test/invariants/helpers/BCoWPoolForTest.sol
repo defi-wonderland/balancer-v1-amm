@@ -5,7 +5,12 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {BCoWPool} from 'contracts/BCoWPool.sol';
 
 contract BCoWPoolForTest is BCoWPool {
-  constructor(address cowSolutionSettler, bytes32 appData) BCoWPool(cowSolutionSettler, appData) {}
+  constructor(
+    address cowSolutionSettler,
+    bytes32 appData,
+    string memory name,
+    string memory symbol
+  ) BCoWPool(cowSolutionSettler, appData, name, symbol) {}
 
   bytes32 private _reenteringMutex;
 

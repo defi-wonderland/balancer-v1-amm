@@ -47,7 +47,7 @@ contract FuzzBToken is CryticERC20ExternalBasicProperties, EchidnaTest {
   }
 }
 
-contract CryticTokenMock is BToken, PropertiesConstants {
+contract CryticTokenMock is BToken('Balancer Pool Token', 'BPT'), PropertiesConstants {
   bool public isMintableOrBurnable;
   uint256 public initialSupply;
 

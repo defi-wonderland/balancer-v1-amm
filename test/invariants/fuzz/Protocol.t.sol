@@ -32,6 +32,9 @@ contract FuzzProtocol is EchidnaTest {
   uint256 ghost_bptBurned;
   mapping(FuzzERC20 => uint256) ghost_amountDirectlyTransfered;
 
+  string constant ERC20_SYMBOL = 'BPT';
+  string constant ERC20_NAME = 'Balancer Pool Token';
+
   constructor() {
     solutionSettler = address(new MockSettler());
 
@@ -40,7 +43,7 @@ contract FuzzProtocol is EchidnaTest {
     bmath = new BMath();
     bnum = new BNum();
 
-    pool = IBCoWPool(address(factory.newBPool()));
+    pool = IBCoWPool(address(factory.newBPool(ERC20_NAME, ERC20_SYMBOL)));
 
     // first 4 tokens bound to the finalized pool
     for (uint256 i; i < 4; i++) {
@@ -119,7 +122,7 @@ contract FuzzProtocol is EchidnaTest {
     hevm.prank(currentCaller);
 
     // Action
-    try factory.newBPool() returns (IBPool _newPool) {
+    try factory.newBPool(ERC20_NAME, ERC20_SYMBOL) returns (IBPool _newPool) {
       // Postcondition
       assert(address(_newPool).code.length > 0);
       assert(factory.isBPool(address(_newPool)));
@@ -339,7 +342,7 @@ contract FuzzProtocol is EchidnaTest {
   /// @custom:property total weight can be up to 50e18
   function fuzz_totalWeightMax(uint256 _numberTokens, uint256[8] calldata _weights) public {
     // Precondition
-    IBPool _pool = IBPool(address(factory.newBPool()));
+    IBPool _pool = IBPool(address(factory.newBPool(ERC20_NAME, ERC20_SYMBOL)));
 
     _numberTokens = clamp(_numberTokens, bconst.MIN_BOUND_TOKENS(), bconst.MAX_BOUND_TOKENS());
 
