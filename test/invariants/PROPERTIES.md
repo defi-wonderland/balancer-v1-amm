@@ -49,12 +49,13 @@ badd result should always be gte its terms
 badd should never sum terms which have a sum gt uint max
 badd should have bsub as reverse operation
 
-bsub should not be commutative
 bsub should not be associative
 bsub should have 0 as identity
 bsub result should always be lte its terms
 bsub should alway revert if b > a (duplicate with previous tho)
 
+bsubSign should not be commutative sign-wise
+bsubSign should be commutative value-wise
 bsubSign result should always be negative if b > a
 bsubSign result should always be positive if a > b
 bsubSign result should always be 0 if a == b

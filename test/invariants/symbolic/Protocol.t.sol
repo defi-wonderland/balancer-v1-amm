@@ -3,24 +3,24 @@ pragma solidity 0.8.25;
 
 import {FuzzERC20, HalmosTest} from '../helpers/AdvancedTestsUtils.sol';
 
+import {BCoWFactoryForTest as BCoWFactory} from '../helpers/BCoWFactoryForTest.sol';
 import {MockSettler} from '../helpers/MockSettler.sol';
-import {BCoWFactory, BCoWPool, IBPool} from 'contracts/BCoWFactory.sol';
+import {IBCoWPool} from 'interfaces/IBCoWPool.sol';
+import {IBPool} from 'interfaces/IBPool.sol';
 
 import {BConst} from 'contracts/BConst.sol';
-import {BMath} from 'contracts/BMath.sol';
 import {BToken} from 'contracts/BToken.sol';
 
 contract HalmosBalancer is HalmosTest {
   // System under test
   BCoWFactory factory;
   BConst bconst;
-  BMath bmath;
 
   address solutionSettler;
   bytes32 appData;
 
   FuzzERC20[] tokens;
-  BCoWPool pool;
+  IBCoWPool pool;
 
   address currentCaller = svm.createAddress('currentCaller');
 
@@ -28,8 +28,7 @@ contract HalmosBalancer is HalmosTest {
     solutionSettler = address(new MockSettler());
     factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
-    bmath = new BMath();
-    pool = BCoWPool(address(factory.newBPool()));
+    pool = IBCoWPool(address(factory.newBPool('Balancer Pool Token', 'BPT')));
 
     // max bound token is 8
     for (uint256 i; i < 5; i++) {
@@ -63,7 +62,7 @@ contract HalmosBalancer is HalmosTest {
     vm.prank(_caller);
 
     // Action
-    try factory.newBPool() returns (IBPool _newPool) {
+    try factory.newBPool('Balancer Pool Token', 'BPT') returns (IBPool _newPool) {
       // Postcondition
       assert(address(_newPool).code.length > 0);
       assert(factory.isBPool(address(_newPool)));
@@ -112,7 +111,7 @@ contract HalmosBalancer is HalmosTest {
   /// @dev Only 2 tokens are used, to avoid hitting the limit in loop unrolling
   function check_totalWeightMax(uint256[2] calldata _weights) public {
     // Precondition
-    BCoWPool _pool = BCoWPool(address(factory.newBPool()));
+    IBCoWPool _pool = IBCoWPool(address(factory.newBPool('Balancer Pool Token', 'BPT')));
 
     uint256 _totalWeight = 0;
 
@@ -179,7 +178,7 @@ contract HalmosBalancer is HalmosTest {
   /// @custom:property a non-finalized pool can only be finalized when the controller calls finalize()
   function check_poolFinalizedByController() public {
     // Precondition
-    IBPool _nonFinalizedPool = factory.newBPool();
+    IBPool _nonFinalizedPool = factory.newBPool('Balancer Pool Token', 'BPT');
 
     vm.prank(_nonFinalizedPool.getController());
 
@@ -209,7 +208,7 @@ contract HalmosBalancer is HalmosTest {
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
   function check_boundOnlyNotFinalized() public {
     // Precondition
-    IBPool _nonFinalizedPool = factory.newBPool();
+    IBPool _nonFinalizedPool = factory.newBPool('Balancer Pool Token', 'BPT');
 
     address _callerBind = svm.createAddress('callerBind');
     address _callerUnbind = svm.createAddress('callerUnbind');
