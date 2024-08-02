@@ -43,7 +43,7 @@ contract FuzzProtocol is EchidnaTest {
     bmath = new BMath();
     bnum = new BNum();
 
-    pool = IBCoWPool(address(factory.newBPool(ERC20_NAME, ERC20_SYMBOL)));
+    pool = IBCoWPool(address(factory.newBPool('Balancer Pool Token', 'BPT')));
 
     // first 4 tokens bound to the finalized pool
     for (uint256 i; i < 4; i++) {

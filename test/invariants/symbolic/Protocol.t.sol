@@ -21,8 +21,6 @@ contract HalmosBalancer is HalmosTest {
 
   FuzzERC20[] tokens;
   IBCoWPool pool;
-  string constant ERC20_NAME = 'Balancer Pool Token';
-  string constant ERC20_SYMBOL = 'BPT';
 
   address currentCaller = svm.createAddress('currentCaller');
 
@@ -30,7 +28,7 @@ contract HalmosBalancer is HalmosTest {
     solutionSettler = address(new MockSettler());
     factory = new BCoWFactory(solutionSettler, appData);
     bconst = new BConst();
-    pool = IBCoWPool(address(factory.newBPool(ERC20_NAME, ERC20_SYMBOL)));
+    pool = IBCoWPool(address(factory.newBPool('Balancer Pool Token', 'BPT')));
 
     // max bound token is 8
     for (uint256 i; i < 5; i++) {
@@ -64,7 +62,7 @@ contract HalmosBalancer is HalmosTest {
     vm.prank(_caller);
 
     // Action
-    try factory.newBPool(ERC20_NAME, ERC20_SYMBOL) returns (IBPool _newPool) {
+    try factory.newBPool('Balancer Pool Token', 'BPT') returns (IBPool _newPool) {
       // Postcondition
       assert(address(_newPool).code.length > 0);
       assert(factory.isBPool(address(_newPool)));
@@ -113,7 +111,7 @@ contract HalmosBalancer is HalmosTest {
   /// @dev Only 2 tokens are used, to avoid hitting the limit in loop unrolling
   function check_totalWeightMax(uint256[2] calldata _weights) public {
     // Precondition
-    IBCoWPool _pool = IBCoWPool(address(factory.newBPool(ERC20_NAME, ERC20_SYMBOL)));
+    IBCoWPool _pool = IBCoWPool(address(factory.newBPool('Balancer Pool Token', 'BPT')));
 
     uint256 _totalWeight = 0;
 
@@ -180,7 +178,7 @@ contract HalmosBalancer is HalmosTest {
   /// @custom:property a non-finalized pool can only be finalized when the controller calls finalize()
   function check_poolFinalizedByController() public {
     // Precondition
-    IBPool _nonFinalizedPool = factory.newBPool(ERC20_NAME, ERC20_SYMBOL);
+    IBPool _nonFinalizedPool = factory.newBPool('Balancer Pool Token', 'BPT');
 
     vm.prank(_nonFinalizedPool.getController());
 
@@ -210,7 +208,7 @@ contract HalmosBalancer is HalmosTest {
   /// @custom:property bounding and unbounding token can only be done on a non-finalized pool, by the controller
   function check_boundOnlyNotFinalized() public {
     // Precondition
-    IBPool _nonFinalizedPool = factory.newBPool(ERC20_NAME, ERC20_SYMBOL);
+    IBPool _nonFinalizedPool = factory.newBPool('Balancer Pool Token', 'BPT');
 
     address _callerBind = svm.createAddress('callerBind');
     address _callerUnbind = svm.createAddress('callerUnbind');
