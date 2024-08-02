@@ -100,19 +100,6 @@ contract SymbolicBNum is BNum, HalmosTest {
   //                           Bnum::bsub                            //
   /////////////////////////////////////////////////////////////////////
 
-  // bsub should not be commutative
-  function check_bsub_notCommut(uint256 _a, uint256 _b) public pure {
-    // precondition
-    vm.assume(_a != _b);
-
-    // action
-    uint256 _result1 = bsub(_a, _b);
-    uint256 _result2 = bsub(_b, _a);
-
-    // post condition
-    assert(_result1 != _result2);
-  }
-
   // bsub should not be associative
   function check_bsub_notAssoc(uint256 _a, uint256 _b, uint256 _c) public pure {
     // precondition
@@ -151,6 +138,32 @@ contract SymbolicBNum is BNum, HalmosTest {
   /////////////////////////////////////////////////////////////////////
   //                         Bnum::bsubSign                          //
   /////////////////////////////////////////////////////////////////////
+
+  // bsubSign should be commutative value-wise
+  function check_bsubSign_CommutValue(uint256 _a, uint256 _b) public pure {
+    // precondition
+    vm.assume(_a != _b);
+
+    // action
+    (uint256 _result1,) = bsubSign(_a, _b);
+    (uint256 _result2,) = bsubSign(_b, _a);
+
+    // post condition
+    assert(_result1 == _result2);
+  }
+
+  // bsubSign should not be commutative sign-wise
+  function check_bsubSign_notCommutSign(uint256 _a, uint256 _b) public pure {
+    // precondition
+    vm.assume(_a != _b);
+
+    // action
+    (, bool _sign1) = bsubSign(_a, _b);
+    (, bool _sign2) = bsubSign(_b, _a);
+
+    // post condition
+    assert(_sign1 != _sign2);
+  }
 
   // bsubSign result should always be negative if b > a
   function check_bsubSign_negative(uint256 _a, uint256 _b) public pure {
